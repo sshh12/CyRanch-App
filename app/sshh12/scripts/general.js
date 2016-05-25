@@ -19,11 +19,8 @@ function encodeToURL(str) {
   });
 }
 
-function removeExtraChars(s){
-	s = s.toLowerCase();
-	s = s.replace(",", "");
-	s = s.replace(" ", "");
-	return s;
+function removeExtraChars(string){
+	return string.toLowerCase().replace(",", "").replace(" ", "");
 }
 
 function parseXSS(string){
