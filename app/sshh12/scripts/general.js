@@ -1,3 +1,5 @@
+//Global Functions and Stuff
+
 var SVR_ADDRESS = "http://sshh12.com:8338/";
 
 function createDocElement(name, bodytext) {
@@ -24,13 +26,13 @@ function removeExtraChars(s){
 	return s;
 }
 
-function parseXSS(s){
-	return s.replace(/;/g, "&semi;").replace(/=/g, "&equals;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/&/g, "&amp;").replace(/!/g, "&excl;").replace(/\$/g, "&dollar;");
+function parseXSS(string){
+	return string.replace(/;/g, "&semi;").replace(/=/g, "&equals;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/&/g, "&amp;").replace(/!/g, "&excl;").replace(/\$/g, "&dollar;");
 }
 
-function getFromURL(url) {
+function getFromURL(URL) {
 	var xmlHttp = new XMLHttpRequest();
-  xmlHttp.open("GET", url, false);
+  xmlHttp.open("GET", URL, false);
   xmlHttp.send( null );
 	return xmlHttp.responseText;
 }

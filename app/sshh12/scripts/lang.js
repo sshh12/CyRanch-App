@@ -1,3 +1,5 @@
+//Possible future feature
+
 var language = localStorage.getItem("language");
 if(isUndefined(language) || language == null  || language == ""){
 	setLanguage("en");

@@ -1,0 +1,154 @@
+//School Schedules
+
+function timeslot(timestring, name){
+    this.rawstring = timestring;
+
+    this.rawname = name;
+
+    var split = timestring.split("-");
+    this.start_time = split[0];
+    this.end_time = split[1];
+
+    var date_now = new Date();
+
+    var start_split = this.start_time.split(":");
+    this.start_date = new Date(date_now.valueOf());
+    this.start_date.setHours(start_split[0]);
+    this.start_date.setMinutes(start_split[1]);
+    this.start_date.setSeconds(0);
+
+    var end_split = this.end_time.split(":");
+    this.end_date = new Date(date_now.valueOf());
+    this.end_date.setHours(end_split[0]);
+    this.end_date.setMinutes(end_split[1]);
+    this.end_date.setSeconds(0);
+
+    this.getNameString = function(){
+      var s = "";
+      if(this.start_date.getHours() > 12){
+        s += this.start_date.getHours() - 12;
+      } else {
+        s += this.start_date.getHours();
+      }
+      s += ":" + this.start_date.getUTCMinutes() + "-";
+
+      if(this.end_date.getHours() > 12){
+        s += this.end_date.getHours() - 12;
+      } else {
+        s += this.end_date.getHours();
+      }
+      s += ":" + this.end_date.getUTCMinutes();
+
+      return s;
+    };
+
+    this.contains = function(other_date){
+      return other_date.getTime() > this.start_date.getTime() && this.end_date.getTime() > other_date.getTime();
+    };
+
+    this.getTimeLeft = function(other_date){
+      if(!this.contains(other_date)){
+        return -1;
+      } else {
+        return Math.round((this.end_date.getTime() - other_date.getTime()) / (60 * 1000));
+      }
+    };
+
+    this.toStringFormat = function(c_date){
+      if(this.contains(c_date)){
+        return "<div class=\"item\"><b>" + this.rawname + "</b> - " + this.getNameString() + ", <b>" + this.getTimeLeft(c_date) + " mins</b> left</div>";
+      } else {
+        return "<div class=\"item\"><b>" + this.rawname + "</b> - " + this.getNameString() + "</div>";
+      }
+    };
+}
+
+var ScheduleTitles = {
+  "a": "A, Regular",
+  "b": "B, Extended 2nd Period",
+  "c": "C, Pep Rally"
+};
+
+var ASchedule = [[
+    new timeslot("7:25-8:16", "1st"),
+    new timeslot("8:22-9:15", "2nd"),
+    new timeslot("9:21-10:12", "3rd"),
+    new timeslot("12:42-13:33", "6th"),
+    new timeslot("13:45-14:30", "7th"),
+    new timeslot("14:45-15:10", "Tutorials")
+  ],
+  {
+    "none": [new timeslot("10:18-12:36", "4th, 5th, Lunch")],
+    "a": [
+      new timeslot("10:12-10:42", "A Lunch"),
+      new timeslot("10:48-11:39", "4th"),
+      new timeslot("11:45-12:36", "5th")
+    ],
+    "b": [
+      new timeslot("10:18-11:09", "4th"),
+      new timeslot("11:09-11:39", "B Lunch"),
+      new timeslot("11:45-12:36", "5th")
+    ],
+    "c": [
+      new timeslot("10:18-11:09", "4th"),
+      new timeslot("11:15-12:06", "5th"),
+      new timeslot("12:06-12:36", "C Lunch")
+    ]
+  }
+];
+
+var BSchedule = [[
+    new timeslot("7:25-8:16", "1st"),
+    new timeslot("8:22-9:15", "2nd"),
+    new timeslot("9:21-10:12", "3rd"),
+    new timeslot("12:42-13:33", "6th"),
+    new timeslot("13:45-14:30", "7th"),
+    new timeslot("14:45-15:10", "Tutorials")
+  ],
+  {
+    "none": [new timeslot("10:18-12:36", "4th, 5th, Lunch")],
+    "a": [
+      new timeslot("10:12-10:42", "A Lunch"),
+      new timeslot("10:48-11:39", "4th"),
+      new timeslot("11:45-12:36", "5th")
+    ],
+    "b": [
+      new timeslot("10:18-11:09", "4th"),
+      new timeslot("11:09-11:39", "B Lunch"),
+      new timeslot("11:45-12:36", "5th")
+    ],
+    "c": [
+      new timeslot("10:18-11:09", "4th"),
+      new timeslot("11:15-12:06", "5th"),
+      new timeslot("12:06-12:36", "C Lunch")
+    ]
+  }
+];
+
+var CSchedule = [[
+    new timeslot("7:25-8:16", "1st"),
+    new timeslot("8:22-9:15", "2nd"),
+    new timeslot("9:21-10:12", "3rd"),
+    new timeslot("12:42-13:33", "6th"),
+    new timeslot("13:45-14:30", "7th"),
+    new timeslot("14:45-15:10", "Tutorials")
+  ],
+  {
+    "none": [new timeslot("10:18-12:36", "4th, 5th, Lunch")],
+    "a": [
+      new timeslot("10:12-10:42", "A Lunch"),
+      new timeslot("10:48-11:39", "4th"),
+      new timeslot("11:45-12:36", "5th")
+    ],
+    "b": [
+      new timeslot("10:18-11:09", "4th"),
+      new timeslot("11:09-11:39", "B Lunch"),
+      new timeslot("11:45-12:36", "5th")
+    ],
+    "c": [
+      new timeslot("10:18-11:09", "4th"),
+      new timeslot("11:15-12:06", "5th"),
+      new timeslot("12:06-12:36", "C Lunch")
+    ]
+  }
+];
