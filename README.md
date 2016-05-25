@@ -1,8 +1,8 @@
-# CyRanch-App
-This is an app I created for [Cy-Ranch High School](cyranch.cfisd.net/).
+# Cy-Ranch App
+This is an app I created for [Cy-Ranch High School](http://cyranch.cfisd.net/).
 
 #### Dependencies
-+ [Steriods](www.appgyver.io/steroids)
++ [Steriods](http://www.appgyver.io/steroids)
 + [NodeJS](https://nodejs.org/)
 
 #### Releases
