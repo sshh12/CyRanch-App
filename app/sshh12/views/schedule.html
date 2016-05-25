@@ -6,9 +6,9 @@
   <super-navbar>
     <super-navbar-title style="text-align: center;">Schedules</super-navbar-title>
     <super-navbar-button side="left" onclick="supersonic.ui.modal.hide();">Back</super-navbar-button>
-    <super-navbar-button side="right" onclick="updateList('a');">Refresh</super-navbar-button>
+    <super-navbar-button side="right" onclick="updateList();">Refresh</super-navbar-button>
   </super-navbar>
-  <ul class="list" id="items1">
+  <ul class="list" id="lunches">
     <label class="item item-input item-select">
       <div class="input-label">Lunch</div>
       <select id="lunch" style="width: 100%;" onChange="updateList();">
@@ -19,7 +19,7 @@
       </select>
     </label>
   </ul>
-  <ul class="list" id="items2">
+  <ul class="list" id="schedules">
     <label class="item item-input item-select">
       <div class="input-label">Schedule</div>
       <select id="schedule" style="width: 100%;" onChange="current_schedule=document.getElementById('schedule').value;updateList();">
@@ -63,9 +63,7 @@ function updateList(){
 
   var date_now = new Date();
 
-  var html = "";//makeSelect(lunch_letter);
-
-  html += "<div class=\"item item-divider\">" + ScheduleTitles[current_schedule] + "</div>";
+  html = "<div class=\"item item-divider\">" + ScheduleTitles[current_schedule] + "</div>";
 
   var lunch_added = false;
   var lunch_timeslots = null;

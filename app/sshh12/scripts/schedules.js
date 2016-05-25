@@ -98,29 +98,30 @@ var ASchedule = [[
 ];
 
 var BSchedule = [[
-    new timeslot("7:25-8:16", "1st"),
-    new timeslot("8:22-9:15", "2nd"),
-    new timeslot("9:21-10:12", "3rd"),
-    new timeslot("12:42-13:33", "6th"),
+    new timeslot("7:25-8:10", "1st"),
+    new timeslot("8:16-9:03", "2nd"),
+		new timeslot("9:03-9:33", "Assembly"),
+    new timeslot("9:39-10:24", "3rd"),
+    new timeslot("12:54-13:39", "6th"),
     new timeslot("13:45-14:30", "7th"),
     new timeslot("14:45-15:10", "Tutorials")
   ],
   {
-    "none": [new timeslot("10:18-12:36", "4th, 5th, Lunch")],
+    "none": [new timeslot("10:30-12:48", "4th, 5th, Lunch")],
     "a": [
-      new timeslot("10:12-10:42", "A Lunch"),
-      new timeslot("10:48-11:39", "4th"),
-      new timeslot("11:45-12:36", "5th")
+      new timeslot("10:24-10:54", "A Lunch"),
+      new timeslot("11:00-11:51", "4th"),
+      new timeslot("11:48-12:48", "5th")
     ],
     "b": [
-      new timeslot("10:18-11:09", "4th"),
-      new timeslot("11:09-11:39", "B Lunch"),
-      new timeslot("11:45-12:36", "5th")
+      new timeslot("10:30-11:21", "4th"),
+      new timeslot("11:21-11:51", "B Lunch"),
+      new timeslot("11:57-12:48", "5th")
     ],
     "c": [
-      new timeslot("10:18-11:09", "4th"),
-      new timeslot("11:15-12:06", "5th"),
-      new timeslot("12:06-12:36", "C Lunch")
+      new timeslot("10:30-11:21", "4th"),
+      new timeslot("11:27-12:18", "5th"),
+      new timeslot("12:18-12:48", "C Lunch")
     ]
   }
 ];
