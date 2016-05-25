@@ -8,26 +8,41 @@
     <super-navbar-button side="left" onclick="supersonic.ui.modal.hide();">Back</super-navbar-button>
     <super-navbar-button side="right" onclick="updateList('a');">Refresh</super-navbar-button>
   </super-navbar>
-  <ul class="list" id="items">
+  <ul class="list" id="items1">
     <label class="item item-input item-select">
       <div class="input-label">Lunch</div>
-      <select id="lunch" style="width: 100%;" onChange="updateList('a');">
-        <option value="none">Select Your Lunch</option>
+      <select id="lunch" style="width: 100%;" onChange="updateList();">
+        <option value="none">Lunch</option>
         <option value="a">A</option>
         <option value="b">B</option>
         <option value="c">C</option>
       </select>
     </label>
   </ul>
+  <ul class="list" id="items2">
+    <label class="item item-input item-select">
+      <div class="input-label">Schedule</div>
+      <select id="schedule" style="width: 100%;" onChange="current_schedule=document.getElementById('schedule').value;updateList();">
+        <option value="a">A (Normal)</option>
+        <option value="b">B (Extended 2nd)</option>
+        <option value="c">C (Pep Rally)</option>
+      </select>
+    </label>
+  </ul>
+  <ul class="list" id="items">
+
+  </ul>
 </div>
 <script>
-function makeSelect(option, sched){
-  var html = "<label class=\"item item-input item-select\"><div class=\"input-label\">Lunch</div><select id=\"lunch\" style=\"width: 100%;\" onChange=\"updateList('a');\"><option value=\"none\" ";
+var current_schedule = 'a';
+
+function makeSelect(option){
+  var html = "<label class=\"item item-input item-select\"><div class=\"input-label\">Lunch</div><select id=\"lunch\" style=\"width: 100%;\" onChange=\"updateList();\"><option value=\"none\" ";
   var sel_html = "selected=\"selected\"";
   if(option == "none"){
     html += sel_html;
   }
-  html += ">Select Your Lunch</option><option value=\"a\" ";
+  html += ">Lunch</option><option value=\"a\" ";
   if(option == "a"){
     html += sel_html;
   }
@@ -43,24 +58,22 @@ function makeSelect(option, sched){
   return html;
 }
 
-function updateList(sched){
+function updateList(){
   var lunch_letter = document.getElementById("lunch").value;
-
-  document.getElementById("items").innerHTML = makeSelect(lunch_letter, sched);
 
   var date_now = new Date();
 
-  var html = makeSelect(lunch_letter, sched);
+  var html = "";//makeSelect(lunch_letter);
 
-  html += "<div class=\"item item-divider\">" + ScheduleTitles[sched] + "</div>";
+  html += "<div class=\"item item-divider\">" + ScheduleTitles[current_schedule] + "</div>";
 
   var lunch_added = false;
   var lunch_timeslots = null;
   var MainSched = null;
-  if(sched == 'b'){
+  if(current_schedule == 'b'){
     lunch_timeslots = BSchedule[1][lunch_letter];
     MainSched = BSchedule[0];
-  } else if(sched == 'c'){
+  } else if(current_schedule == 'c'){
     lunch_timeslots = CSchedule[1][lunch_letter];
     MainSched = CSchedule[0];
   } else {
@@ -80,5 +93,5 @@ function updateList(sched){
   document.getElementById("items").innerHTML = html;
 }
 
-updateList('a');
+updateList();
 </script>
