@@ -1,0 +1,9 @@
+{
+  "name": "CyRanch",
+  "version": "0.1.0",
+  "private": true,
+  "dependencies": {},
+  "devDependencies": {
+    "grunt-steroids": "1.x"
+  }
+}

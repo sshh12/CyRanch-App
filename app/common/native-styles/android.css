@@ -1,0 +1,80 @@
+/***********************************************************
+ * These styles apply for native components on Android.
+ * Read more about native styles at http://docs.appgyver.com
+ ***********************************************************/
+
+navigation-bar {
+  background-color: #004080;
+  color: #ffffff;
+  padding-left: 6px;
+  padding-right: 6px;
+}
+
+navigation-bar title {
+  color: #ffffff;
+  font-size: 18px;
+  font-weight: 600;
+}
+
+navigation-bar button {
+  color: #ffffff;
+  font-weight: 300;
+  margin-left: 6px;
+  margin-right: 6px;
+}
+
+navigation-bar back-indicator {
+  background-image: url(default_back_icon.png);
+  background-size: 18;
+}
+
+navigation-bar back-button {
+  display: none;
+}
+
+/**************************************
+ *************************************/
+
+tab-bar {
+  background-color: #ffffff;
+  border-top: 1px #d8d8d8 solid;
+  margin-top: 100px;
+}
+
+tab-bar tab-bar-item {
+  color: #838383;
+  font-family: "Avenir";
+  font-size: 10px;
+}
+
+tab-bar tab-bar-item:selected {
+  color: #66580b;
+}
+
+tab-bar divider {
+	background-color: #D8D8D8;
+}
+
+tab-bar tab-bar-item marker-top:selected {
+	background-color: #FFD700;
+}
+
+tab-bar-item#news {
+	background-image: url(icons/tab_news.svg);
+}
+
+tab-bar-item#grades {
+	background-image: url(icons/tab_grades.svg);
+}
+
+tab-bar-item#teachers {
+	background-image: url(icons/tab_teachers.svg);
+}
+
+tab-bar-item#settings {
+	background-image: url(icons/tab_settings.svg);
+}
+
+tab-bar-item#classes {
+	background-image: url(icons/tab_school.svg);
+}

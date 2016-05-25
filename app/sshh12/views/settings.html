@@ -1,0 +1,163 @@
+<script src="sshh12#general"></script>
+<script src="sshh12#lang"></script>
+
+<div class="">
+
+	<super-navbar>
+		<super-navbar-title>Settings</super-navbar-title>
+	</super-navbar>
+
+	<ul class="list">
+
+		<li class='item item-divider head'>News</li>
+		<li class="item item-toggle" >
+			Notifications
+			<label class="toggle toggle-calm">
+				<input type="checkbox" disabled="true">
+				<div class="track"><div class="handle"></div></div>
+			</label>
+		</li>
+		<li class="item item-toggle">
+			Cfisd.net
+			<label class="toggle toggle-royal">
+				<input type="checkbox" id="CFISDNews" onClick="updateCFISDNews()">
+				<div class="track"><div class="handle"></div></div>
+			</label>
+		</li>
+		<li class="item item-toggle">
+			CyRanchNews.com
+			<label class="toggle toggle-balanced">
+				<input type="checkbox" id="cyranchnews" onClick="updateCyRanchNews()">
+				<div class="track"><div class="handle"></div></div>
+			</label>
+		</li>
+		<li class="item item-toggle">
+			<i>Sshh12 Studios</i>
+			<label class="toggle toggle-assertive">
+				<input type="checkbox" id="cyranchapp" onClick="updatecyranchapp()">
+				<div class="track"><div class="handle"></div></div>
+			</label>
+		</li>
+
+		<li class='item item-divider head'>Grades</li>
+		<label class="item item-input">
+			<span class="input-label">Username: </span>
+			<input type="text" id="username"/>
+		</label>
+		<label class="item item-input">
+			<span class="input-label">Password: </span>
+			<input type="password" id="password"/>
+		</label>
+		<div class="button-bar">
+  		<a class="button button-calm" onClick="localStorage.setItem('username', document.getElementById('username').value); localStorage.setItem('password', document.getElementById('password').value);">Save</a>
+  		<a class="button button-assertive" onClick="localStorage.setItem('grades', '');localStorage.setItem('username', '');document.getElementById('username').value = '';localStorage.setItem('password', '');document.getElementById('password').value = '';">Log Out</a>
+		</div>
+
+		<li class='item item-divider head'>Other</li>
+		<!--<label class="item item-input item-select">
+      <div class="input-label">Language</div>
+      <select id="lang-select" style="width: 100%;" onChange="setLanguage(document.getElementById('lang-select').value);runLang('false')">
+        <option value="en">English</option>
+        <option value="es">Spanish</option>
+        <option value="fr">French</option>
+        <option value="swag">~Swag~</option>
+      </select>
+    </label>-->
+		<a class="item item-icon-right" onClick="supersonic.app.openURL('mailto:shrivu1122@gmail.com')">
+			<i class="icon super-email"></i>
+			Contact Me!
+		</a>
+		<super-modal-show location="sshh12#credits">
+			<a class="item item-icon-right">
+				<i class="icon super-heart"></i>
+				Credits
+			</a>
+		</super-modal-show>
+		<super-modal-show location="sshh12#legal">
+			<a class="item item-icon-right">
+				<i class="icon super-document-text"></i>
+				Legal
+			</a>
+		</super-modal-show>
+
+
+		<li class='item item-divider head'>Debug <b>(Dev. Only)</b></li>
+		<a class="item item-icon-right" href="#" onClick="nalert('Debug', getDeviceInfo());">
+			<i class="icon super-android-developer"></i>
+			Device <b>?</b>
+		</a>
+		<a class="item item-icon-right" href="#" onClick="resetStorage()">
+			<i class="icon super-android-developer"></i>
+			Reset Local JS Storage
+		</a>
+	</ul>
+</div>
+<script defer>
+function getDeviceInfo(){
+	return "Platfrom: " + device.platform + "\nID: " + device.uuid + "\nCordova: " + device.cordova + "\nServer: " + SVR_ADDRESS;
+}
+
+function resetStorage(){
+	localStorage.setItem('teacher_datas', '');
+	localStorage.setItem('startup', '');
+	localStorage.setItem('grades', '');
+	localStorage.setItem('username', '');
+	localStorage.setItem('CyRanchNewsPage1HTML', '');
+	localStorage.setItem('CyRanchNewsPage2HTML', '');
+	localStorage.setItem('CyRanchAppNewsHTML', '');
+	localStorage.setItem('CFISDNewsHTML', '');
+	document.getElementById('username').value = '';
+	localStorage.setItem('password', '');
+	document.getElementById('password').value = '';
+
+	localStorage.setItem('CyRanchNews', 'true');
+	document.getElementById("cyranchnews").checked = true;
+	localStorage.setItem('cyranchapp', 'true');
+	document.getElementById("cyranchapp").checked = true;
+	localStorage.setItem('CFISDNews', 'false');
+	document.getElementById("CFISDNews").checked = false;
+}
+
+var username = localStorage.getItem("username");
+var password = localStorage.getItem("password");
+
+if(localStorage.getItem("cyranchapp") == 'true'){ document.getElementById("cyranchapp").checked = true; }
+else {document.getElementById("cyranchapp").checked = false;}
+if(localStorage.getItem("CyRanchNews") == 'true'){ document.getElementById("cyranchnews").checked = true; }
+else {document.getElementById("cyranchnews").checked = false;}
+if(localStorage.getItem("CFISDNews") == 'true'){ document.getElementById("CFISDNews").checked = true; }
+else {document.getElementById("CFISDNews").checked = false;}
+
+function updateCyRanchNews(){
+	if(document.getElementById("cyranchnews").checked){ localStorage.setItem('CyRanchNews', 'true'); }
+	else { localStorage.setItem('CyRanchNews', 'false'); }
+}
+
+function updatecyranchapp(){
+	if(document.getElementById("cyranchapp").checked){ localStorage.setItem('cyranchapp', 'true'); }
+	else { localStorage.setItem('cyranchapp', 'false'); }
+}
+
+function updateCFISDNews(){
+	if(document.getElementById("CFISDNews").checked){ localStorage.setItem('CFISDNews', 'true'); }
+	else { localStorage.setItem('CFISDNews', 'false'); }
+}
+
+if(isUndefined(username) == true){
+	document.getElementById('username').value = '';
+	localStorage.setItem("username","");
+}
+else {
+	document.getElementById('username').value = username;
+}
+
+if(isUndefined(password) == true){
+	document.getElementById('password').value = '';
+	localStorage.setItem("username","");
+}
+else {
+	document.getElementById('password').value = password;
+}
+
+supersonic.app.splashscreen.hide()
+</script>

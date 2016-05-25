@@ -1,0 +1,173 @@
+<script src="sshh12#general"></script>
+<script src="sshh12#lang"></script>
+<div class="padding">
+
+  <super-navbar>
+    <super-navbar-title>News</super-navbar-title>
+    <super-navbar-button side="right" onclick="refresh_content();">Refresh</super-navbar-button>
+  </super-navbar>
+
+	<div class="list" id="cardlist">
+		<div class="card">
+			<div class="item item-avatar headercolor">
+				<img src="/icons/Error.png">
+				<h2>Connection Error</h2>
+			</div>
+			<div class="item item-body">
+				<img class="full-image" src="/icons/signal.png">
+				<p>There was an error when connecting to external servers, <b>check your internet connection</b> and tap refresh.</p>
+			</div>
+		</div>
+	</div>
+</div>
+
+<style>
+	.headercolor {
+		background-color: #F5F5F5;
+	}
+
+	#cyranchnews {
+		display: none;
+	}
+</style>
+
+<script>
+
+if(isUndefined(localStorage.getItem("CyRanchNews")) || isUndefined(localStorage.getItem("cyranchapp")) || isUndefined(localStorage.getItem("CFISDNews"))){
+	localStorage.setItem('CyRanchNews', 'true');
+	localStorage.setItem('cyranchapp', 'true');
+	localStorage.setItem('CFISDNews', 'false');
+}
+
+var settings = [localStorage.getItem("CyRanchNews"), localStorage.getItem("cyranchapp"), localStorage.getItem("CFISDNews")];
+
+function createNormalBox(header, date, iconurl, imageurl, text, onclick){
+	header = parseXSS(header);
+	date = parseXSS(date);
+	text = parseXSS(text);
+	onclick = parseXSS(onclick);
+	return ['<div class="card" onClick="'+onclick+'"><div class="item item-avatar headercolor"><img src="'+iconurl+'" /><h2>'+header+'</h2><p>'+date+'</p></div><div class="item item-body"><img class="full-image" src="'+imageurl+'"/><p>'+text+'</p></div></div>', date];
+}
+
+function createNoPictureBox(header, date, iconurl, onclick, text){
+	header = parseXSS(header);
+	date = parseXSS(date);
+	text = parseXSS(text);
+	onclick = parseXSS(onclick);
+	return ['<div class="card" onClick=""><div class="item item-avatar headercolor"><img src="'+iconurl+'" /><h2>'+header+'</h2><p>'+date+'</p></div><div class="item item-body"><p>'+text+'</p></div></div>', date];
+}
+
+function refresh_content(){
+  document.getElementById("cardlist").innerHTML = "<i class=\"icon super-refreshing\"></i>";
+  nalert("News", "Refreshing...");
+  localStorage.setItem("CyRanchNewsPage1HTML", '');
+  localStorage.setItem("CyRanchNewsPage2HTML", '');
+  localStorage.setItem("CyRanchAppNewsHTML", '');
+  localStorage.setItem("CFISDNewsHTML", '');
+	getNewsAndSet();
+}
+
+function getNewsAndSet(){
+  var CyRanchNewsPage1HTML = localStorage.getItem("CyRanchNewsPage1HTML");
+  var CyRanchNewsPage2HTML = localStorage.getItem("CyRanchNewsPage2HTML");
+  var CyRanchAppNewsHTML = localStorage.getItem("CyRanchAppNewsHTML");
+  var CFISDNewsHTML = localStorage.getItem("CFISDNewsHTML");
+
+  if(isUndefined(CyRanchNewsPage1HTML) || CyRanchNewsPage1HTML == null  || CyRanchNewsPage1HTML == ""){
+    CyRanchNewsPage1HTML = getFromSite('cyranchnews1');
+    localStorage.setItem("CyRanchNewsPage1HTML", CyRanchNewsPage1HTML);
+  }
+  if(isUndefined(CyRanchNewsPage2HTML) || CyRanchNewsPage2HTML == null  || CyRanchNewsPage2HTML == ""){
+    CyRanchNewsPage2HTML = getFromSite('cyranchnews2');
+    localStorage.setItem("CyRanchNewsPage2HTML", CyRanchNewsPage2HTML);
+  }
+  if(isUndefined(CyRanchAppNewsHTML) || CyRanchAppNewsHTML == null  || CyRanchAppNewsHTML == ""){
+    CyRanchAppNewsHTML = getFromSite('appnews');
+    localStorage.setItem("CyRanchAppNewsHTML", CyRanchAppNewsHTML);
+  }
+  if(isUndefined(CFISDNewsHTML) || CFISDNewsHTML == null  || CFISDNewsHTML == ""){
+    CFISDNewsHTML = getFromSite('cfisdnews');
+    localStorage.setItem("CFISDNewsHTML", CFISDNewsHTML);
+  }
+
+  var CyRanchNewsPage1 = createDocElement("CyRanchNewsPage1Body", CyRanchNewsPage1HTML);
+  var CyRanchNewsPage2 = createDocElement("CyRanchNewsPage2Body", CyRanchNewsPage2HTML);
+  var CyRanchAppNews = createDocElement("CyRanchAppNewsBody", CyRanchAppNewsHTML);
+  var CFISDNews = createDocElement("CFISDNewsBody", CFISDNewsHTML);
+
+
+	var cards = [];
+	var cardDates = [];
+	var cardresult = [];
+	var cardfinal;
+
+	var i;
+
+	if(localStorage.getItem("CyRanchNews") == 'true'){
+		for (i = 0; i < 12; i++) { // CyRanchNews1
+			cards[cards.length] = createNormalBox("CyRanchNews.com", CyRanchNewsPage1.getElementsByClassName("categorypreviewbox")[i].lastChild.previousSibling.textContent, "/icons/CyRanchMustangs.png", CyRanchNewsPage1.getElementsByClassName("categorypreviewbox")[i].firstChild.firstChild.getAttribute("src"), CyRanchNewsPage1.getElementsByClassName("categorypreviewbox")[i].firstChild.nextSibling.firstChild.textContent, 'supersonic.app.openURL(\''+CyRanchNewsPage1.getElementsByClassName("categorypreviewbox")[i].firstChild.getAttribute("href")+'\');');
+			cardDates[cardDates.length] = CyRanchNewsPage1.getElementsByClassName("categorypreviewbox")[i].lastChild.previousSibling.textContent;
+		}
+		for (i = 0; i < 12; i++) { // CyRanchNews2
+			cards[cards.length] = createNormalBox("CyRanchNews.com", CyRanchNewsPage2.getElementsByClassName("categorypreviewbox")[i].lastChild.previousSibling.textContent, "/icons/CyRanchMustangs.png", CyRanchNewsPage2.getElementsByClassName("categorypreviewbox")[i].firstChild.firstChild.getAttribute("src"), CyRanchNewsPage2.getElementsByClassName("categorypreviewbox")[i].firstChild.nextSibling.firstChild.textContent, 'supersonic.app.openURL(\''+CyRanchNewsPage2.getElementsByClassName("categorypreviewbox")[i].firstChild.getAttribute("href")+'\');');
+			cardDates[cardDates.length] = CyRanchNewsPage2.getElementsByClassName("categorypreviewbox")[i].lastChild.previousSibling.textContent;
+		}
+	}
+
+	if(localStorage.getItem("cyranchapp") == 'true'){
+		for (i = 0; i < CyRanchAppNews.getElementsByTagName("CyRanchNews").length; i++) { //CyRanchApp
+			cards[cards.length] = createNormalBox("The Cy-Ranch App", CyRanchAppNews.getElementsByTagName("CyRanchNews")[i].getElementsByTagName("date")[0].textContent, "/icons/Developer.png", CyRanchAppNews.getElementsByTagName("CyRanchNews")[i].getElementsByTagName("pic")[0].getAttribute('link'), CyRanchAppNews.getElementsByTagName("CyRanchNews")[i].getElementsByTagName("title")[0].textContent, '');
+			cardDates[cardDates.length] = CyRanchAppNews.getElementsByTagName("CyRanchNews")[i].getElementsByTagName("date")[0].textContent;
+		}
+	}
+
+	if(localStorage.getItem("CFISDNews") == 'true'){
+		for (i = 0; i < CFISDNews.getElementsByClassName("index-item").length; i++) { //CFISDNews
+			cards[cards.length] = createNoPictureBox("CFISD.net", CFISDNews.getElementsByClassName("index-item")[i].getElementsByClassName("item-date")[0].textContent, "/icons/CFISD.png", 'supersonic.app.openURL(\'http://cfisd.net/'+CFISDNews.getElementsByClassName("index-item")[i].getElementsByTagName('a')[0].getAttribute('href')+'\');', CFISDNews.getElementsByClassName("index-item")[i].firstChild.nextSibling.firstChild.nextSibling.textContent);
+			cardDates[cardDates.length] = CFISDNews.getElementsByClassName("index-item")[i].getElementsByClassName("item-date")[0].textContent;
+		}
+	}
+
+	cardDates.sort(function(a,b){ return new Date(b).getTime() - new Date(a).getTime(); });
+	cardDates.forEach(function(key) {
+    var found = false;
+    cards = cards.filter(function(item) {
+      if(!found && item[1] == key) {
+        cardresult.push(item);
+        found = true;
+        return false;
+      } else {
+        return true;
+      }
+    });
+  });
+
+	for (i = 0; i < cardresult.length; i++) {
+		cardfinal += cardresult[i][0];
+	}
+
+	document.getElementsByClassName('list')[0].innerHTML = cardfinal;
+	document.getElementById("cardlist").firstChild.textContent = ''; //I don't even know...
+
+  supersonic.app.splashscreen.hide()
+}
+
+function onVisibilityChangeIndex() {
+    if(document.visibilityState == 'visible'){
+		var newSettings = [localStorage.getItem("CyRanchNews"),localStorage.getItem("cyranchapp"),localStorage.getItem("CFISDNews")];
+		if(settings[0] != newSettings[0] || settings[1] != newSettings[1] || settings[2] != newSettings[2]){
+			getNewsAndSet();
+			settings = [localStorage.getItem("CyRanchNews"),localStorage.getItem("cyranchapp"),localStorage.getItem("CFISDNews")];
+		}
+	}
+}
+
+document.addEventListener("visibilitychange", onVisibilityChangeIndex, false);
+
+if(isUndefined(localStorage.getItem("startup")) || localStorage.getItem("startup") == null || localStorage.getItem("startup") == ""){
+  localStorage.setItem("startup", "true");
+  nalert("Hi!", "Thanks for downloading!");
+}
+
+setTimeout(getNewsAndSet, 1000);
+</script>

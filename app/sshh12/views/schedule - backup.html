@@ -1,0 +1,99 @@
+<script src="sshh12#general"></script>
+<div class="">
+  <super-navbar>
+    <super-navbar-title style="text-align: center;">Schedules</super-navbar-title>
+    <super-navbar-button side="left" onclick="supersonic.ui.modal.hide();">Back</super-navbar-button>
+  </super-navbar>
+  <ul class="list" id="items">
+    <div class="item">
+      <select id="lunch" style="width: 100%;" onchange="updateList();">
+        <option value="none">Select Your Lunch</option>
+        <option value="a">A</option>
+        <option value="b">B</option>
+        <option value="c">C</option>
+      </select>
+    </div>
+  </ul>
+</div>
+<script defer>
+function makeItem(bold, norm){
+  return "<div class=\"item\"><b>" + bold + "</b> " + norm + "</div>";
+}
+
+function updateList(){
+  var option = document.getElementById("lunch").value;
+  document.getElementById("items").innerHTML = "";
+  //var html = "<div class=\"item\"><select id=\"lunch\" style=\"width: 100%;\" onchange='updateList();'><option value=\"none\">Select Your Lunch</option><option value=\"a\">A</option><option value=\"b\">B</option><option value=\"c\">C</option></select></div>";
+  var html = "<label class=\"item item-input item-select\"><div class=\"input-label\">Lunch</div><select id=\"lunch\" onchange='updateList();'><option value=\"none\">Select Your Lunch</option><option value=\"a\">A</option><option value=\"b\">B</option><option value=\"c\">C</option></select></select></label>";
+
+  html += "<div class=\"item item-divider\">A, Regular</div>";
+  html += makeItem("1st", "7:25-8:16");
+  html += makeItem("2nd", "8:22-9:15");
+  html += makeItem("3rd", "9:21-10:12");
+  if(option == "a") {
+    html += makeItem("A Lunch", "10:12-10:42");
+    html += makeItem("4th", "10:48-11:39");
+    html += makeItem("5th", "11:45-12:36");
+  } else if(option == "b") {
+    html += makeItem("4th", "10:18-11:09");
+    html += makeItem("B Lunch", "11:09-11:39");
+    html += makeItem("5th", "11:45-12:36");
+  } else if(option == "c") {
+    html += makeItem("4th", "10:18-11:09");
+    html += makeItem("5th", "11:15-12:06");
+    html += makeItem("C Lunch", "12:06-12:36");
+  } else {
+    html += makeItem("4th, 5th, Lunch", "10:18-12:36");
+  }
+  html += makeItem("6th", "12:42-1:33");
+  html += makeItem("7th", "1:45-2:30");
+
+  html += "<div class=\"item item-divider\">B, Extended 2nd Period</div>";
+  html += makeItem("1st", "7:25-8:10");
+  html += makeItem("2nd", "8:16-9:03");
+  html += makeItem("Assembly", "9:03-9:33");
+  html += makeItem("3rd", "9:39-10:24");
+  if(option == "a") {
+    html += makeItem("A Lunch", "10:24-10:54");
+    html += makeItem("4th", "11:00-11:51");
+    html += makeItem("5th", "11:57-12:48");
+  } else if(option == "b") {
+    html += makeItem("4th", "10:30-11:21");
+    html += makeItem("B Lunch", "11:21-11:51");
+    html += makeItem("5th", "11:57-12:48");
+  } else if(option == "c") {
+    html += makeItem("4th", "10:30-11:21");
+    html += makeItem("5th", "11:27-12:18");
+    html += makeItem("C Lunch", "12:18-12:48");
+  } else {
+    html += makeItem("4th, 5th, Lunch", "10:30-12:48");
+  }
+  html += makeItem("6th", "12:54-1:39");
+  html += makeItem("7th", "1:45-2:30");
+
+  html += "<div class=\"item item-divider\">C, Pep Rally</div>";
+  html += makeItem("1st", "7:25-8:12");
+  html += makeItem("2nd", "8:18-9:07");
+  html += makeItem("3rd", "9:13-10:00");
+  if(option == "a") {
+    html += makeItem("A Lunch", "10:00-10:30");
+    html += makeItem("4th", "10:36-11:20");
+    html += makeItem("5th", "11:26-12:10");
+  } else if(option == "b") {
+    html += makeItem("4th", "10:06-10:50");
+    html += makeItem("B Lunch", "10:50-11:20");
+    html += makeItem("5th", "11:26-12:10");
+  } else if(option == "c") {
+    html += makeItem("4th", "10:06-10:50");
+    html += makeItem("5th", "10:56-11:18");
+    html += makeItem("C Lunch", "11:40-12:10");
+  } else {
+    html += makeItem("4th, 5th, Lunch", "10:06-12:48");
+  }
+  html += makeItem("6th", "12:16-1:00");
+  html += makeItem("7th/Pep Rally", "1:06-2:30");
+
+  document.getElementById("items").innerHTML = html;
+}
+updateList();
+</script>

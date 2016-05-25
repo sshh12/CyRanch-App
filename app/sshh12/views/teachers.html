@@ -1,0 +1,83 @@
+<script src="sshh12#lang"></script>
+
+<style>
+	.head {
+		background-color: #F5F5F5;
+	}
+</style>
+<div class="">
+
+  <super-navbar>
+    <super-navbar-title>
+      Teachers
+    </super-navbar-title>
+  </super-navbar>
+	<div id="main_lists">
+
+		<div class="list">
+  		<label class="item item-input">
+    		<i class="icon super-search placeholder-icon"></i>
+    		<input type="text" placeholder="Search" id="search_bar" onChange="getTeachers();">
+  		</label>
+
+			<div id="changing_content">
+				<!--<div class="item item-divider">A</div>
+				<a class="item item-button-right">
+    	  	<b><h3>Teachers, Name</h3></b>
+					<button class="button icon super-email button-positive"></button>
+    			<p>HTTP://website/here</p>
+  			</a>-->
+			</div>
+	</div>
+
+	</div>
+</div>
+<script defer>
+function makeDivider(letter){
+	return "<div class=\"item item-divider\">" + letter + "</div>";
+}
+
+function makeTeacher(name, website, email){
+	website = website.replace("https://", "");
+	website = website.replace("http://www.", "");
+	website = website.replace("/a/cfisd.net/", "/../");
+	return "<a class=\"item item-button-right\"><b><h3>" + name + "</h3></b><button onClick=\"supersonic.app.openURL('mailto:" + email + "')\" class=\"button icon super-email button-positive\"></button><p onClick=\"supersonic.app.openURL('" + website + "')\">" + website + "</p></a>";
+}
+
+function getTeachers(){
+	var json_page = localStorage.getItem("teacher_datas");
+	if(isUndefined(json_page) || json_page == null || json_page.length < 20){
+		json_page = getFromSite('faculty');
+		localStorage.setItem("teacher_datas", json_page);
+	}
+
+	var json = JSON.parse(json_page);
+
+	var search = removeExtraChars(document.getElementById("search_bar").value);
+
+	var new_html = "";
+
+	for(var div_letter in json){
+
+		var letter_html = "";
+		for(var i = 0; i < json[div_letter].length; i++){
+			var teacher_new_html =  makeTeacher(json[div_letter][i]["name"], json[div_letter][i]["website"], json[div_letter][i]["email"]);
+			if(removeExtraChars(teacher_new_html).indexOf(search) >= 0 || search.length < 1){
+				letter_html += teacher_new_html;
+			}
+		}
+
+		if(letter_html.length > 0){
+			letter_html = makeDivider(div_letter) + letter_html;
+		}
+
+		new_html += letter_html;
+	}
+
+	document.getElementById("changing_content").innerHTML = new_html;
+}
+
+getTeachers();
+
+window.onload = function () { supersonic.app.splashscreen.hide(); }
+</script>
