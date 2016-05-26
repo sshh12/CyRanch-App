@@ -5,9 +5,9 @@ function timeslot(timestring, name){
 
     this.rawname = name;
 
-    var split = timestring.split("-");
-    this.start_time = split[0];
-    this.end_time = split[1];
+    var times_split = timestring.split("-");
+    this.start_time = times_split[0];
+    this.end_time = times_split[1];
 
     var date_now = new Date();
 
@@ -100,7 +100,7 @@ var ASchedule = [[
 var BSchedule = [[
     new timeslot("7:25-8:10", "1st"),
     new timeslot("8:16-9:03", "2nd"),
-		new timeslot("9:03-9:33", "Assembly"),
+    new timeslot("9:03-9:33", "Assembly"),
     new timeslot("9:39-10:24", "3rd"),
     new timeslot("12:54-13:39", "6th"),
     new timeslot("13:45-14:30", "7th"),
