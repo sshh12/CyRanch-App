@@ -1,6 +1,7 @@
 //Global Functions and Stuff
 
 var SVR_ADDRESS = "http://sshh12.com:8338/";
+//var SVR_ADDRESS = "http://10.0.0.2:8338/";
 
 function createDocElement(name, bodytext) {
 	var page = document.implementation.createHTMLDocument(name);

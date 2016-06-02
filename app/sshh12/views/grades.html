@@ -17,10 +17,10 @@ function getGradesPage(user, passw) {
 	return getFromSite("grades/" + user + "/" + encodeToURL(passw));
 }
 
-var errormsg = '<div class="card"><div class="item item-text-wrap">Looks like there\'s something wrong with your username or password or you have not yet set it up. You can fix this by going to <b>Settings -> Grades -> Type in username and password -> Tap Save</b>.</div></div>';
-document.getElementById("main").innerHTML = errormsg;
+var ErrorMessage = '<div class="card"><div class="item item-text-wrap">Looks like there\'s something wrong with your username or password or you have not yet set it up. You can fix this by going to <b>Settings -> Grades -> Type in username and password -> Tap Save</b>.</div></div>';
+document.getElementById("main").innerHTML = ErrorMessage;
 
-function resetgrades(){
+function resetLocalData(){
 	localStorage.setItem('username', "");
 	localStorage.setItem('password', "");
 	localStorage.setItem('grades', "");
@@ -101,12 +101,13 @@ function getListMiniHTML(name, per, lettr, c){
 }
 
 function trysubmit(){
+
 	var username = localStorage.getItem("username");
 	var password = localStorage.getItem("password");
 
-	if(isUndefined(username) || isUndefined(password) || username == null || password == null){//Error Filter
-		resetgrades();
-		document.getElementById("main").innerHTML = runLang(errormsg);
+	if(isUndefined(username) || isUndefined(password) || username == null || password == null){
+		resetLocalData();
+		document.getElementById("main").innerHTML = ErrorMessage;
 	} else {
 		username = username.toLowerCase();
 		if(password.length > 4 && username.substring(0,1) == 's' && username.length == 7 && username.substring(1, 7).match(/^[0-9]+$/) != null){ // Checks for accurate information
@@ -127,10 +128,10 @@ function trysubmit(){
 			var json = JSON.parse(data);
 			var showhtml = "<div class=\"list\">";
 			showhtml += "<div class=\"item item-divider\">This 6 Weeks</div>";
-			for(var c in json["CGrades"]){
-				showhtml += getListItemHTML(json["CGrades"][c]["Name"], json["CGrades"][c]["OverallAverage"], json["CGrades"][c]["OverallLetterAverage"], "CLASSAKA" + i);
-				for(var s in json["CGrades"][c]["Assignments"]){
-					showhtml += getListMiniHTML(s, json["CGrades"][c]["Assignments"][s]["Percent"], json["CGrades"][c]["Assignments"][s]["Letter"], "CLASSAKA" + i);
+			for(var c in json.CGrades){
+				showhtml += getListItemHTML(json.CGrades[c].Name, json.CGrades[c].OverallAverage, json.CGrades[c].OverallLetterAverage, "CLASSAKA" + i);
+				for(var s in json.CGrades[c].Assignments){
+					showhtml += getListMiniHTML(s, json.CGrades[c].Assignments[s].Percent, json.CGrades[c].Assignments[s].Letter, "CLASSAKA" + i);
 				}
 				i++;
 			}
@@ -142,7 +143,7 @@ function trysubmit(){
 			document.getElementById("main").style.display = 'block';
 			document.getElementById("loading_box").style.display = 'none';
 		} else {
-			document.getElementById("main").innerHTML = errormsg;
+			document.getElementById("main").innerHTML = ErrorMessage;
 		}
 	}
 }
