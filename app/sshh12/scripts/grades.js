@@ -101,7 +101,6 @@ function updateGrades(){
           function(responce){
             responce.json().then(
               function(json){
-                alert(JSON.stringify(json));
                 localStorage.setItem('grades', JSON.stringify(data));
 
                 var i = 0;
@@ -123,9 +122,10 @@ function updateGrades(){
           }
         ).catch(function(error){
           alert(error);
+          document.getElementById("main").innerHTML = ErrorMessage;
+          document.getElementById("main").style.display = 'block';
+          document.getElementById("loading_box").style.display = 'none';
         });
-
-        nalert("Grades", "Downloading...");
 			}
 		} else { //User Input is Incorrect
 			document.getElementById("main").innerHTML = ErrorMessage;

@@ -10,12 +10,17 @@
 	</super-navbar>
 
 	<div id="main"></div>
-	<div id="loading_box">Loading...<i class="icon super-refreshing"></i></div>
+	<div id="loading_box" style="display:flex;justify-content:center;align-items:center;text-align:center;">
+		<br>
+		<h5>Downloading...</h5>
+		<br>
+		<button class="button button-icon icon super-ios-cloud-download"></button>
+	</div>
 
 </div>
 
 <script>
-document.getElementById("main").innerHTML = ErrorMessage;
+document.getElementById("loading_box").style.display = 'none';
 //document.addEventListener("visibilitychange", onVisibilityChange, false);
 updateGrades();
 </script>
