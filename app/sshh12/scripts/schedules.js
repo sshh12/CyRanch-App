@@ -23,6 +23,13 @@ function timeslot(timestring, name){
     this.end_date.setMinutes(end_split[1]);
     this.end_date.setSeconds(0);
 
+    this.padMinutes = function(minutes){
+      if(minutes < 10){
+        return "0" + minutes
+      }
+      return minutes
+    }
+
     this.getNameString = function(){
       var s = "";
       if(this.start_date.getHours() > 12){
@@ -30,14 +37,14 @@ function timeslot(timestring, name){
       } else {
         s += this.start_date.getHours();
       }
-      s += ":" + this.start_date.getUTCMinutes() + "-";
+      s += ":" + this.padMinutes(this.start_date.getMinutes()) + "-";
 
       if(this.end_date.getHours() > 12){
         s += this.end_date.getHours() - 12;
       } else {
         s += this.end_date.getHours();
       }
-      s += ":" + this.end_date.getUTCMinutes();
+      s += ":" + this.padMinutes(this.end_date.getMinutes());
 
       return s;
     };
@@ -63,13 +70,9 @@ function timeslot(timestring, name){
     };
 }
 
-var ScheduleTitles = {
-  "a": "A, Regular",
-  "b": "B, Extended 2nd Period",
-  "c": "C, Pep Rally"
-};
-
-var ASchedule = [[
+var ASchedule = [
+  "A, Regular",
+  [
     new timeslot("7:25-8:16", "1st"),
     new timeslot("8:22-9:15", "2nd"),
     new timeslot("9:21-10:12", "3rd"),
@@ -97,7 +100,9 @@ var ASchedule = [[
   }
 ];
 
-var BSchedule = [[
+var BSchedule = [
+  "B, Extended 2nd Period",
+  [
     new timeslot("7:25-8:10", "1st"),
     new timeslot("8:16-9:03", "2nd"),
     new timeslot("9:03-9:33", "Assembly"),
@@ -126,7 +131,9 @@ var BSchedule = [[
   }
 ];
 
-var CSchedule = [[
+var CSchedule = [
+  "C, Pep Rally",
+  [
     new timeslot("7:25-8:12", "1st"),
     new timeslot("8:18-9:07", "2nd"),
     new timeslot("9:13-10:00", "3rd"),
