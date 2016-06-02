@@ -35,6 +35,10 @@ function getFromURL(URL) {
 	return xmlHttp.responseText;
 }
 
+function getFromAPI(method){
+	return fetch(SVR_ADDRESS + method);
+}
+
 function getFromSite(method){
   return getFromURL(SVR_ADDRESS + method);
 }
