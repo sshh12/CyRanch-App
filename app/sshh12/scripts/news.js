@@ -39,6 +39,7 @@ function addCards(cards){
     }
   );
   for (var c in current_cards) {
+		html += current_cards[c].html;
 	}
   document.getElementById("cardlist").innerHTML = html;
 	//document.getElementById("cardlist").firstChild.textContent = ''; //I don't even know...
