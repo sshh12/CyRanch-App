@@ -35,6 +35,15 @@ function getFromURL(URL) {
 	return xmlHttp.responseText;
 }
 
+function timeout(ms, promise) {
+  return new Promise(function(resolve, reject) {
+    setTimeout(function() {
+      reject(new Error("Connection Timed Out"))
+    }, ms)
+    promise.then(resolve, reject)
+  })
+}
+
 function getFromAPI(method){
 	return fetch(SVR_ADDRESS + method);
 }

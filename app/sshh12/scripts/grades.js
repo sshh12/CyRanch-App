@@ -97,7 +97,7 @@ function updateGrades(){
 				document.getElementById("main").style.display = 'none';
 				document.getElementById("loading_box").style.display = 'block';
 
-        getFromAPI("grades/" + username + "/" + encodeToURL(password)).then(
+        timeout(9000, getFromAPI("grades/" + username + "/" + encodeToURL(password))).then(
           function(responce){
             responce.json().then(
               function(json){
