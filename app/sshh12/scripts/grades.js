@@ -80,6 +80,9 @@ function getListMiniHTML(name, per, lettr, c){
 	return k;
 }
 
+var counter;
+var interval;
+
 function updateGrades(){
 
 	var username = localStorage.getItem("username");
@@ -97,7 +100,7 @@ function updateGrades(){
 				document.getElementById("main").style.display = 'none';
 				document.getElementById("loading_box").style.display = 'block';
 
-        timeout(9000, getFromAPI("grades/" + username + "/" + encodeToURL(password))).then(
+        timeout(15000, getFromAPI("grades/" + username + "/" + encodeToURL(password))).then(
           function(responce){
             responce.json().then(
               function(json){
@@ -113,7 +116,7 @@ function updateGrades(){
           				}
           				i++;
           			}
-
+								clearInterval(interval)
                 document.getElementById("main").innerHTML = showhtml;
                 document.getElementById("main").style.display = 'block';
                 document.getElementById("loading_box").style.display = 'none';
@@ -126,6 +129,19 @@ function updateGrades(){
           document.getElementById("main").style.display = 'block';
           document.getElementById("loading_box").style.display = 'none';
         });
+
+				counter = 0;
+				interval = setInterval(
+					function() {
+				    counter += 5000.0 / 16000;
+				    if(counter >= 100) {
+				        clearInterval(interval);
+				    } else {
+				        document.getElementById('status').innerHTML = counter.toFixed(2) + "%";
+				    }
+					}, 50
+				);
+
 			}
 		} else { //User Input is Incorrect
 			document.getElementById("main").innerHTML = ErrorMessage;
