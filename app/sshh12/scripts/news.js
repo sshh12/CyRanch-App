@@ -35,7 +35,7 @@ function addCards(cards){
   }
   current_cards.sort(
     function(a, b){
-      return b.date.getTime() - a.date.getTime()
+      return b.date.getTime() - a.date.getTime();
     }
   );
   for (var c in current_cards) {
@@ -54,112 +54,103 @@ function refreshAllContent(){
   document.getElementById("loading_box").style.display = 'none';
 }
 
+function getCardsForCyRanchNews1(text){
+	var cards = [];
+	CyRanchNewsPage1 = createDocElement("CyRanchNewsPage1Body", text);
+	for (var i = 0; i < 12; i++) { // CyRanchNews1
+		var b = createNormalBox("CyRanchNews.com",
+														CyRanchNewsPage1.getElementsByClassName("categorypreviewbox")[i].lastChild.previousSibling.textContent,
+														"/icons/CyRanchMustangs.png",
+														CyRanchNewsPage1.getElementsByClassName("categorypreviewbox")[i].firstChild.firstChild.getAttribute("src"),
+														CyRanchNewsPage1.getElementsByClassName("categorypreviewbox")[i].firstChild.nextSibling.firstChild.textContent,
+														'supersonic.app.openURL(\''+CyRanchNewsPage1.getElementsByClassName("categorypreviewbox")[i].firstChild.getAttribute("href")+'\');');
+		cards.push(new Card(b, CyRanchNewsPage1.getElementsByClassName("categorypreviewbox")[i].lastChild.previousSibling.textContent));
+	}
+	return cards;
+}
+
+function getCardsForCyRanchNews2(text){
+	var cards = [];
+	CyRanchNewsPage2 = createDocElement("CyRanchNewsPage2Body", text);
+	for (var i = 0; i < 12; i++) { // CyRanchNews2
+		var b = createNormalBox("CyRanchNews.com",
+														CyRanchNewsPage2.getElementsByClassName("categorypreviewbox")[i].lastChild.previousSibling.textContent,
+														"/icons/CyRanchMustangs.png",
+														CyRanchNewsPage2.getElementsByClassName("categorypreviewbox")[i].firstChild.firstChild.getAttribute("src"),
+														CyRanchNewsPage2.getElementsByClassName("categorypreviewbox")[i].firstChild.nextSibling.firstChild.textContent,
+														'supersonic.app.openURL(\''+CyRanchNewsPage2.getElementsByClassName("categorypreviewbox")[i].firstChild.getAttribute("href")+'\');');
+		cards.push(new Card(b, CyRanchNewsPage2.getElementsByClassName("categorypreviewbox")[i].lastChild.previousSibling.textContent));
+	}
+	return cards;
+}
+
+function getCardsForAppNews(text){
+	var cards = [];
+	CyRanchAppNews = createDocElement("CyRanchAppNewsBody", text);
+	for (var i = 0; i < CyRanchAppNews.getElementsByTagName("CyRanchNews").length; i++) { //CyRanchApp
+		var b = createNormalBox("The Cy-Ranch App",
+														CyRanchAppNews.getElementsByTagName("CyRanchNews")[i].getElementsByTagName("date")[0].textContent,
+														 "/icons/Developer.png",
+														 CyRanchAppNews.getElementsByTagName("CyRanchNews")[i].getElementsByTagName("pic")[0].getAttribute('link'),
+														 CyRanchAppNews.getElementsByTagName("CyRanchNews")[i].getElementsByTagName("title")[0].textContent,
+														 '');
+		cards.push(new Card(b, CyRanchAppNews.getElementsByTagName("CyRanchNews")[i].getElementsByTagName("date")[0].textContent));
+	}
+	return cards;
+}
+
+function getCardsForCFISDNews(text){
+	var cards = [];
+	CFISDNews = createDocElement("CFISDNewsBody", text);
+	for (i = 0; i < CFISDNews.getElementsByClassName("index-item").length; i++) { //CFISDNews
+		var b = createNoPictureBox("CFISD.net",
+															 CFISDNews.getElementsByClassName("index-item")[i].getElementsByClassName("item-date")[0].textContent,
+															 "/icons/CFISD.png",
+															 'supersonic.app.openURL(\'http://cfisd.net/' + CFISDNews.getElementsByClassName("index-item")[i].getElementsByTagName('a')[0].getAttribute('href')+'\');',
+															 CFISDNews.getElementsByClassName("index-item")[i].firstChild.nextSibling.firstChild.nextSibling.textContent);
+		cards.push(new Card(b, CFISDNews.getElementsByClassName("index-item")[i].getElementsByClassName("item-date")[0].textContent));
+	}
+	return cards;
+}
+
+function fetchNews(apimethod, func){
+	timeout(5000, getFromAPI(apimethod)).then(
+		function(responce){
+			responce.text().then(
+				function(text){
+					addCards(func(text));
+				}
+			)
+		}
+	).catch(function(error){
+		alert(error);
+	})
+}
+
 function setNews(){
 
   if(settings[0] == 'true'){
-    timeout(5000, getFromAPI("cyranchnews1")).then(
-      function(responce){
-        responce.text().then(
-          function(text){
-            var cards = [];
-            CyRanchNewsPage1 = createDocElement("CyRanchNewsPage1Body", text);
-            for (var i = 0; i < 12; i++) { // CyRanchNews1
-              var b = createNormalBox("CyRanchNews.com",
-                                      CyRanchNewsPage1.getElementsByClassName("categorypreviewbox")[i].lastChild.previousSibling.textContent,
-                                      "/icons/CyRanchMustangs.png",
-                                      CyRanchNewsPage1.getElementsByClassName("categorypreviewbox")[i].firstChild.firstChild.getAttribute("src"),
-                                      CyRanchNewsPage1.getElementsByClassName("categorypreviewbox")[i].firstChild.nextSibling.firstChild.textContent,
-                                      'supersonic.app.openURL(\''+CyRanchNewsPage1.getElementsByClassName("categorypreviewbox")[i].firstChild.getAttribute("href")+'\');');
-              cards.push(new Card(b, CyRanchNewsPage1.getElementsByClassName("categorypreviewbox")[i].lastChild.previousSibling.textContent));
-        		}
-            addCards(cards);
-          }
-        )
-      }
-    ).catch(function(error){
-      alert(error);
-    })
-
-    timeout(5000, getFromAPI("cyranchnews2")).then(
-      function(responce){
-        responce.text().then(
-          function(text){
-            var cards = [];
-            CyRanchNewsPage2 = createDocElement("CyRanchNewsPage2Body", text);
-            for (var i = 0; i < 12; i++) { // CyRanchNews1
-              var b = createNormalBox("CyRanchNews.com",
-                                      CyRanchNewsPage2.getElementsByClassName("categorypreviewbox")[i].lastChild.previousSibling.textContent,
-                                      "/icons/CyRanchMustangs.png",
-                                      CyRanchNewsPage2.getElementsByClassName("categorypreviewbox")[i].firstChild.firstChild.getAttribute("src"),
-                                      CyRanchNewsPage2.getElementsByClassName("categorypreviewbox")[i].firstChild.nextSibling.firstChild.textContent,
-                                      'supersonic.app.openURL(\''+CyRanchNewsPage2.getElementsByClassName("categorypreviewbox")[i].firstChild.getAttribute("href")+'\');');
-              cards.push(new Card(b, CyRanchNewsPage2.getElementsByClassName("categorypreviewbox")[i].lastChild.previousSibling.textContent));
-        		}
-            addCards(cards);
-          }
-        )
-      }
-    ).catch(function(error){
-      alert(error);
-    })
+		fetchNews('cyranchnews1', getCardsForCyRanchNews1);
+		fetchNews('cyranchnews2', getCardsForCyRanchNews2);
   }
 
   if(settings[1] == 'true'){
-    timeout(5000, getFromAPI("appnews")).then(
-      function(responce){
-        responce.text().then(
-          function(text){
-            var cards = [];
-            CyRanchAppNews = createDocElement("CyRanchAppNewsBody", text);
-            for (var i = 0; i < CyRanchAppNews.getElementsByTagName("CyRanchNews").length; i++) { //CyRanchApp
-              var b = createNormalBox("The Cy-Ranch App",
-                                      CyRanchAppNews.getElementsByTagName("CyRanchNews")[i].getElementsByTagName("date")[0].textContent,
-                                       "/icons/Developer.png",
-                                       CyRanchAppNews.getElementsByTagName("CyRanchNews")[i].getElementsByTagName("pic")[0].getAttribute('link'),
-                                       CyRanchAppNews.getElementsByTagName("CyRanchNews")[i].getElementsByTagName("title")[0].textContent,
-                                       '');
-              cards.push(new Card(b, CyRanchAppNews.getElementsByTagName("CyRanchNews")[i].getElementsByTagName("date")[0].textContent));
-        		}
-            addCards(cards);
-          }
-        )
-      }
-    ).catch(function(error){
-      alert(error);
-    })
+		fetchNews('appnews', getCardsForAppNews);
   }
 
   if(settings[2] == 'true'){
-    timeout(5000, getFromAPI("cfisdnews")).then(
-      function(responce){
-        responce.text().then(
-          function(text){
-            var cards = [];
-            CFISDNews = createDocElement("CFISDNewsBody", text);
-            for (i = 0; i < CFISDNews.getElementsByClassName("index-item").length; i++) { //CFISDNews
-              var b = createNoPictureBox("CFISD.net",
-                                         CFISDNews.getElementsByClassName("index-item")[i].getElementsByClassName("item-date")[0].textContent,
-                                         "/icons/CFISD.png",
-                                         'supersonic.app.openURL(\'http://cfisd.net/' + CFISDNews.getElementsByClassName("index-item")[i].getElementsByTagName('a')[0].getAttribute('href')+'\');',
-                                         CFISDNews.getElementsByClassName("index-item")[i].firstChild.nextSibling.firstChild.nextSibling.textContent);
-              cards.push(new Card(b, CFISDNews.getElementsByClassName("index-item")[i].getElementsByClassName("item-date")[0].textContent));
-        		}
-            addCards(cards);
-          }
-        )
-      }
-    ).catch(function(error){
-      alert(error);
-    })
-  }
+		fetchNews('cfisdnews', getCardsForCFISDNews);
 }
 
 function onVisibilityChangeIndex() {
     if(document.visibilityState == 'visible'){
 		var newSettings = [localStorage.getItem("CyRanchNews"),localStorage.getItem("cyranchapp"),localStorage.getItem("CFISDNews")];
-		if(settings[0] != newSettings[0] || settings[1] != newSettings[1] || settings[2] != newSettings[2]){
-      settings = newSettings;
-			setNews();
+		for(var s in settings){
+			if(settings[s] != newSettings[s]){
+				settings = newSettings;
+				setNews();
+				break;
+			}
 		}
 	}
 }
