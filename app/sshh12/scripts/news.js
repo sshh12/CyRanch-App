@@ -1,14 +1,3 @@
-if(isUndefined(localStorage.getItem("ViewCyRanchNews")) || isUndefined(localStorage.getItem("ViewAppNews")) || isUndefined(localStorage.getItem("ViewCFISDNews"))){
-	localStorage.setItem('ViewCyRanchNews', 'true');
-	localStorage.setItem('ViewAppNews', 'true');
-	localStorage.setItem('ViewCFISDNews', 'false');
-}
-
-function Card(html, date){
-  this.html = html;
-  this.date = new Date(date);
-}
-
 function NormalCardBox(header, date, iconURL, imageURL, text, onclick){
 	this.header = parseXSS(header);
 	this.date = new Date(date);

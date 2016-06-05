@@ -28,7 +28,7 @@ function parseXSS(string){
 	return string.replace(/;/g, "&semi;").replace(/=/g, "&equals;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/&/g, "&amp;").replace(/!/g, "&excl;").replace(/\$/g, "&dollar;");
 }
 
-function getFromURL(URL) {
+function getFromURL(URL) { //Delete Me
 	var xmlHttp = new XMLHttpRequest();
   xmlHttp.open("GET", URL, false);
   xmlHttp.send( null );
