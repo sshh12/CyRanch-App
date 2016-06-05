@@ -1,4 +1,5 @@
 <script src="sshh12#general"></script>
+<script src="sshh12#defaults"></script>
 <script src="sshh12#lang"></script>
 
 <div class="">
@@ -134,23 +135,6 @@ if(localStorage.getItem("ViewCyRanchNews") == 'true'){ document.getElementById("
 else {document.getElementById("ViewCyRanchNews").checked = false;}
 if(localStorage.getItem("ViewCFISDNews") == 'true'){ document.getElementById("ViewCFISDNews").checked = true; }
 else {document.getElementById("ViewCFISDNews").checked = false;}
-
-var username = localStorage.getItem("username");
-var password = localStorage.getItem("password");
-
-if(isUndefined(username)){
-	document.getElementById('username').value = '';
-	localStorage.setItem("username", "");
-} else {
-	document.getElementById('username').value = username;
-}
-
-if(isUndefined(password)){
-	document.getElementById('password').value = '';
-	localStorage.setItem("username", "");
-} else {
-	document.getElementById('password').value = password;
-}
 
 supersonic.app.splashscreen.hide()
 </script>
