@@ -56,6 +56,7 @@ function refreshAllContent(){
   document.getElementById("cardlist").style.display = 'none';
   document.getElementById("loading_box").style.display = 'block';
   current_cards = [];
+	addCards([]); // Clear
   setNews();
   document.getElementById("cardlist").style.display = 'block';
   document.getElementById("loading_box").style.display = 'none';
