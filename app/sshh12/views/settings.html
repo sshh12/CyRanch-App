@@ -83,7 +83,7 @@
 
 
 		<li class='item item-divider head'>Debug <b>(Dev. Only)</b></li>
-		<a class="item item-icon-right" href="#" onClick="nalert('Debug', getDeviceInfo());">
+		<a class="item item-icon-right" href="#" onClick="AppAlert('Debug', getDeviceInfo());">
 			<i class="icon super-android-developer"></i>
 			Device <b>?</b>
 		</a>
@@ -95,7 +95,10 @@
 </div>
 <script defer>
 function getDeviceInfo(){
-	return "Platfrom: " + device.platform + "\nID: " + device.uuid + "\nCordova: " + device.cordova + "\nServer: " + SVR_ADDRESS;
+	return "Platfrom: " + device.platform +
+				 "\nID: " + device.uuid +
+				 "\nCordova: " + device.cordova +
+				 "\nServer: " + SVR_ADDRESS;
 }
 
 function resetStorage(){
@@ -136,5 +139,8 @@ else {document.getElementById("ViewCyRanchNews").checked = false;}
 if(localStorage.getItem("ViewCFISDNews") == 'true'){ document.getElementById("ViewCFISDNews").checked = true; }
 else {document.getElementById("ViewCFISDNews").checked = false;}
 
-supersonic.app.splashscreen.hide()
+document.getElementById("username").value = localStorage.getItem("username");
+document.getElementById("password").value = localStorage.getItem("password");
+
+supersonic.app.splashscreen.hide();
 </script>

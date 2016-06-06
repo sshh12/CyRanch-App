@@ -28,13 +28,6 @@ function parseXSS(string){
 	return string.replace(/;/g, "&semi;").replace(/=/g, "&equals;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/&/g, "&amp;").replace(/!/g, "&excl;").replace(/\$/g, "&dollar;");
 }
 
-function getFromURL(URL) { //Delete Me
-	var xmlHttp = new XMLHttpRequest();
-  xmlHttp.open("GET", URL, false);
-  xmlHttp.send( null );
-	return xmlHttp.responseText;
-}
-
 function timeout(ms, promise) {
   return new Promise(function(resolve, reject) {
     setTimeout(function() {
@@ -49,9 +42,12 @@ function getFromAPI(method){
 }
 
 function getFromSite(method){
-  return getFromURL(SVR_ADDRESS + method);
+	var xmlHttp = new XMLHttpRequest();
+  xmlHttp.open("GET", SVR_ADDRESS + method, false);
+  xmlHttp.send( null );
+	return xmlHttp.responseText;
 }
 
-function nalert(title, text){
+function AppAlert(title, text){
 	navigator.notification.alert(text, function(){ return false; }, title, 'Dismiss');
 }

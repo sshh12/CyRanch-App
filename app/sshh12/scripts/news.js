@@ -117,17 +117,17 @@ function getCardsForCFISDNews(text){
 	return cards;
 }
 
-function fetchNews(apimethod, func){
+function fetchNews(apimethod, parser){
 	timeout(5000, getFromAPI(apimethod)).then(
 		function(responce){
 			responce.text().then(
 				function(text){
-					addCards(func(text));
+					addCards(parser(text));
 				}
 			);
 		}
 	).catch(function(error){
-		alert(error);
+		AppAlert("Error", "Unable to Connect to Server 😭");
 	});
 }
 
@@ -145,6 +145,7 @@ function setNews(){
   if(settings[2] == 'true'){
 		fetchNews('cfisdnews', getCardsForCFISDNews);
 	}
+
 }
 
 function onVisibilityChangeIndex() {

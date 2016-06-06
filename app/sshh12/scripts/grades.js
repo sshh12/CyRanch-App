@@ -6,7 +6,7 @@ function resetLocalData(){
 	localStorage.setItem('grades', "");
 }
 
-function refresh_content(){
+function refreshContent(){
 	localStorage.setItem('grades', '');
 	updateGrades();
 }
@@ -124,7 +124,7 @@ function updateGrades(){
             )
           }
         ).catch(function(error){
-          alert(error);
+          AppAlert("Error", "Unable to Connect to Server 😞");
           document.getElementById("main").innerHTML = ErrorMessage;
           document.getElementById("main").style.display = 'block';
           document.getElementById("loading_box").style.display = 'none';
