@@ -46,10 +46,10 @@ function makeTeacher(name, website, email){
 }
 
 function loadTeachers(){
-	var json_page = localStorage.getItem("teacher_datas");
+	var json_page = localStorage.getItem("faculty_json");
 	if(isUndefined(json_page) || json_page == null || json_page.length < 20){
 		json_page = getFromSite('faculty');
-		localStorage.setItem("teacher_datas", json_page);
+		localStorage.setItem("faculty_json", json_page);
 	}
 
 	var json = JSON.parse(json_page);
@@ -79,6 +79,5 @@ function loadTeachers(){
 }
 
 loadTeachers();
-
-window.onload = function () { supersonic.app.splashscreen.hide(); }
+supersonic.app.splashscreen.hide();
 </script>

@@ -1,6 +1,7 @@
 //Global Functions and Stuff
 
 var SVR_ADDRESS = "http://sshh12.com:8338/";
+//var SVR_ADDRESS = "http://10.0.0.2:8338/";
 
 function createDocElement(name, bodytext) {
 	var page = document.implementation.createHTMLDocument(name);
@@ -27,17 +28,26 @@ function parseXSS(string){
 	return string.replace(/;/g, "&semi;").replace(/=/g, "&equals;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/&/g, "&amp;").replace(/!/g, "&excl;").replace(/\$/g, "&dollar;");
 }
 
-function getFromURL(URL) {
+function timeout(ms, promise) {
+  return new Promise(function(resolve, reject) {
+    setTimeout(function() {
+      reject(new Error("Connection Timed Out"))
+    }, ms)
+    promise.then(resolve, reject)
+  })
+}
+
+function getFromAPI(method){
+	return fetch(SVR_ADDRESS + method);
+}
+
+function getFromSite(method){
 	var xmlHttp = new XMLHttpRequest();
-  xmlHttp.open("GET", URL, false);
+  xmlHttp.open("GET", SVR_ADDRESS + method, false);
   xmlHttp.send( null );
 	return xmlHttp.responseText;
 }
 
-function getFromSite(method){
-  return getFromURL(SVR_ADDRESS + method);
-}
-
-function nalert(title, text){
+function AppAlert(title, text){
 	navigator.notification.alert(text, function(){ return false; }, title, 'Dismiss');
 }

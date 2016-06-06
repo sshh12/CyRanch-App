@@ -1,4 +1,5 @@
 <script src="sshh12#general"></script>
+<script src="sshh12#defaults"></script>
 <script src="sshh12#lang"></script>
 
 <div class="">
@@ -20,21 +21,21 @@
 		<li class="item item-toggle">
 			Cfisd.net
 			<label class="toggle toggle-royal">
-				<input type="checkbox" id="CFISDNews" onClick="updateCFISDNews()">
+				<input type="checkbox" id="ViewCFISDNews" onClick="updateCFISDNews()">
 				<div class="track"><div class="handle"></div></div>
 			</label>
 		</li>
 		<li class="item item-toggle">
 			CyRanchNews.com
 			<label class="toggle toggle-balanced">
-				<input type="checkbox" id="cyranchnews" onClick="updateCyRanchNews()">
+				<input type="checkbox" id="ViewCyRanchNews" onClick="updateCyRanchNews()">
 				<div class="track"><div class="handle"></div></div>
 			</label>
 		</li>
 		<li class="item item-toggle">
 			<i>Sshh12 Studios</i>
 			<label class="toggle toggle-assertive">
-				<input type="checkbox" id="cyranchapp" onClick="updatecyranchapp()">
+				<input type="checkbox" id="ViewAppNews" onClick="updateCyRanchAppNews()">
 				<div class="track"><div class="handle"></div></div>
 			</label>
 		</li>
@@ -82,7 +83,7 @@
 
 
 		<li class='item item-divider head'>Debug <b>(Dev. Only)</b></li>
-		<a class="item item-icon-right" href="#" onClick="nalert('Debug', getDeviceInfo());">
+		<a class="item item-icon-right" href="#" onClick="AppAlert('Debug', getDeviceInfo());">
 			<i class="icon super-android-developer"></i>
 			Device <b>?</b>
 		</a>
@@ -94,70 +95,52 @@
 </div>
 <script defer>
 function getDeviceInfo(){
-	return "Platfrom: " + device.platform + "\nID: " + device.uuid + "\nCordova: " + device.cordova + "\nServer: " + SVR_ADDRESS;
+	return "Platfrom: " + device.platform +
+				 "\nID: " + device.uuid +
+				 "\nCordova: " + device.cordova +
+				 "\nServer: " + SVR_ADDRESS;
 }
 
 function resetStorage(){
-	localStorage.setItem('teacher_datas', '');
-	localStorage.setItem('startup', '');
-	localStorage.setItem('grades', '');
+	localStorage.setItem('faculty_json', '');
+
 	localStorage.setItem('username', '');
-	localStorage.setItem('CyRanchNewsPage1HTML', '');
-	localStorage.setItem('CyRanchNewsPage2HTML', '');
-	localStorage.setItem('CyRanchAppNewsHTML', '');
-	localStorage.setItem('CFISDNewsHTML', '');
 	document.getElementById('username').value = '';
 	localStorage.setItem('password', '');
 	document.getElementById('password').value = '';
 
-	localStorage.setItem('CyRanchNews', 'true');
-	document.getElementById("cyranchnews").checked = true;
-	localStorage.setItem('cyranchapp', 'true');
-	document.getElementById("cyranchapp").checked = true;
-	localStorage.setItem('CFISDNews', 'false');
-	document.getElementById("CFISDNews").checked = false;
+	localStorage.setItem('ViewCyRanchNews', 'true');
+	document.getElementById("ViewCyRanchNews").checked = true;
+	localStorage.setItem('ViewAppNews', 'true');
+	document.getElementById("ViewAppNews").checked = true;
+	localStorage.setItem('ViewCFISDNews', 'false');
+	document.getElementById("ViewCFISDNews").checked = false;
 }
-
-var username = localStorage.getItem("username");
-var password = localStorage.getItem("password");
-
-if(localStorage.getItem("cyranchapp") == 'true'){ document.getElementById("cyranchapp").checked = true; }
-else {document.getElementById("cyranchapp").checked = false;}
-if(localStorage.getItem("CyRanchNews") == 'true'){ document.getElementById("cyranchnews").checked = true; }
-else {document.getElementById("cyranchnews").checked = false;}
-if(localStorage.getItem("CFISDNews") == 'true'){ document.getElementById("CFISDNews").checked = true; }
-else {document.getElementById("CFISDNews").checked = false;}
 
 function updateCyRanchNews(){
-	if(document.getElementById("cyranchnews").checked){ localStorage.setItem('CyRanchNews', 'true'); }
-	else { localStorage.setItem('CyRanchNews', 'false'); }
+	if(document.getElementById("ViewCyRanchNews").checked){ localStorage.setItem('ViewCyRanchNews', 'true'); }
+	else { localStorage.setItem('ViewCyRanchNews', 'false'); }
 }
 
-function updatecyranchapp(){
-	if(document.getElementById("cyranchapp").checked){ localStorage.setItem('cyranchapp', 'true'); }
-	else { localStorage.setItem('cyranchapp', 'false'); }
+function updateCyRanchAppNews(){
+	if(document.getElementById("ViewAppNews").checked){ localStorage.setItem('ViewAppNews', 'true'); }
+	else { localStorage.setItem('ViewAppNews', 'false'); }
 }
 
 function updateCFISDNews(){
-	if(document.getElementById("CFISDNews").checked){ localStorage.setItem('CFISDNews', 'true'); }
-	else { localStorage.setItem('CFISDNews', 'false'); }
+	if(document.getElementById("ViewCFISDNews").checked){ localStorage.setItem('ViewCFISDNews', 'true'); }
+	else { localStorage.setItem('ViewCFISDNews', 'false'); }
 }
 
-if(isUndefined(username) == true){
-	document.getElementById('username').value = '';
-	localStorage.setItem("username","");
-}
-else {
-	document.getElementById('username').value = username;
-}
+if(localStorage.getItem("ViewAppNews") == 'true'){ document.getElementById("ViewAppNews").checked = true; }
+else {document.getElementById("ViewAppNews").checked = false;}
+if(localStorage.getItem("ViewCyRanchNews") == 'true'){ document.getElementById("ViewCyRanchNews").checked = true; }
+else {document.getElementById("ViewCyRanchNews").checked = false;}
+if(localStorage.getItem("ViewCFISDNews") == 'true'){ document.getElementById("ViewCFISDNews").checked = true; }
+else {document.getElementById("ViewCFISDNews").checked = false;}
 
-if(isUndefined(password) == true){
-	document.getElementById('password').value = '';
-	localStorage.setItem("username","");
-}
-else {
-	document.getElementById('password').value = password;
-}
+document.getElementById("username").value = localStorage.getItem("username");
+document.getElementById("password").value = localStorage.getItem("password");
 
-supersonic.app.splashscreen.hide()
+supersonic.app.splashscreen.hide();
 </script>
