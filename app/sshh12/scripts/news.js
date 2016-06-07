@@ -50,16 +50,16 @@ function addCards(cards){
 		html += current_cards[c].getHTML();
 	}
   document.getElementById("cardlist").innerHTML = html;
+	document.getElementById("cardlist").style.display = 'block';
+  document.getElementById("loading_box").style.display = 'none';
 }
 
 function refreshAllContent(){
-  document.getElementById("cardlist").style.display = 'none';
-  document.getElementById("loading_box").style.display = 'block';
   current_cards = [];
 	addCards([]); // Clear
   setNews();
-  document.getElementById("cardlist").style.display = 'block';
-  document.getElementById("loading_box").style.display = 'none';
+	document.getElementById("cardlist").style.display = 'none';
+  document.getElementById("loading_box").style.display = 'block';
 }
 
 function getCardsForCyRanchNews1(text){
@@ -94,12 +94,7 @@ function getCardsForAppNews(text){
 	var cards = [];
 	var news = JSON.parse(text);
 	for (var i in news) { //CyRanchApp
-		cards.push(new NormalCardBox("The Cy-Ranch App",
-																 news[i].date,
-															   "/icons/Developer.png",
-															   news[i].image,
-															   news[i].text,
-															 	 ''));
+		cards.push(new NormalCardBox("The Cy-Ranch App", news[i].date, "/icons/Developer.png", news[i].image, news[i].text, ''));
 	}
 	return cards;
 }
