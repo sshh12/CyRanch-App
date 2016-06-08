@@ -1,19 +1,19 @@
-var ErrorMessage = '<div class="card"><div class="item item-text-wrap">Looks like there\'s something wrong with your username or password or the app was unable to connect to our servers. You can try to fix this by going to <b>Settings -> Grades -> Type in username and password -> Tap Save</b>.</div></div>';
+var ErrorMessage = '<div class="card"><div class="item item-text-wrap">Looks like there\'s something wrong with your username or password. You can try to fix this by going to <b>Settings -> Grades -> Type in username and password -> Tap Save</b>.</div></div>';
+var ErrorMessageConnection = '<div class="card"><div class="item item-text-wrap" style="text-align:center">Unable to Connect 😞</div></div>';
 
 function resetLocalData(){
 	localStorage.setItem('username', "");
 	localStorage.setItem('password', "");
-	localStorage.setItem('grades', "");
 }
 
-function toggle_visibility(cn) {
-	var els = document.getElementsByClassName(cn);
-	for(var i = 0; i < els.length; i++){
-		if(els[i].style.display == 'block'){
-			els[i].style.display = 'none';
+function toggle_visibility(name) {
+	var elements = document.getElementsByClassName(name);
+	for(var i in elements){
+		if(elements[i].style.display == 'block'){
+			elements[i].style.display = 'none';
 		}
 		else {
-			els[i].style.display = 'block';
+			elements[i].style.display = 'block';
 		}
 	}
 }
@@ -105,13 +105,13 @@ function updateGrades(){
           			var showhtml = "<div class=\"list\">";
           			showhtml += "<div class=\"item item-divider\">This 6 Weeks</div>";
           			for(var c in json.CGrades){
-          				showhtml += getListItemHTML(json.CGrades[c].Name, json.CGrades[c].OverallAverage, json.CGrades[c].OverallLetterAverage, "CLASSAKA" + i);
+          				showhtml += getListItemHTML(json.CGrades[c].Name, json.CGrades[c].OverallAverage, json.CGrades[c].OverallLetterAverage, "GROUP_" + i);
           				for(var s in json.CGrades[c].Assignments){
-          					showhtml += getListMiniHTML(s, json.CGrades[c].Assignments[s].Percent, json.CGrades[c].Assignments[s].Letter, "CLASSAKA" + i);
+          					showhtml += getListMiniHTML(s, json.CGrades[c].Assignments[s].Percent, json.CGrades[c].Assignments[s].Letter, "GROUP_" + i);
           				}
           				i++;
           			}
-								clearInterval(interval)
+								clearInterval(interval);
                 document.getElementById("main").innerHTML = showhtml;
                 document.getElementById("main").style.display = 'block';
                 document.getElementById("loading_box").style.display = 'none';
@@ -119,8 +119,9 @@ function updateGrades(){
             )
           }
         ).catch(function(error){
+					clearInterval(interval);
           AppAlert("Error", "Unable to Connect to Server 😞");
-          document.getElementById("main").innerHTML = ErrorMessage;
+          document.getElementById("main").innerHTML = ErrorMessageConnection;
           document.getElementById("main").style.display = 'block';
           document.getElementById("loading_box").style.display = 'none';
         });
