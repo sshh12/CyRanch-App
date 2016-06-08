@@ -20,7 +20,7 @@ function encodeToURL(str) {
   });
 }
 
-function removeExtraChars(string){
+function reduceString(string){
 	return string.toLowerCase().replace(",", "").replace(" ", "");
 }
 

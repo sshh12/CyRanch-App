@@ -17,10 +17,10 @@
 		<div class="list">
   		<label class="item item-input">
     		<i class="icon super-search placeholder-icon"></i>
-    		<input type="text" placeholder="Search" id="search_bar" onChange="loadTeachers();">
+    		<input type="text" placeholder="Search" id="search_bar" onChange="loadTeachers();" onkeypress="loadTeachers();" onkeyup="loadTeachers();">
   		</label>
 
-			<div id="changing_content">
+			<div id="content">
 				<!-- Template
 				<div class="item item-divider">A</div>
 				<a class="item item-button-right">
@@ -54,30 +54,40 @@ function loadTeachers(){
 
 	var json = JSON.parse(json_page);
 
-	var search = removeExtraChars(document.getElementById("search_bar").value);
+	var search = reduceString(document.getElementById("search_bar").value);
 
-	var new_html = "";
+	var html = "";
 
-	for(var div_letter in json){
+	var letters = ['A', 'B', 'C', 'D', 'E', 'F',
+	 							 'G', 'H', 'I', 'J', 'K', 'L',
+								 'M', 'N', 'O', 'P', 'Q', 'R',
+								 'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z'];
 
-		var letter_html = "";
-		for(var i = 0; i < json[div_letter].length; i++){
-			var teacher_new_html = makeTeacher(json[div_letter][i]["name"], json[div_letter][i]["website"], json[div_letter][i]["email"]);
-			if(removeExtraChars(teacher_new_html).indexOf(search) >= 0 || search.length < 1){
-				letter_html += teacher_new_html;
+	for(var div_letter in letters){
+
+		var groupOfTeachers = "";
+		if(json[letters[div_letter]]){
+
+			for(var i = 0; i < json[letters[div_letter]].length; i++){
+				var teacher = makeTeacher(json[ letters[div_letter] ][i].name, json[ letters[div_letter] ][i].website, json[ letters[div_letter] ][i].email);
+				if(reduceString(teacher).indexOf(search) >= 0 || search.length < 1){
+					groupOfTeachers += teacher;
+				}
 			}
-		}
 
-		if(letter_html.length > 0){
-			letter_html = makeDivider(div_letter) + letter_html;
-		}
+			if(groupOfTeachers.length > 0){
+				groupOfTeachers = makeDivider(letters[div_letter]) + groupOfTeachers;
+			}
 
-		new_html += letter_html;
+			html += groupOfTeachers;
+
+		}
 	}
 
-	document.getElementById("changing_content").innerHTML = new_html;
+	document.getElementById("content").innerHTML = html;
 }
 
 loadTeachers();
+
 supersonic.app.splashscreen.hide();
 </script>

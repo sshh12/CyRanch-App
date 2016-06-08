@@ -3,41 +3,34 @@
 <script src="sshh12#lang"></script>
 
 <div class="">
-    <super-navbar>
-        <super-navbar-title style="text-align: center;">Schedules</super-navbar-title>
-        <super-navbar-button side="left" onclick="supersonic.ui.modal.hide();">Back</super-navbar-button>
-        <super-navbar-button side="right" onclick="updateList();">Refresh</super-navbar-button>
-    </super-navbar>
-
-    <div class="list">
-      <ul class="item" id="lunches">
-          <label class="item item-input item-select">
-              <div class="input-label">Lunch</div>
-              <select id="lunch" style="width: 100%;" onChange="updateList();">
-                  <option value="none">A, B, C</option>
-                  <option value="a">A</option>
-                  <option value="b">B</option>
-                  <option value="c">C</option>
-              </select>
-          </label>
-      </ul>
-      <ul class="item" id="schedules">
-          <label class="item item-input item-select">
-              <div class="input-label">Schedule</div>
-              <select id="schedule" style="width: 100%;" onChange="current_schedule=document.getElementById('schedule').value;updateList();">
-                  <option value="a">A (Normal)</option>
-                  <option value="b">B (Extended 2nd)</option>
-                  <option value="c">C (Pep Rally)</option>
-              </select>
-          </label>
-      </ul>
-  </div>
-
-  <ul class="list" id="items"></ul>
-
+   <super-navbar>
+      <super-navbar-title style="text-align: center;">Schedules</super-navbar-title>
+      <super-navbar-button side="left" onclick="supersonic.ui.modal.hide();">Back</super-navbar-button>
+      <super-navbar-button side="right" onclick="updateList();">Refresh</super-navbar-button>
+   </super-navbar>
+   <div class="list list-inset">
+      <label class="item item-input item-select">
+         <div class="input-label">Lunch</div>
+         <select id="lunch" style="width: 100%;" onChange="updateList();">
+            <option value="none">A, B, C</option>
+            <option value="a">A</option>
+            <option value="b">B</option>
+            <option value="c">C</option>
+         </select>
+      </label>
+      <label class="item item-input item-select">
+         <div class="input-label">Schedule</div>
+         <select id="schedule" style="width: 100%;" onChange="currentSchedule=document.getElementById('schedule').value;updateList();">
+            <option value="a">A (Normal)</option>
+            <option value="b">B (Extended 2nd)</option>
+            <option value="c">C (Pep Rally)</option>
+         </select>
+      </label>
+   </div>
+   <ul class="list" id="items"></ul>
 </div>
 <script>
-    var current_schedule = 'a';
+    var currentSchedule = 'a';
 
     function updateList() {
         var lunch_letter = document.getElementById("lunch").value;
@@ -45,14 +38,15 @@
         var date_now = new Date();
 
         var lunch_added = false;
-        var lunch_timeslots = null;
-        var MainSchedule = null;
-        var title = "";
-        if (current_schedule == 'b') {
+        var lunch_timeslots,
+            MainSchedule,
+            title;
+
+        if (currentSchedule == 'b') {
             lunch_timeslots = BSchedule[2][lunch_letter];
             MainSchedule    = BSchedule[1];
             title           = BSchedule[0];
-        } else if (current_schedule == 'c') {
+        } else if (currentSchedule == 'c') {
             lunch_timeslots = CSchedule[2][lunch_letter];
             MainSchedule    = CSchedule[1];
             title           = CSchedule[0];
