@@ -28,6 +28,7 @@ node_modules
 
 # Stuff
 dist
+bower_components
 
 # Optional npm cache directory
 .npm
