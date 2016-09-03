@@ -99,7 +99,7 @@ function updateGrades(){
           function(responce){
             responce.json().then(
               function(json){
-                localStorage.setItem('grades', JSON.stringify(data));
+                localStorage.setItem('grades', JSON.stringify(json));
                 var i = 0;
           			var showhtml = "<div class=\"list\">";
           			showhtml += "<div class=\"item item-divider\">This 6 Weeks</div>";
