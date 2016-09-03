@@ -129,9 +129,10 @@ function updateGrades(){
 				counter = 0;
 				interval = setInterval(
 					function() {
-				    counter += 5000.0 / 16000;
+				    counter += 0.3;
 				    if(counter >= 100) {
 				        clearInterval(interval);
+								document.getElementById('status').innerHTML = "...";
 				    } else {
 				        document.getElementById('status').innerHTML = counter.toFixed(2) + "%";
 				    }
