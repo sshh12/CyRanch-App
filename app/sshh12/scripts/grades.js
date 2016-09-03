@@ -90,7 +90,7 @@ function updateGrades(){
 		username = username.toLowerCase();
 		if(password.length > 4 && username.substring(0,1) == 's' && username.length == 7 && username.substring(1, 7).match(/^[0-9]+$/) != null){
 			var data = localStorage.getItem('grades');
-			if(true || isUndefined(data) || data == null || data.length < 20){ //Need to Update Data
+			if(isUndefined(data) || data == null || data.length < 20){ //Need to Update Data
 
 				document.getElementById("main").style.display = 'none';
 				document.getElementById("loading_box").style.display = 'block';
@@ -100,7 +100,6 @@ function updateGrades(){
             responce.json().then(
               function(json){
                 localStorage.setItem('grades', JSON.stringify(data));
-
                 var i = 0;
           			var showhtml = "<div class=\"list\">";
           			showhtml += "<div class=\"item item-divider\">This 6 Weeks</div>";
@@ -129,7 +128,7 @@ function updateGrades(){
 				counter = 0;
 				interval = setInterval(
 					function() {
-				    counter += 0.3;
+				    counter += 0.6;
 				    if(counter >= 100) {
 				        clearInterval(interval);
 								document.getElementById('status').innerHTML = "...";
