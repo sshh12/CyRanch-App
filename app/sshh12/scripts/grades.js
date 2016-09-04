@@ -4,6 +4,7 @@ var ErrorMessageConnection = '<div class="card"><div class="item item-text-wrap"
 function resetLocalData(){
 	localStorage.setItem('username', "");
 	localStorage.setItem('password', "");
+	localStorage.setItem('grades', "");
 }
 
 function toggle_visibility(name) {
@@ -83,14 +84,14 @@ function updateGrades(){
 	var username = localStorage.getItem("username");
 	var password = localStorage.getItem("password");
 
-	if(isUndefined(username) || isUndefined(password) || username == null || password == null){
+	if(isUndefined(username) || isUndefined(password) || username === null || password === null){
 		resetLocalData();
 		document.getElementById("main").innerHTML = ErrorMessage;
 	} else {
 		username = username.toLowerCase();
-		if(password.length > 4 && username.substring(0,1) == 's' && username.length == 7 && username.substring(1, 7).match(/^[0-9]+$/) != null){
+		if(password.length > 4 && username.substring(0,1) == 's' && username.length === 7 && username.substring(1, 7).match(/^[0-9]+$/) !== null){
 			var data = localStorage.getItem('grades');
-			if(isUndefined(data) || data == null || data.length < 20){ //Need to Update Data
+			if(isUndefined(data) || data === null || data.length < 20){ //Need to Update Data
 
 				document.getElementById("main").style.display = 'none';
 				document.getElementById("loading_box").style.display = 'block';
@@ -115,11 +116,11 @@ function updateGrades(){
                 document.getElementById("main").style.display = 'block';
                 document.getElementById("loading_box").style.display = 'none';
               }
-            )
+            );
           }
         ).catch(function(error){
 					clearInterval(interval);
-          AppAlert("Error", "Unable to Connect to Server 😞");
+          AppAlert("Error", "Unable to Download Grades 😞");
           document.getElementById("main").innerHTML = ErrorMessageConnection;
           document.getElementById("main").style.display = 'block';
           document.getElementById("loading_box").style.display = 'none';
