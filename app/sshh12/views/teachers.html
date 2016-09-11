@@ -18,7 +18,7 @@
 		<div class="list">
   		<label class="item item-input">
     		<i class="icon super-search placeholder-icon"></i>
-    		<input type="text" placeholder="Search" id="search_bar" onChange="loadTeachers();" onkeypress="loadTeachers();" onkeyup="loadTeachers();">
+    		<input type="text" placeholder="Search" id="search_bar" onChange="setTeachers();" onkeypress="setTeachers();" onkeyup="setTeachers();">
   		</label>
 
 			<div id="content">
@@ -43,10 +43,12 @@ function makeTeacher(name, website, email){
 	var site = website.replace("https://", "")
 										.replace("http://www.", "")
 										.replace("/a/cfisd.net/", "/../");
-	return "<a class=\"item item-button-right\"><b><h3>" + name + "</h3></b><button onClick=\"supersonic.app.openURL('mailto:" + email + "')\" class=\"button icon super-email button-positive\"></button><p onClick=\"supersonic.app.openURL('" + website + "')\">" + site + "</p></a>";
+	return "<a class=\"item item-button-right\"><b><h3>" + name + "</h3></b><button onClick=\"supersonic.app.openURL('mailto://" + email + "')\" class=\"button icon super-email button-positive\"></button><p onClick=\"supersonic.app.openURL('" + website + "')\">" + site + "</p></a>";
 }
 
 function setTeachers(json){
+	json = json || JSON.parse(localStorage.getItem("faculty_json"));
+
 	var search = reduceString(document.getElementById("search_bar").value);
 
 	var html = "";
@@ -77,7 +79,7 @@ function setTeachers(json){
 
 function getTeachers(){
 	var original_json = localStorage.getItem("faculty_json");
-	if(isUndefined(original_json) || original_json == null || original_json.length < 20){
+	if(isUndefined(original_json) || original_json == null || original_json.length < 50){
 		timeout(6000, getFromAPI("faculty")).then(
 			function(responce){
 				responce.json().then(
@@ -92,7 +94,7 @@ function getTeachers(){
 		});
 
 	} else {
-			setTeachers(original_json);
+			setTeachers(JSON.parse(original_json));
 	}
 }
 
