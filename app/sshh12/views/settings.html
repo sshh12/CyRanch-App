@@ -43,14 +43,14 @@
 		<li class='item item-divider head'>Grades</li>
 		<label class="item item-input">
 			<span class="input-label">Username: </span>
-			<input type="text" id="username"/>
+			<input type="text" id="username" autocapitalize="none"/>
 		</label>
 		<label class="item item-input">
 			<span class="input-label">Password: </span>
 			<input type="password" id="password"/>
 		</label>
 		<div class="button-bar">
-  		<a class="button button-calm" onClick="localStorage.setItem('username', document.getElementById('username').value); localStorage.setItem('password', document.getElementById('password').value);">Save</a>
+  		<a class="button button-calm" onClick="localStorage.setItem('username', document.getElementById('username').value); localStorage.setItem('password', document.getElementById('password').value);AppAlert('Saved!', 'Click on the Grades tab then tap Refresh to view your grades.')">Save</a>
   		<a class="button button-assertive" onClick="localStorage.setItem('grades', '');localStorage.setItem('username', '');document.getElementById('username').value = '';localStorage.setItem('password', '');document.getElementById('password').value = '';">Log Out</a>
 		</div>
 
@@ -64,7 +64,7 @@
         <option value="swag">~Swag~</option>
       </select>
     </label>-->
-		<a class="item item-icon-right" onClick="supersonic.app.openURL('mailto://shrivu1122@gmail.com')">
+		<a class="item item-icon-right" onClick="supersonic.app.openURL('mailto:shrivu1122@gmail.com')">
 			<i class="icon super-email"></i>
 			Contact Me!
 		</a>

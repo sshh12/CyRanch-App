@@ -12,15 +12,14 @@ function toggle_visibility(name) {
 	for(var i in elements){
 		if(elements[i].style.display == 'block'){
 			elements[i].style.display = 'none';
-		}
-		else {
+		} else {
 			elements[i].style.display = 'block';
 		}
 	}
 }
 
 function getListItemHTML(name, per, lettr, c){
-	var s = "<a class=\"item\" onClick=\"toggle_visibility('"+ c +"');\"><b>" + name;
+	var s = "<a class=\"item\" ontouchstart=\"toggle_visibility('"+ c +"');\"><b>" + name;
 	if(isUndefined(per)){
 		per = "None";
 		lettr = 'U';
@@ -96,7 +95,7 @@ function updateGrades(){
 				document.getElementById("main").style.display = 'none';
 				document.getElementById("loading_box").style.display = 'block';
 
-        timeout(15000, getFromAPI("grades/" + username + "/" + encodeToURL(password))).then(
+        timeout(16000, getFromAPI("grades/" + username + "/" + encodeToURL(password))).then(
           function(responce){
             responce.json().then(
               function(json){
@@ -129,10 +128,10 @@ function updateGrades(){
 				counter = 0;
 				interval = setInterval(
 					function() {
-				    counter += 0.6;
+				    counter += 0.5;
 				    if(counter >= 100) {
 				        clearInterval(interval);
-								document.getElementById('status').innerHTML = "...";
+								document.getElementById('status').innerHTML = "Something Went Wrong...";
 				    } else {
 				        document.getElementById('status').innerHTML = counter.toFixed(2) + "%";
 				    }

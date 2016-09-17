@@ -43,7 +43,7 @@ function makeTeacher(name, website, email){
 	var site = website.replace("https://", "")
 										.replace("http://www.", "")
 										.replace("/a/cfisd.net/", "/../");
-	return "<a class=\"item item-button-right\"><b><h3>" + name + "</h3></b><button onClick=\"supersonic.app.openURL('mailto://" + email + "')\" class=\"button icon super-email button-positive\"></button><p onClick=\"supersonic.app.openURL('" + website + "')\">" + site + "</p></a>";
+	return "<a class=\"item item-button-right\"><b><h3>" + name + "</h3></b><button onClick=\"supersonic.app.openURL('mailto:" + email + "')\" class=\"button icon super-email button-positive\"></button><p onClick=\"supersonic.app.openURL('" + website + "')\">" + site + "</p></a>";
 }
 
 function setTeachers(json){
