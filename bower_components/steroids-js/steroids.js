@@ -1,4 +1,4 @@
-/*! steroids-js - v3.5.19 - 2015-11-18 14:03 */
+/*! steroids-js - v3.5.20 - 2016-06-30 16:42 */
 (function(window){
 var Bridge,
   __bind = function(fn, me){ return function(){ return fn.apply(me, arguments); }; };
@@ -12,7 +12,7 @@ Bridge = (function() {
 
   Bridge.getBestNativeBridge = function() {
     var bridgeClass, prioritizedList, _i, _len;
-    prioritizedList = [FreshAndroidBridge, ModuleBridge, TizenBridge, WebBridge, AndroidBridge, WebsocketBridge, JSCoreBridge];
+    prioritizedList = [FreshAndroidBridge, TizenBridge, WebBridge, AndroidBridge, WebsocketBridge, JSCoreBridge];
     if (this.bestNativeBridge == null) {
       for (_i = 0, _len = prioritizedList.length; _i < _len; _i++) {
         bridgeClass = prioritizedList[_i];
@@ -206,82 +206,6 @@ FreshAndroidBridge = (function(_super) {
   return FreshAndroidBridge;
 
 })(Bridge);
-;var ModuleBridge, debug,
-  __slice = [].slice,
-  __hasProp = {}.hasOwnProperty,
-  __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; },
-  __indexOf = [].indexOf || function(item) { for (var i = 0, l = this.length; i < l; i++) { if (i in this && this[i] === item) return i; } return -1; };
-
-debug = (function() {
-  switch (false) {
-    case !((localStorage.debug != null) && (localStorage.debug || "").indexOf("steroids") !== -1):
-      return function() {
-        var args;
-        args = 1 <= arguments.length ? __slice.call(arguments, 0) : [];
-        return console.log.apply(console, ["ModuleBridge: "].concat(__slice.call(args)));
-      };
-    default:
-      return function() {};
-  }
-})();
-
-ModuleBridge = (function(_super) {
-  __extends(ModuleBridge, _super);
-
-  function ModuleBridge() {
-    window.AG_SCREEN_ID = 0;
-    window.AG_LAYER_ID = 0;
-    window.AG_VIEW_ID = 0;
-    return this;
-  }
-
-  ModuleBridge.isUsable = function() {
-    return /gyver\.com$/.test(location.hostname);
-  };
-
-  ModuleBridge.prototype.sendMessageToNative = function(messageString) {
-    var failSilentlyMethods, failed, failureOptions, message, successOptions, _ref;
-    message = JSON.parse(messageString);
-    debug(message);
-    failed = false;
-    successOptions = {};
-    failureOptions = {};
-    failSilentlyMethods = ["userFilesPath", "getApplicationPath", "getEndpointURL", "addEventListener", "broadcastJavascript", "getApplicationState"];
-    switch (message.method) {
-      case "ping":
-        successOptions.message = "PONG";
-        break;
-      case "popLayer":
-        window.history.back();
-        break;
-      case "openLayer":
-        window.location.href = message.parameters.url;
-        break;
-      case "openURL":
-        window.open(message.parameters.url, "_blank");
-        break;
-      case "openModal":
-        steroids.component.helper.openModal(message.parameters.url, {});
-        break;
-      case "closeModal":
-        steroids.component.helper.closeModal();
-        break;
-      default:
-        if (_ref = message.method, __indexOf.call(failSilentlyMethods, _ref) < 0) {
-          debug("unsupported API method: " + message.method);
-        }
-        failed = true;
-    }
-    if (failed) {
-
-    } else {
-      return this.callbacks[message.callbacks.success].call(this, successOptions);
-    }
-  };
-
-  return ModuleBridge;
-
-})(Bridge);
 ;var AndroidBridge,
   __hasProp = {}.hasOwnProperty,
   __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; };
@@ -330,10 +254,22 @@ WebBridge = (function(_super) {
   __extends(WebBridge, _super);
 
   function WebBridge() {
-    var pollForRefresh, refresh, source;
     window.AG_SCREEN_ID = 0;
     window.AG_LAYER_ID = 0;
     window.AG_VIEW_ID = 0;
+    this.registerForClientRefresh();
+    this;
+  }
+
+  WebBridge.isUsable = function() {
+    return navigator.userAgent.indexOf("AppGyverSteroids") === -1;
+  };
+
+  WebBridge.prototype.registerForClientRefresh = function() {
+    var pollForRefresh, refresh, source;
+    if (window.location.hostname !== "localhost") {
+      return;
+    }
     refresh = {
       id: null,
       timestamp: (new Date()).getTime()
@@ -348,7 +284,7 @@ WebBridge = (function(_super) {
       source.addEventListener("open", function(e) {
         return debug("Monitoring updates from steroids npm.");
       }, false);
-      source.addEventListener("error", function(e) {
+      return source.addEventListener("error", function(e) {
         if (e.readyState === EventSource.CLOSED) {
           return debug("No longer monitoring updates from steroids npm.");
         }
@@ -365,13 +301,8 @@ WebBridge = (function(_super) {
         xhr.open("GET", "http://localhost:4567/refresh_client?" + refresh.timestamp);
         return xhr.send();
       };
-      refresh.id = setInterval(pollForRefresh, 1000);
+      return refresh.id = setInterval(pollForRefresh, 1000);
     }
-    return this;
-  }
-
-  WebBridge.isUsable = function() {
-    return navigator.userAgent.indexOf("AppGyverSteroids") === -1;
   };
 
   WebBridge.prototype.sendMessageToNative = function(messageString) {
@@ -4187,7 +4118,7 @@ Spinner = (function() {
 ;var _this = this;
 
 window.steroids = {
-  version: "3.5.19",
+  version: "3.5.20",
   Animation: Animation,
   File: File,
   views: {

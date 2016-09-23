@@ -1,7 +1,7 @@
 /**
  * supersonic
- * Version: 1.9.2
- * Published: 2015-12-10
+ * Version: 1.13.2
+ * Published: 2016-09-09
  * Homepage: https://github.com/AppGyver/supersonic
  * License: MIT
  */
@@ -41,7 +41,7 @@
 
 }).call(this);
 
-},{"bluebird":203}],2:[function(require,module,exports){
+},{"bluebird":200}],2:[function(require,module,exports){
 (function() {
   var DEFAULT_CACHE_TIMETOLIVE_MILLISECONDS, Promise;
 
@@ -170,7 +170,7 @@
 
 }).call(this);
 
-},{"bluebird":203,"debug":204}],3:[function(require,module,exports){
+},{"bluebird":200,"debug":201}],3:[function(require,module,exports){
 (function() {
   var Bacon, Promise, buildModelClass, configureResourceFeatures, data, defaultLoader, restful;
 
@@ -216,7 +216,7 @@
 
 }).call(this);
 
-},{"./cache/async-key-value-storage":1,"./model/build-model-class":4,"./resource/configure-features":10,"ag-resource-loader-json":14,"ag-restful":25,"baconjs":202,"bluebird":203}],4:[function(require,module,exports){
+},{"./cache/async-key-value-storage":1,"./model/build-model-class":4,"./resource/configure-features":10,"ag-resource-loader-json":14,"ag-restful":25,"baconjs":199,"bluebird":200}],4:[function(require,module,exports){
 (function() {
   module.exports = function(resource, options) {
     var Model, ModelOps, ResourceGateway;
@@ -278,7 +278,7 @@
     fromPromiseF = function(target) {
       return {
         follow: function() {
-          var args, changes, options, polledValues, shouldUpdate, unrecoverableErrors, updates, whenChanged, _i, _ref, _ref1;
+          var args, changes, errorsWithRecoverabilityInformation, options, polledValues, shouldUpdate, unrecoverableError, updates, whenChanged, _i, _ref, _ref1;
           args = 2 <= arguments.length ? __slice.call(arguments, 0, _i = arguments.length - 1) : (_i = 0, []), options = arguments[_i++];
           if (options == null) {
             options = {};
@@ -287,10 +287,16 @@
           polledValues = shouldUpdate.flatMapFirst(function() {
             return Bacon.fromPromise(Promise.resolve(target.apply(null, args)));
           });
-          unrecoverableErrors = polledValues.errors().mapError(function(e) {
+          errorsWithRecoverabilityInformation = polledValues.errors().mapError(function(e) {
+            e.unrecoverable = isUnrecoverableError(e);
             return e;
-          }).filter(isUnrecoverableError);
-          updates = polledValues.takeUntil(unrecoverableErrors);
+          });
+          unrecoverableError = errorsWithRecoverabilityInformation.filter(function(e) {
+            return e.unrecoverable;
+          }).take(1);
+          updates = polledValues.skipErrors().merge(errorsWithRecoverabilityInformation.flatMap(function(e) {
+            return new Bacon.Error(e);
+          })).takeUntil(unrecoverableError);
           changes = updates.skipDuplicates((_ref1 = options.equals) != null ? _ref1 : deepEqual).map((_ref = options.clone) != null ? _ref : cloneDeep);
           whenChanged = function(onSuccess, onError) {
             var unsub, unsubErrors, unsubValues;
@@ -327,7 +333,7 @@
 
 }).call(this);
 
-},{"baconjs":202,"bluebird":203,"deep-equal":207,"lodash-node/modern/lang/cloneDeep":119}],6:[function(require,module,exports){
+},{"baconjs":199,"bluebird":200,"deep-equal":204,"lodash-node/modern/lang/cloneDeep":116}],6:[function(require,module,exports){
 (function() {
   var deepEqual, jsonableEquality;
 
@@ -345,7 +351,7 @@
 
 }).call(this);
 
-},{"deep-equal":207}],7:[function(require,module,exports){
+},{"deep-equal":204}],7:[function(require,module,exports){
 (function() {
   var Promise, jsonableEquality, objectSize, _;
 
@@ -445,10 +451,30 @@
                 };
               })(this);
             }
+          },
+          recordPermissionsForCurrentUser: {
+            enumerable: false,
+            get: function() {
+              return this.__appgyver_acl_calculated;
+            }
+          },
+          acl: {
+            enumerable: false,
+            get: function() {
+              this.__dirty = true;
+              this.__changed['__appgyver_acl'] = true;
+              return this.__appgyver_acl;
+            },
+            set: function(v) {
+              this.__appgyver_acl = v;
+              this.__data.__appgyver_acl = v;
+              this.__dirty = true;
+              return this.__changed['__appgyver_acl'] = true;
+            }
           }
         };
       },
-      clonablePropertyNames: ['__state', '__data', '__changed', '__dirty'],
+      clonablePropertyNames: ['__state', '__data', '__changed', '__dirty', '__appgyver_acl', '__appgyver_acl_calculated'],
       modelInstanceProperties: (function() {
         var addNonIdentifierProperties, createMetadata, makeIdentifierProperty, makeMetadataProperties;
         createMetadata = function(data) {
@@ -456,7 +482,9 @@
             __state: 'new',
             __data: data,
             __changed: {},
-            __dirty: objectSize(data) > 0
+            __dirty: objectSize(data) > 0,
+            __appgyver_acl: data != null ? data.__appgyver_acl : void 0,
+            __appgyver_acl_calculated: data != null ? data.__appgyver_acl_calculated : void 0
           };
         };
         makeMetadataProperties = function(metadata) {
@@ -611,7 +639,7 @@
 
 }).call(this);
 
-},{"./jsonable-equality":6,"bluebird":203,"lodash-node/modern/object/defaults":129}],8:[function(require,module,exports){
+},{"./jsonable-equality":6,"bluebird":200,"lodash-node/modern/object/defaults":126}],8:[function(require,module,exports){
 (function() {
   var Bacon, Promise, cloneDeep, followable, jsonableEquality,
     __slice = [].slice;
@@ -707,8 +735,11 @@
         };
       };
       return {
-        find: function(id) {
-          return resource.find(id).then(instanceFromPersistentState);
+        find: function(id, query) {
+          if (query == null) {
+            query = {};
+          }
+          return resource.find(id, query).then(instanceFromPersistentState);
         },
         findAll: function(query) {
           if (query == null) {
@@ -735,10 +766,6 @@
             return ResourceGateway.findAll(query);
           }).follow(options);
         },
-
-        /*
-        NOTE: Code smell, looks like copy paste from all()
-         */
         one: function(id, options) {
           var _ref;
           if (options == null) {
@@ -754,8 +781,11 @@
               return record.clone();
             };
           }
+          if (options.query == null) {
+            options.query = {};
+          }
           return followable((_ref = defaults.followable) != null ? _ref : {}).fromPromiseF(function() {
-            return ResourceGateway.find(id);
+            return ResourceGateway.find(id, options.query);
           }).follow(options);
         },
         options: (typeof resource.getOptions === "function" ? resource.getOptions() : void 0) || {},
@@ -791,7 +821,7 @@
 
 }).call(this);
 
-},{"./followable":5,"./jsonable-equality":6,"baconjs":202,"bluebird":203,"lodash-node/modern/lang/cloneDeep":119}],9:[function(require,module,exports){
+},{"./followable":5,"./jsonable-equality":6,"baconjs":199,"bluebird":200,"lodash-node/modern/lang/cloneDeep":116}],9:[function(require,module,exports){
 (function() {
   var Bacon, Promise, asyncKeyValueStorage, decorateWithCaching, propertyCache,
     __hasProp = {}.hasOwnProperty,
@@ -842,11 +872,17 @@
         return CachedResource.__super__.constructor.apply(this, arguments);
       }
 
-      CachedResource.find = function(id) {
+      CachedResource.find = function(id, query) {
+        if (query == null) {
+          query = {};
+        }
+        if ((query != null) && Object.keys(query).length !== 0) {
+          return resource.find(id, query);
+        }
         return instanceCache.prop(id, {
           timeToLive: timeToLive
         }).computeUnlessValid(function() {
-          return resource.find(id);
+          return resource.find(id, query);
         });
       };
 
@@ -912,7 +948,7 @@
 
 }).call(this);
 
-},{"../cache/async-key-value-storage":1,"../cache/property-cache":2,"baconjs":202,"bluebird":203,"debug":204}],10:[function(require,module,exports){
+},{"../cache/async-key-value-storage":1,"../cache/property-cache":2,"baconjs":199,"bluebird":200,"debug":201}],10:[function(require,module,exports){
 (function() {
   module.exports = function(restful) {
     var decorateWithCaching, decorateWithFileFieldSupport, hasFileFields;
@@ -1101,18 +1137,21 @@
         };
         return function(data, fieldsToUpload) {
           return function(resultWithUploadInstructions) {
-            var fileFieldName, uploadUrl, uploadUrlsByField, uploads;
+            var fileFieldName, uploadUrl, uploadUrlsByField, uploads, _fn;
             uploadUrlsByField = extractFileUploadUrls(fieldsToUpload, resultWithUploadInstructions);
             uploads = Transaction.unit(resultWithUploadInstructions);
-            for (fileFieldName in uploadUrlsByField) {
-              uploadUrl = uploadUrlsByField[fileFieldName];
-              uploads = uploads.flatMapDone(function(result) {
+            _fn = function(fileFieldName, uploadUrl) {
+              return uploads = uploads.flatMapDone(function(result) {
                 return uploadTransaction(uploadUrl, data[fileFieldName]).flatMapDone(function() {
                   debug("Completed upload for " + fileFieldName);
                   result[fileFieldName].uploaded = true;
                   return Transaction.unit(result);
                 });
               });
+            };
+            for (fileFieldName in uploadUrlsByField) {
+              uploadUrl = uploadUrlsByField[fileFieldName];
+              _fn(fileFieldName, uploadUrl);
             }
             return uploads;
           };
@@ -1173,7 +1212,7 @@
 }).call(this);
 
 }).call(this,require("buffer").Buffer)
-},{"./file-fields/determine-file-upload-headers":12,"./file-fields/get-content-for-file-field":13,"ag-transaction":36,"bluebird":203,"buffer":211,"debug":204,"lodash-node/modern/lang/cloneDeep":119}],12:[function(require,module,exports){
+},{"./file-fields/determine-file-upload-headers":12,"./file-fields/get-content-for-file-field":13,"ag-transaction":33,"bluebird":200,"buffer":208,"debug":201,"lodash-node/modern/lang/cloneDeep":116}],12:[function(require,module,exports){
 (function() {
   var DEFAULT_JPG_QUALITY, DEFAULT_MAX_WIDTH, isImageFile, isJpegFile, startsWith;
 
@@ -1187,6 +1226,7 @@
    */
 
   module.exports = function(file) {
+    var _ref, _ref1, _ref2;
     switch (false) {
       case !!isImageFile(file):
         return {
@@ -1195,13 +1235,13 @@
       case !isJpegFile(file):
         return {
           "X-AG-Image-Uploader": "on",
-          "X-AG-Image-Uploader-JPG-Quality": DEFAULT_JPG_QUALITY,
-          "X-AG-Image-Uploader-Width": DEFAULT_MAX_WIDTH
+          "X-AG-Image-Uploader-JPG-Quality": (_ref = file.uploadJpgQuality) != null ? _ref : DEFAULT_JPG_QUALITY,
+          "X-AG-Image-Uploader-Width": (_ref1 = file.uploadMaxWidth) != null ? _ref1 : DEFAULT_MAX_WIDTH
         };
       default:
         return {
           "X-AG-Image-Uploader": "on",
-          "X-AG-Image-Uploader-Width": DEFAULT_MAX_WIDTH
+          "X-AG-Image-Uploader-Width": (_ref2 = file.uploadMaxWidth) != null ? _ref2 : DEFAULT_MAX_WIDTH
         };
     }
   };
@@ -1266,7 +1306,7 @@
 
 }).call(this);
 
-},{"cuid":41}],14:[function(require,module,exports){
+},{"cuid":38}],14:[function(require,module,exports){
 (function() {
   var validateResourceBundle;
 
@@ -1357,7 +1397,7 @@
 
 }).call(this);
 
-},{"ag-types":142}],16:[function(require,module,exports){
+},{"ag-types":139}],16:[function(require,module,exports){
 (function() {
   var ResourceBundle, types;
 
@@ -1391,7 +1431,7 @@
 
 }).call(this);
 
-},{"ag-types":142}],17:[function(require,module,exports){
+},{"ag-types":139}],17:[function(require,module,exports){
 (function (Buffer){
 (function() {
   var assert, types, urlify, _,
@@ -1506,7 +1546,7 @@
 }).call(this);
 
 }).call(this,require("buffer").Buffer)
-},{"./urlify":27,"ag-types":142,"assert-plus":32,"buffer":211,"lodash-node/modern/object/defaults":129}],18:[function(require,module,exports){
+},{"./urlify":27,"ag-types":139,"assert-plus":32,"buffer":208,"lodash-node/modern/object/defaults":126}],18:[function(require,module,exports){
 (function() {
   var deepDefaults, merge;
 
@@ -1558,6 +1598,9 @@
               if (!(0 === key.indexOf('__'))) {
                 continue;
               }
+              if (key === '__appgyver_acl') {
+                continue;
+              }
               sikrits[key] = value;
               delete data[key];
             }
@@ -1584,7 +1627,7 @@
 
 }).call(this);
 
-},{"./options/deep-defaults":26,"lodash-node/modern/object/merge":133}],19:[function(require,module,exports){
+},{"./options/deep-defaults":26,"lodash-node/modern/object/merge":130}],19:[function(require,module,exports){
 (function() {
   var extractResponseBody,
     __slice = [].slice;
@@ -1743,7 +1786,7 @@
 
 }).call(this);
 
-},{"./jobs":23,"./request-step":24,"ag-transaction":36,"lodash-node/modern/lang/cloneDeep":119,"lodash-node/modern/object/defaults":129}],21:[function(require,module,exports){
+},{"./jobs":23,"./request-step":24,"ag-transaction":33,"lodash-node/modern/lang/cloneDeep":116,"lodash-node/modern/object/defaults":126}],21:[function(require,module,exports){
 (function() {
   var buildRequest, superagent;
 
@@ -1808,7 +1851,7 @@
 
 }).call(this);
 
-},{"superagent":33}],22:[function(require,module,exports){
+},{"superagent":294}],22:[function(require,module,exports){
 
 /*
 extractResponseBody: (response: Object) -> Object | Error
@@ -1869,13 +1912,17 @@ extractResponseBody: (response: Object) -> Object | Error
           });
         });
         done = new Promise(function(resolve, reject) {
-          debug("Firing HTTP request", request);
+          debug("Firing HTTP request: " + request.method + " " + request.url);
+          debug("HTTP request headers: " + (JSON.stringify(request.header)));
+          debug("HTTP request body: " + (JSON.stringify(request._data)));
           return request.end(function(err, res) {
             if (err) {
               debug("HTTP request error", err);
               return reject(err);
             } else {
-              debug("HTTP request completed", res);
+              debug("HTTP request completed: " + res.statusCode + " " + res.status);
+              debug("HTTP response headers: " + (JSON.stringify(res.header)));
+              debug("HTTP response body: " + res.text);
               return resolve(res);
             }
           });
@@ -1888,7 +1935,7 @@ extractResponseBody: (response: Object) -> Object | Error
 
 }).call(this);
 
-},{"./build-request":21,"debug":204}],25:[function(require,module,exports){
+},{"./build-request":21,"debug":201}],25:[function(require,module,exports){
 (function() {
   module.exports = function(Promise, Bacon) {
     var buildRestful, http, restful, validations;
@@ -1935,7 +1982,7 @@ extractResponseBody: (response: Object) -> Object | Error
 
 }).call(this);
 
-},{"lodash-node/modern/function/partialRight":45,"lodash-node/modern/lang/isArray":121,"lodash-node/modern/lang/isDate":122,"lodash-node/modern/object/merge":133}],27:[function(require,module,exports){
+},{"lodash-node/modern/function/partialRight":42,"lodash-node/modern/lang/isArray":118,"lodash-node/modern/lang/isDate":119,"lodash-node/modern/object/merge":130}],27:[function(require,module,exports){
 (function() {
   var mapValues, urlify;
 
@@ -1968,7 +2015,7 @@ extractResponseBody: (response: Object) -> Object | Error
 
 }).call(this);
 
-},{"lodash-node/modern/object/mapValues":132}],28:[function(require,module,exports){
+},{"lodash-node/modern/object/mapValues":129}],28:[function(require,module,exports){
 (function() {
   module.exports = function(Promise) {
     var validateResponseBody, validationToPromise, validatorToPromised;
@@ -2023,7 +2070,7 @@ extractResponseBody: (response: Object) -> Object | Error
 
 }).call(this);
 
-},{"ag-types":142}],30:[function(require,module,exports){
+},{"ag-types":139}],30:[function(require,module,exports){
 (function() {
   module.exports = function(Promise) {
     var validationToPromise;
@@ -2304,1357 +2351,7 @@ Object.keys(assert).forEach(function (k) {
 });
 
 }).call(this,require("oMfpAn"),require("buffer").Buffer)
-},{"assert":210,"buffer":211,"oMfpAn":216,"stream":218,"util":226}],33:[function(require,module,exports){
-/**
- * Module dependencies.
- */
-
-var Emitter = require('emitter');
-var reduce = require('reduce');
-
-/**
- * Root reference for iframes.
- */
-
-var root;
-if (typeof window !== 'undefined') { // Browser window
-  root = window;
-} else if (typeof self !== 'undefined') { // Web Worker
-  root = self;
-} else { // Other environments
-  root = this;
-}
-
-/**
- * Noop.
- */
-
-function noop(){};
-
-/**
- * Check if `obj` is a host object,
- * we don't want to serialize these :)
- *
- * TODO: future proof, move to compoent land
- *
- * @param {Object} obj
- * @return {Boolean}
- * @api private
- */
-
-function isHost(obj) {
-  var str = {}.toString.call(obj);
-
-  switch (str) {
-    case '[object File]':
-    case '[object Blob]':
-    case '[object FormData]':
-      return true;
-    default:
-      return false;
-  }
-}
-
-/**
- * Determine XHR.
- */
-
-request.getXHR = function () {
-  if (root.XMLHttpRequest
-      && (!root.location || 'file:' != root.location.protocol
-          || !root.ActiveXObject)) {
-    return new XMLHttpRequest;
-  } else {
-    try { return new ActiveXObject('Microsoft.XMLHTTP'); } catch(e) {}
-    try { return new ActiveXObject('Msxml2.XMLHTTP.6.0'); } catch(e) {}
-    try { return new ActiveXObject('Msxml2.XMLHTTP.3.0'); } catch(e) {}
-    try { return new ActiveXObject('Msxml2.XMLHTTP'); } catch(e) {}
-  }
-  return false;
-};
-
-/**
- * Removes leading and trailing whitespace, added to support IE.
- *
- * @param {String} s
- * @return {String}
- * @api private
- */
-
-var trim = ''.trim
-  ? function(s) { return s.trim(); }
-  : function(s) { return s.replace(/(^\s*|\s*$)/g, ''); };
-
-/**
- * Check if `obj` is an object.
- *
- * @param {Object} obj
- * @return {Boolean}
- * @api private
- */
-
-function isObject(obj) {
-  return obj === Object(obj);
-}
-
-/**
- * Serialize the given `obj`.
- *
- * @param {Object} obj
- * @return {String}
- * @api private
- */
-
-function serialize(obj) {
-  if (!isObject(obj)) return obj;
-  var pairs = [];
-  for (var key in obj) {
-    if (null != obj[key]) {
-      pairs.push(encodeURIComponent(key)
-        + '=' + encodeURIComponent(obj[key]));
-    }
-  }
-  return pairs.join('&');
-}
-
-/**
- * Expose serialization method.
- */
-
- request.serializeObject = serialize;
-
- /**
-  * Parse the given x-www-form-urlencoded `str`.
-  *
-  * @param {String} str
-  * @return {Object}
-  * @api private
-  */
-
-function parseString(str) {
-  var obj = {};
-  var pairs = str.split('&');
-  var parts;
-  var pair;
-
-  for (var i = 0, len = pairs.length; i < len; ++i) {
-    pair = pairs[i];
-    parts = pair.split('=');
-    obj[decodeURIComponent(parts[0])] = decodeURIComponent(parts[1]);
-  }
-
-  return obj;
-}
-
-/**
- * Expose parser.
- */
-
-request.parseString = parseString;
-
-/**
- * Default MIME type map.
- *
- *     superagent.types.xml = 'application/xml';
- *
- */
-
-request.types = {
-  html: 'text/html',
-  json: 'application/json',
-  xml: 'application/xml',
-  urlencoded: 'application/x-www-form-urlencoded',
-  'form': 'application/x-www-form-urlencoded',
-  'form-data': 'application/x-www-form-urlencoded'
-};
-
-/**
- * Default serialization map.
- *
- *     superagent.serialize['application/xml'] = function(obj){
- *       return 'generated xml here';
- *     };
- *
- */
-
- request.serialize = {
-   'application/x-www-form-urlencoded': serialize,
-   'application/json': JSON.stringify
- };
-
- /**
-  * Default parsers.
-  *
-  *     superagent.parse['application/xml'] = function(str){
-  *       return { object parsed from str };
-  *     };
-  *
-  */
-
-request.parse = {
-  'application/x-www-form-urlencoded': parseString,
-  'application/json': JSON.parse
-};
-
-/**
- * Parse the given header `str` into
- * an object containing the mapped fields.
- *
- * @param {String} str
- * @return {Object}
- * @api private
- */
-
-function parseHeader(str) {
-  var lines = str.split(/\r?\n/);
-  var fields = {};
-  var index;
-  var line;
-  var field;
-  var val;
-
-  lines.pop(); // trailing CRLF
-
-  for (var i = 0, len = lines.length; i < len; ++i) {
-    line = lines[i];
-    index = line.indexOf(':');
-    field = line.slice(0, index).toLowerCase();
-    val = trim(line.slice(index + 1));
-    fields[field] = val;
-  }
-
-  return fields;
-}
-
-/**
- * Return the mime type for the given `str`.
- *
- * @param {String} str
- * @return {String}
- * @api private
- */
-
-function type(str){
-  return str.split(/ *; */).shift();
-};
-
-/**
- * Return header field parameters.
- *
- * @param {String} str
- * @return {Object}
- * @api private
- */
-
-function params(str){
-  return reduce(str.split(/ *; */), function(obj, str){
-    var parts = str.split(/ *= */)
-      , key = parts.shift()
-      , val = parts.shift();
-
-    if (key && val) obj[key] = val;
-    return obj;
-  }, {});
-};
-
-/**
- * Initialize a new `Response` with the given `xhr`.
- *
- *  - set flags (.ok, .error, etc)
- *  - parse header
- *
- * Examples:
- *
- *  Aliasing `superagent` as `request` is nice:
- *
- *      request = superagent;
- *
- *  We can use the promise-like API, or pass callbacks:
- *
- *      request.get('/').end(function(res){});
- *      request.get('/', function(res){});
- *
- *  Sending data can be chained:
- *
- *      request
- *        .post('/user')
- *        .send({ name: 'tj' })
- *        .end(function(res){});
- *
- *  Or passed to `.send()`:
- *
- *      request
- *        .post('/user')
- *        .send({ name: 'tj' }, function(res){});
- *
- *  Or passed to `.post()`:
- *
- *      request
- *        .post('/user', { name: 'tj' })
- *        .end(function(res){});
- *
- * Or further reduced to a single call for simple cases:
- *
- *      request
- *        .post('/user', { name: 'tj' }, function(res){});
- *
- * @param {XMLHTTPRequest} xhr
- * @param {Object} options
- * @api private
- */
-
-function Response(req, options) {
-  options = options || {};
-  this.req = req;
-  this.xhr = this.req.xhr;
-  // responseText is accessible only if responseType is '' or 'text' and on older browsers
-  this.text = ((this.req.method !='HEAD' && (this.xhr.responseType === '' || this.xhr.responseType === 'text')) || typeof this.xhr.responseType === 'undefined')
-     ? this.xhr.responseText
-     : null;
-  this.statusText = this.req.xhr.statusText;
-  this.setStatusProperties(this.xhr.status);
-  this.header = this.headers = parseHeader(this.xhr.getAllResponseHeaders());
-  // getAllResponseHeaders sometimes falsely returns "" for CORS requests, but
-  // getResponseHeader still works. so we get content-type even if getting
-  // other headers fails.
-  this.header['content-type'] = this.xhr.getResponseHeader('content-type');
-  this.setHeaderProperties(this.header);
-  this.body = this.req.method != 'HEAD'
-    ? this.parseBody(this.text ? this.text : this.xhr.response)
-    : null;
-}
-
-/**
- * Get case-insensitive `field` value.
- *
- * @param {String} field
- * @return {String}
- * @api public
- */
-
-Response.prototype.get = function(field){
-  return this.header[field.toLowerCase()];
-};
-
-/**
- * Set header related properties:
- *
- *   - `.type` the content type without params
- *
- * A response of "Content-Type: text/plain; charset=utf-8"
- * will provide you with a `.type` of "text/plain".
- *
- * @param {Object} header
- * @api private
- */
-
-Response.prototype.setHeaderProperties = function(header){
-  // content-type
-  var ct = this.header['content-type'] || '';
-  this.type = type(ct);
-
-  // params
-  var obj = params(ct);
-  for (var key in obj) this[key] = obj[key];
-};
-
-/**
- * Force given parser
- * 
- * Sets the body parser no matter type.
- * 
- * @param {Function}
- * @api public
- */
-
-Response.prototype.parse = function(fn){
-  this.parser = fn;
-  return this;
-};
-
-/**
- * Parse the given body `str`.
- *
- * Used for auto-parsing of bodies. Parsers
- * are defined on the `superagent.parse` object.
- *
- * @param {String} str
- * @return {Mixed}
- * @api private
- */
-
-Response.prototype.parseBody = function(str){
-  var parse = this.parser || request.parse[this.type];
-  return parse && str && (str.length || str instanceof Object)
-    ? parse(str)
-    : null;
-};
-
-/**
- * Set flags such as `.ok` based on `status`.
- *
- * For example a 2xx response will give you a `.ok` of __true__
- * whereas 5xx will be __false__ and `.error` will be __true__. The
- * `.clientError` and `.serverError` are also available to be more
- * specific, and `.statusType` is the class of error ranging from 1..5
- * sometimes useful for mapping respond colors etc.
- *
- * "sugar" properties are also defined for common cases. Currently providing:
- *
- *   - .noContent
- *   - .badRequest
- *   - .unauthorized
- *   - .notAcceptable
- *   - .notFound
- *
- * @param {Number} status
- * @api private
- */
-
-Response.prototype.setStatusProperties = function(status){
-  // handle IE9 bug: http://stackoverflow.com/questions/10046972/msie-returns-status-code-of-1223-for-ajax-request
-  if (status === 1223) {
-    status = 204;
-  }
-
-  var type = status / 100 | 0;
-
-  // status / class
-  this.status = this.statusCode = status;
-  this.statusType = type;
-
-  // basics
-  this.info = 1 == type;
-  this.ok = 2 == type;
-  this.clientError = 4 == type;
-  this.serverError = 5 == type;
-  this.error = (4 == type || 5 == type)
-    ? this.toError()
-    : false;
-
-  // sugar
-  this.accepted = 202 == status;
-  this.noContent = 204 == status;
-  this.badRequest = 400 == status;
-  this.unauthorized = 401 == status;
-  this.notAcceptable = 406 == status;
-  this.notFound = 404 == status;
-  this.forbidden = 403 == status;
-};
-
-/**
- * Return an `Error` representative of this response.
- *
- * @return {Error}
- * @api public
- */
-
-Response.prototype.toError = function(){
-  var req = this.req;
-  var method = req.method;
-  var url = req.url;
-
-  var msg = 'cannot ' + method + ' ' + url + ' (' + this.status + ')';
-  var err = new Error(msg);
-  err.status = this.status;
-  err.method = method;
-  err.url = url;
-
-  return err;
-};
-
-/**
- * Expose `Response`.
- */
-
-request.Response = Response;
-
-/**
- * Initialize a new `Request` with the given `method` and `url`.
- *
- * @param {String} method
- * @param {String} url
- * @api public
- */
-
-function Request(method, url) {
-  var self = this;
-  Emitter.call(this);
-  this._query = this._query || [];
-  this.method = method;
-  this.url = url;
-  this.header = {};
-  this._header = {};
-  this.on('end', function(){
-    var err = null;
-    var res = null;
-
-    try {
-      res = new Response(self);
-    } catch(e) {
-      err = new Error('Parser is unable to parse the response');
-      err.parse = true;
-      err.original = e;
-      return self.callback(err);
-    }
-
-    self.emit('response', res);
-
-    if (err) {
-      return self.callback(err, res);
-    }
-
-    if (res.status >= 200 && res.status < 300) {
-      return self.callback(err, res);
-    }
-
-    var new_err = new Error(res.statusText || 'Unsuccessful HTTP response');
-    new_err.original = err;
-    new_err.response = res;
-    new_err.status = res.status;
-
-    self.callback(new_err, res);
-  });
-}
-
-/**
- * Mixin `Emitter`.
- */
-
-Emitter(Request.prototype);
-
-/**
- * Allow for extension
- */
-
-Request.prototype.use = function(fn) {
-  fn(this);
-  return this;
-}
-
-/**
- * Set timeout to `ms`.
- *
- * @param {Number} ms
- * @return {Request} for chaining
- * @api public
- */
-
-Request.prototype.timeout = function(ms){
-  this._timeout = ms;
-  return this;
-};
-
-/**
- * Clear previous timeout.
- *
- * @return {Request} for chaining
- * @api public
- */
-
-Request.prototype.clearTimeout = function(){
-  this._timeout = 0;
-  clearTimeout(this._timer);
-  return this;
-};
-
-/**
- * Abort the request, and clear potential timeout.
- *
- * @return {Request}
- * @api public
- */
-
-Request.prototype.abort = function(){
-  if (this.aborted) return;
-  this.aborted = true;
-  this.xhr.abort();
-  this.clearTimeout();
-  this.emit('abort');
-  return this;
-};
-
-/**
- * Set header `field` to `val`, or multiple fields with one object.
- *
- * Examples:
- *
- *      req.get('/')
- *        .set('Accept', 'application/json')
- *        .set('X-API-Key', 'foobar')
- *        .end(callback);
- *
- *      req.get('/')
- *        .set({ Accept: 'application/json', 'X-API-Key': 'foobar' })
- *        .end(callback);
- *
- * @param {String|Object} field
- * @param {String} val
- * @return {Request} for chaining
- * @api public
- */
-
-Request.prototype.set = function(field, val){
-  if (isObject(field)) {
-    for (var key in field) {
-      this.set(key, field[key]);
-    }
-    return this;
-  }
-  this._header[field.toLowerCase()] = val;
-  this.header[field] = val;
-  return this;
-};
-
-/**
- * Remove header `field`.
- *
- * Example:
- *
- *      req.get('/')
- *        .unset('User-Agent')
- *        .end(callback);
- *
- * @param {String} field
- * @return {Request} for chaining
- * @api public
- */
-
-Request.prototype.unset = function(field){
-  delete this._header[field.toLowerCase()];
-  delete this.header[field];
-  return this;
-};
-
-/**
- * Get case-insensitive header `field` value.
- *
- * @param {String} field
- * @return {String}
- * @api private
- */
-
-Request.prototype.getHeader = function(field){
-  return this._header[field.toLowerCase()];
-};
-
-/**
- * Set Content-Type to `type`, mapping values from `request.types`.
- *
- * Examples:
- *
- *      superagent.types.xml = 'application/xml';
- *
- *      request.post('/')
- *        .type('xml')
- *        .send(xmlstring)
- *        .end(callback);
- *
- *      request.post('/')
- *        .type('application/xml')
- *        .send(xmlstring)
- *        .end(callback);
- *
- * @param {String} type
- * @return {Request} for chaining
- * @api public
- */
-
-Request.prototype.type = function(type){
-  this.set('Content-Type', request.types[type] || type);
-  return this;
-};
-
-/**
- * Set Accept to `type`, mapping values from `request.types`.
- *
- * Examples:
- *
- *      superagent.types.json = 'application/json';
- *
- *      request.get('/agent')
- *        .accept('json')
- *        .end(callback);
- *
- *      request.get('/agent')
- *        .accept('application/json')
- *        .end(callback);
- *
- * @param {String} accept
- * @return {Request} for chaining
- * @api public
- */
-
-Request.prototype.accept = function(type){
-  this.set('Accept', request.types[type] || type);
-  return this;
-};
-
-/**
- * Set Authorization field value with `user` and `pass`.
- *
- * @param {String} user
- * @param {String} pass
- * @return {Request} for chaining
- * @api public
- */
-
-Request.prototype.auth = function(user, pass){
-  var str = btoa(user + ':' + pass);
-  this.set('Authorization', 'Basic ' + str);
-  return this;
-};
-
-/**
-* Add query-string `val`.
-*
-* Examples:
-*
-*   request.get('/shoes')
-*     .query('size=10')
-*     .query({ color: 'blue' })
-*
-* @param {Object|String} val
-* @return {Request} for chaining
-* @api public
-*/
-
-Request.prototype.query = function(val){
-  if ('string' != typeof val) val = serialize(val);
-  if (val) this._query.push(val);
-  return this;
-};
-
-/**
- * Write the field `name` and `val` for "multipart/form-data"
- * request bodies.
- *
- * ``` js
- * request.post('/upload')
- *   .field('foo', 'bar')
- *   .end(callback);
- * ```
- *
- * @param {String} name
- * @param {String|Blob|File} val
- * @return {Request} for chaining
- * @api public
- */
-
-Request.prototype.field = function(name, val){
-  if (!this._formData) this._formData = new root.FormData();
-  this._formData.append(name, val);
-  return this;
-};
-
-/**
- * Queue the given `file` as an attachment to the specified `field`,
- * with optional `filename`.
- *
- * ``` js
- * request.post('/upload')
- *   .attach(new Blob(['<a id="a"><b id="b">hey!</b></a>'], { type: "text/html"}))
- *   .end(callback);
- * ```
- *
- * @param {String} field
- * @param {Blob|File} file
- * @param {String} filename
- * @return {Request} for chaining
- * @api public
- */
-
-Request.prototype.attach = function(field, file, filename){
-  if (!this._formData) this._formData = new root.FormData();
-  this._formData.append(field, file, filename);
-  return this;
-};
-
-/**
- * Send `data`, defaulting the `.type()` to "json" when
- * an object is given.
- *
- * Examples:
- *
- *       // querystring
- *       request.get('/search')
- *         .end(callback)
- *
- *       // multiple data "writes"
- *       request.get('/search')
- *         .send({ search: 'query' })
- *         .send({ range: '1..5' })
- *         .send({ order: 'desc' })
- *         .end(callback)
- *
- *       // manual json
- *       request.post('/user')
- *         .type('json')
- *         .send('{"name":"tj"})
- *         .end(callback)
- *
- *       // auto json
- *       request.post('/user')
- *         .send({ name: 'tj' })
- *         .end(callback)
- *
- *       // manual x-www-form-urlencoded
- *       request.post('/user')
- *         .type('form')
- *         .send('name=tj')
- *         .end(callback)
- *
- *       // auto x-www-form-urlencoded
- *       request.post('/user')
- *         .type('form')
- *         .send({ name: 'tj' })
- *         .end(callback)
- *
- *       // defaults to x-www-form-urlencoded
-  *      request.post('/user')
-  *        .send('name=tobi')
-  *        .send('species=ferret')
-  *        .end(callback)
- *
- * @param {String|Object} data
- * @return {Request} for chaining
- * @api public
- */
-
-Request.prototype.send = function(data){
-  var obj = isObject(data);
-  var type = this.getHeader('Content-Type');
-
-  // merge
-  if (obj && isObject(this._data)) {
-    for (var key in data) {
-      this._data[key] = data[key];
-    }
-  } else if ('string' == typeof data) {
-    if (!type) this.type('form');
-    type = this.getHeader('Content-Type');
-    if ('application/x-www-form-urlencoded' == type) {
-      this._data = this._data
-        ? this._data + '&' + data
-        : data;
-    } else {
-      this._data = (this._data || '') + data;
-    }
-  } else {
-    this._data = data;
-  }
-
-  if (!obj || isHost(data)) return this;
-  if (!type) this.type('json');
-  return this;
-};
-
-/**
- * Invoke the callback with `err` and `res`
- * and handle arity check.
- *
- * @param {Error} err
- * @param {Response} res
- * @api private
- */
-
-Request.prototype.callback = function(err, res){
-  var fn = this._callback;
-  this.clearTimeout();
-  fn(err, res);
-};
-
-/**
- * Invoke callback with x-domain error.
- *
- * @api private
- */
-
-Request.prototype.crossDomainError = function(){
-  var err = new Error('Origin is not allowed by Access-Control-Allow-Origin');
-  err.crossDomain = true;
-  this.callback(err);
-};
-
-/**
- * Invoke callback with timeout error.
- *
- * @api private
- */
-
-Request.prototype.timeoutError = function(){
-  var timeout = this._timeout;
-  var err = new Error('timeout of ' + timeout + 'ms exceeded');
-  err.timeout = timeout;
-  this.callback(err);
-};
-
-/**
- * Enable transmission of cookies with x-domain requests.
- *
- * Note that for this to work the origin must not be
- * using "Access-Control-Allow-Origin" with a wildcard,
- * and also must set "Access-Control-Allow-Credentials"
- * to "true".
- *
- * @api public
- */
-
-Request.prototype.withCredentials = function(){
-  this._withCredentials = true;
-  return this;
-};
-
-/**
- * Initiate request, invoking callback `fn(res)`
- * with an instanceof `Response`.
- *
- * @param {Function} fn
- * @return {Request} for chaining
- * @api public
- */
-
-Request.prototype.end = function(fn){
-  var self = this;
-  var xhr = this.xhr = request.getXHR();
-  var query = this._query.join('&');
-  var timeout = this._timeout;
-  var data = this._formData || this._data;
-
-  // store callback
-  this._callback = fn || noop;
-
-  // state change
-  xhr.onreadystatechange = function(){
-    if (4 != xhr.readyState) return;
-
-    // In IE9, reads to any property (e.g. status) off of an aborted XHR will
-    // result in the error "Could not complete the operation due to error c00c023f"
-    var status;
-    try { status = xhr.status } catch(e) { status = 0; }
-
-    if (0 == status) {
-      if (self.timedout) return self.timeoutError();
-      if (self.aborted) return;
-      return self.crossDomainError();
-    }
-    self.emit('end');
-  };
-
-  // progress
-  var handleProgress = function(e){
-    if (e.total > 0) {
-      e.percent = e.loaded / e.total * 100;
-    }
-    self.emit('progress', e);
-  };
-  if (this.hasListeners('progress')) {
-    xhr.onprogress = handleProgress;
-  }
-  try {
-    if (xhr.upload && this.hasListeners('progress')) {
-      xhr.upload.onprogress = handleProgress;
-    }
-  } catch(e) {
-    // Accessing xhr.upload fails in IE from a web worker, so just pretend it doesn't exist.
-    // Reported here:
-    // https://connect.microsoft.com/IE/feedback/details/837245/xmlhttprequest-upload-throws-invalid-argument-when-used-from-web-worker-context
-  }
-
-  // timeout
-  if (timeout && !this._timer) {
-    this._timer = setTimeout(function(){
-      self.timedout = true;
-      self.abort();
-    }, timeout);
-  }
-
-  // querystring
-  if (query) {
-    query = request.serializeObject(query);
-    this.url += ~this.url.indexOf('?')
-      ? '&' + query
-      : '?' + query;
-  }
-
-  // initiate request
-  xhr.open(this.method, this.url, true);
-
-  // CORS
-  if (this._withCredentials) xhr.withCredentials = true;
-
-  // body
-  if ('GET' != this.method && 'HEAD' != this.method && 'string' != typeof data && !isHost(data)) {
-    // serialize stuff
-    var contentType = this.getHeader('Content-Type');
-    var serialize = request.serialize[contentType ? contentType.split(';')[0] : ''];
-    if (serialize) data = serialize(data);
-  }
-
-  // set header fields
-  for (var field in this.header) {
-    if (null == this.header[field]) continue;
-    xhr.setRequestHeader(field, this.header[field]);
-  }
-
-  // send stuff
-  this.emit('request', this);
-  xhr.send(data);
-  return this;
-};
-
-/**
- * Faux promise support
- *
- * @param {Function} fulfill
- * @param {Function} reject
- * @return {Request}
- */
-
-Request.prototype.then = function (fulfill, reject) {
-  return this.end(function(err, res) {
-    err ? reject(err) : fulfill(res);
-  });
-}
-
-/**
- * Expose `Request`.
- */
-
-request.Request = Request;
-
-/**
- * Issue a request:
- *
- * Examples:
- *
- *    request('GET', '/users').end(callback)
- *    request('/users').end(callback)
- *    request('/users', callback)
- *
- * @param {String} method
- * @param {String|Function} url or callback
- * @return {Request}
- * @api public
- */
-
-function request(method, url) {
-  // callback
-  if ('function' == typeof url) {
-    return new Request('GET', method).end(url);
-  }
-
-  // url first
-  if (1 == arguments.length) {
-    return new Request('GET', method);
-  }
-
-  return new Request(method, url);
-}
-
-/**
- * GET `url` with optional callback `fn(res)`.
- *
- * @param {String} url
- * @param {Mixed|Function} data or fn
- * @param {Function} fn
- * @return {Request}
- * @api public
- */
-
-request.get = function(url, data, fn){
-  var req = request('GET', url);
-  if ('function' == typeof data) fn = data, data = null;
-  if (data) req.query(data);
-  if (fn) req.end(fn);
-  return req;
-};
-
-/**
- * HEAD `url` with optional callback `fn(res)`.
- *
- * @param {String} url
- * @param {Mixed|Function} data or fn
- * @param {Function} fn
- * @return {Request}
- * @api public
- */
-
-request.head = function(url, data, fn){
-  var req = request('HEAD', url);
-  if ('function' == typeof data) fn = data, data = null;
-  if (data) req.send(data);
-  if (fn) req.end(fn);
-  return req;
-};
-
-/**
- * DELETE `url` with optional callback `fn(res)`.
- *
- * @param {String} url
- * @param {Function} fn
- * @return {Request}
- * @api public
- */
-
-request.del = function(url, fn){
-  var req = request('DELETE', url);
-  if (fn) req.end(fn);
-  return req;
-};
-
-/**
- * PATCH `url` with optional `data` and callback `fn(res)`.
- *
- * @param {String} url
- * @param {Mixed} data
- * @param {Function} fn
- * @return {Request}
- * @api public
- */
-
-request.patch = function(url, data, fn){
-  var req = request('PATCH', url);
-  if ('function' == typeof data) fn = data, data = null;
-  if (data) req.send(data);
-  if (fn) req.end(fn);
-  return req;
-};
-
-/**
- * POST `url` with optional `data` and callback `fn(res)`.
- *
- * @param {String} url
- * @param {Mixed} data
- * @param {Function} fn
- * @return {Request}
- * @api public
- */
-
-request.post = function(url, data, fn){
-  var req = request('POST', url);
-  if ('function' == typeof data) fn = data, data = null;
-  if (data) req.send(data);
-  if (fn) req.end(fn);
-  return req;
-};
-
-/**
- * PUT `url` with optional `data` and callback `fn(res)`.
- *
- * @param {String} url
- * @param {Mixed|Function} data or fn
- * @param {Function} fn
- * @return {Request}
- * @api public
- */
-
-request.put = function(url, data, fn){
-  var req = request('PUT', url);
-  if ('function' == typeof data) fn = data, data = null;
-  if (data) req.send(data);
-  if (fn) req.end(fn);
-  return req;
-};
-
-/**
- * Expose `request`.
- */
-
-module.exports = request;
-
-},{"emitter":34,"reduce":35}],34:[function(require,module,exports){
-
-/**
- * Expose `Emitter`.
- */
-
-module.exports = Emitter;
-
-/**
- * Initialize a new `Emitter`.
- *
- * @api public
- */
-
-function Emitter(obj) {
-  if (obj) return mixin(obj);
-};
-
-/**
- * Mixin the emitter properties.
- *
- * @param {Object} obj
- * @return {Object}
- * @api private
- */
-
-function mixin(obj) {
-  for (var key in Emitter.prototype) {
-    obj[key] = Emitter.prototype[key];
-  }
-  return obj;
-}
-
-/**
- * Listen on the given `event` with `fn`.
- *
- * @param {String} event
- * @param {Function} fn
- * @return {Emitter}
- * @api public
- */
-
-Emitter.prototype.on =
-Emitter.prototype.addEventListener = function(event, fn){
-  this._callbacks = this._callbacks || {};
-  (this._callbacks[event] = this._callbacks[event] || [])
-    .push(fn);
-  return this;
-};
-
-/**
- * Adds an `event` listener that will be invoked a single
- * time then automatically removed.
- *
- * @param {String} event
- * @param {Function} fn
- * @return {Emitter}
- * @api public
- */
-
-Emitter.prototype.once = function(event, fn){
-  var self = this;
-  this._callbacks = this._callbacks || {};
-
-  function on() {
-    self.off(event, on);
-    fn.apply(this, arguments);
-  }
-
-  on.fn = fn;
-  this.on(event, on);
-  return this;
-};
-
-/**
- * Remove the given callback for `event` or all
- * registered callbacks.
- *
- * @param {String} event
- * @param {Function} fn
- * @return {Emitter}
- * @api public
- */
-
-Emitter.prototype.off =
-Emitter.prototype.removeListener =
-Emitter.prototype.removeAllListeners =
-Emitter.prototype.removeEventListener = function(event, fn){
-  this._callbacks = this._callbacks || {};
-
-  // all
-  if (0 == arguments.length) {
-    this._callbacks = {};
-    return this;
-  }
-
-  // specific event
-  var callbacks = this._callbacks[event];
-  if (!callbacks) return this;
-
-  // remove all handlers
-  if (1 == arguments.length) {
-    delete this._callbacks[event];
-    return this;
-  }
-
-  // remove specific handler
-  var cb;
-  for (var i = 0; i < callbacks.length; i++) {
-    cb = callbacks[i];
-    if (cb === fn || cb.fn === fn) {
-      callbacks.splice(i, 1);
-      break;
-    }
-  }
-  return this;
-};
-
-/**
- * Emit `event` with the given args.
- *
- * @param {String} event
- * @param {Mixed} ...
- * @return {Emitter}
- */
-
-Emitter.prototype.emit = function(event){
-  this._callbacks = this._callbacks || {};
-  var args = [].slice.call(arguments, 1)
-    , callbacks = this._callbacks[event];
-
-  if (callbacks) {
-    callbacks = callbacks.slice(0);
-    for (var i = 0, len = callbacks.length; i < len; ++i) {
-      callbacks[i].apply(this, args);
-    }
-  }
-
-  return this;
-};
-
-/**
- * Return array of callbacks for `event`.
- *
- * @param {String} event
- * @return {Array}
- * @api public
- */
-
-Emitter.prototype.listeners = function(event){
-  this._callbacks = this._callbacks || {};
-  return this._callbacks[event] || [];
-};
-
-/**
- * Check if this emitter has `event` handlers.
- *
- * @param {String} event
- * @return {Boolean}
- * @api public
- */
-
-Emitter.prototype.hasListeners = function(event){
-  return !! this.listeners(event).length;
-};
-
-},{}],35:[function(require,module,exports){
-
-/**
- * Reduce `arr` with `fn`.
- *
- * @param {Array} arr
- * @param {Function} fn
- * @param {Mixed} initial
- *
- * TODO: combatible error handling?
- */
-
-module.exports = function(arr, fn, initial){  
-  var idx = 0;
-  var len = arr.length;
-  var curr = arguments.length == 3
-    ? initial
-    : arr[idx++];
-
-  while (idx < len) {
-    curr = fn.call(null, curr, arr[idx], ++idx, arr);
-  }
-  
-  return curr;
-};
-},{}],36:[function(require,module,exports){
+},{"assert":207,"buffer":208,"oMfpAn":213,"stream":215,"util":224}],33:[function(require,module,exports){
 (function() {
   module.exports = function(Promise) {
     var PreparedTransaction, Transaction, TransactionRunner, promises;
@@ -3667,7 +2364,7 @@ module.exports = function(arr, fn, initial){
 
 }).call(this);
 
-},{"./prepared-transaction":37,"./promises":38,"./transaction":40,"./transaction-runner":39}],37:[function(require,module,exports){
+},{"./prepared-transaction":34,"./promises":35,"./transaction":37,"./transaction-runner":36}],34:[function(require,module,exports){
 (function() {
   module.exports = function(promises, Transaction) {
     var PreparedTransaction, noop;
@@ -3786,7 +2483,7 @@ module.exports = function(arr, fn, initial){
 
 }).call(this);
 
-},{}],38:[function(require,module,exports){
+},{}],35:[function(require,module,exports){
 (function() {
   module.exports = function(Promise) {
     var abortAndRejectUnlessCompleted, defer, ifCompleted, rollbackIfCompleted;
@@ -3843,7 +2540,7 @@ module.exports = function(arr, fn, initial){
 
 }).call(this);
 
-},{}],39:[function(require,module,exports){
+},{}],36:[function(require,module,exports){
 (function() {
   module.exports = function(Promise, Transaction, PreparedTransaction) {
 
@@ -3931,7 +2628,7 @@ module.exports = function(arr, fn, initial){
 
 }).call(this);
 
-},{}],40:[function(require,module,exports){
+},{}],37:[function(require,module,exports){
 (function() {
   module.exports = function(promises) {
 
@@ -4079,7 +2776,7 @@ module.exports = function(arr, fn, initial){
 
 }).call(this);
 
-},{}],41:[function(require,module,exports){
+},{}],38:[function(require,module,exports){
 /**
  * cuid.js
  * Collision-resistant UID generator for browsers and node.
@@ -4191,7 +2888,7 @@ module.exports = function(arr, fn, initial){
 
 }(this.applitude || this));
 
-},{}],42:[function(require,module,exports){
+},{}],39:[function(require,module,exports){
 /**
  * Gets the last element of `array`.
  *
@@ -4212,7 +2909,7 @@ function last(array) {
 
 module.exports = last;
 
-},{}],43:[function(require,module,exports){
+},{}],40:[function(require,module,exports){
 var LazyWrapper = require('../internal/LazyWrapper'),
     LodashWrapper = require('../internal/LodashWrapper'),
     baseLodash = require('../internal/baseLodash'),
@@ -4337,7 +3034,7 @@ lodash.prototype = baseLodash.prototype;
 
 module.exports = lodash;
 
-},{"../internal/LazyWrapper":47,"../internal/LodashWrapper":48,"../internal/baseLodash":66,"../internal/isObjectLike":106,"../internal/wrapperClone":118,"../lang/isArray":121}],44:[function(require,module,exports){
+},{"../internal/LazyWrapper":44,"../internal/LodashWrapper":45,"../internal/baseLodash":63,"../internal/isObjectLike":103,"../internal/wrapperClone":115,"../lang/isArray":118}],41:[function(require,module,exports){
 var getNative = require('../internal/getNative');
 
 /* Native method references for those with the same name as other `lodash` methods. */
@@ -4363,7 +3060,7 @@ var now = nativeNow || function() {
 
 module.exports = now;
 
-},{"../internal/getNative":96}],45:[function(require,module,exports){
+},{"../internal/getNative":93}],42:[function(require,module,exports){
 var createPartial = require('../internal/createPartial');
 
 /** Used to compose bitmasks for wrapper metadata. */
@@ -4407,7 +3104,7 @@ partialRight.placeholder = {};
 
 module.exports = partialRight;
 
-},{"../internal/createPartial":86}],46:[function(require,module,exports){
+},{"../internal/createPartial":83}],43:[function(require,module,exports){
 /** Used as the `TypeError` message for "Functions" methods. */
 var FUNC_ERROR_TEXT = 'Expected a function';
 
@@ -4467,7 +3164,7 @@ function restParam(func, start) {
 
 module.exports = restParam;
 
-},{}],47:[function(require,module,exports){
+},{}],44:[function(require,module,exports){
 var baseCreate = require('./baseCreate'),
     baseLodash = require('./baseLodash');
 
@@ -4496,7 +3193,7 @@ LazyWrapper.prototype.constructor = LazyWrapper;
 
 module.exports = LazyWrapper;
 
-},{"./baseCreate":58,"./baseLodash":66}],48:[function(require,module,exports){
+},{"./baseCreate":55,"./baseLodash":63}],45:[function(require,module,exports){
 var baseCreate = require('./baseCreate'),
     baseLodash = require('./baseLodash');
 
@@ -4519,7 +3216,7 @@ LodashWrapper.prototype.constructor = LodashWrapper;
 
 module.exports = LodashWrapper;
 
-},{"./baseCreate":58,"./baseLodash":66}],49:[function(require,module,exports){
+},{"./baseCreate":55,"./baseLodash":63}],46:[function(require,module,exports){
 /**
  * Copies the values of `source` to `array`.
  *
@@ -4541,7 +3238,7 @@ function arrayCopy(source, array) {
 
 module.exports = arrayCopy;
 
-},{}],50:[function(require,module,exports){
+},{}],47:[function(require,module,exports){
 /**
  * A specialized version of `_.forEach` for arrays without support for callback
  * shorthands and `this` binding.
@@ -4565,7 +3262,7 @@ function arrayEach(array, iteratee) {
 
 module.exports = arrayEach;
 
-},{}],51:[function(require,module,exports){
+},{}],48:[function(require,module,exports){
 /**
  * A specialized version of `_.some` for arrays without support for callback
  * shorthands and `this` binding.
@@ -4590,7 +3287,7 @@ function arraySome(array, predicate) {
 
 module.exports = arraySome;
 
-},{}],52:[function(require,module,exports){
+},{}],49:[function(require,module,exports){
 /**
  * Used by `_.defaults` to customize its `_.assign` use.
  *
@@ -4605,7 +3302,7 @@ function assignDefaults(objectValue, sourceValue) {
 
 module.exports = assignDefaults;
 
-},{}],53:[function(require,module,exports){
+},{}],50:[function(require,module,exports){
 var keys = require('../object/keys');
 
 /**
@@ -4639,7 +3336,7 @@ function assignWith(object, source, customizer) {
 
 module.exports = assignWith;
 
-},{"../object/keys":130}],54:[function(require,module,exports){
+},{"../object/keys":127}],51:[function(require,module,exports){
 var baseCopy = require('./baseCopy'),
     keys = require('../object/keys');
 
@@ -4660,7 +3357,7 @@ function baseAssign(object, source) {
 
 module.exports = baseAssign;
 
-},{"../object/keys":130,"./baseCopy":57}],55:[function(require,module,exports){
+},{"../object/keys":127,"./baseCopy":54}],52:[function(require,module,exports){
 var baseMatches = require('./baseMatches'),
     baseMatchesProperty = require('./baseMatchesProperty'),
     bindCallback = require('./bindCallback'),
@@ -4697,7 +3394,7 @@ function baseCallback(func, thisArg, argCount) {
 
 module.exports = baseCallback;
 
-},{"../utility/identity":137,"../utility/property":139,"./baseMatches":67,"./baseMatchesProperty":68,"./bindCallback":76}],56:[function(require,module,exports){
+},{"../utility/identity":134,"../utility/property":136,"./baseMatches":64,"./baseMatchesProperty":65,"./bindCallback":73}],53:[function(require,module,exports){
 var arrayCopy = require('./arrayCopy'),
     arrayEach = require('./arrayEach'),
     baseAssign = require('./baseAssign'),
@@ -4827,7 +3524,7 @@ function baseClone(value, isDeep, customizer, key, object, stackA, stackB) {
 
 module.exports = baseClone;
 
-},{"../lang/isArray":121,"../lang/isObject":124,"./arrayCopy":49,"./arrayEach":50,"./baseAssign":54,"./baseForOwn":61,"./initCloneArray":97,"./initCloneByTag":98,"./initCloneObject":99}],57:[function(require,module,exports){
+},{"../lang/isArray":118,"../lang/isObject":121,"./arrayCopy":46,"./arrayEach":47,"./baseAssign":51,"./baseForOwn":58,"./initCloneArray":94,"./initCloneByTag":95,"./initCloneObject":96}],54:[function(require,module,exports){
 /**
  * Copies properties of `source` to `object`.
  *
@@ -4852,7 +3549,7 @@ function baseCopy(source, props, object) {
 
 module.exports = baseCopy;
 
-},{}],58:[function(require,module,exports){
+},{}],55:[function(require,module,exports){
 var isObject = require('../lang/isObject');
 
 /**
@@ -4877,7 +3574,7 @@ var baseCreate = (function() {
 
 module.exports = baseCreate;
 
-},{"../lang/isObject":124}],59:[function(require,module,exports){
+},{"../lang/isObject":121}],56:[function(require,module,exports){
 var createBaseFor = require('./createBaseFor');
 
 /**
@@ -4896,7 +3593,7 @@ var baseFor = createBaseFor();
 
 module.exports = baseFor;
 
-},{"./createBaseFor":81}],60:[function(require,module,exports){
+},{"./createBaseFor":78}],57:[function(require,module,exports){
 var baseFor = require('./baseFor'),
     keysIn = require('../object/keysIn');
 
@@ -4915,7 +3612,7 @@ function baseForIn(object, iteratee) {
 
 module.exports = baseForIn;
 
-},{"../object/keysIn":131,"./baseFor":59}],61:[function(require,module,exports){
+},{"../object/keysIn":128,"./baseFor":56}],58:[function(require,module,exports){
 var baseFor = require('./baseFor'),
     keys = require('../object/keys');
 
@@ -4934,7 +3631,7 @@ function baseForOwn(object, iteratee) {
 
 module.exports = baseForOwn;
 
-},{"../object/keys":130,"./baseFor":59}],62:[function(require,module,exports){
+},{"../object/keys":127,"./baseFor":56}],59:[function(require,module,exports){
 var toObject = require('./toObject');
 
 /**
@@ -4965,7 +3662,7 @@ function baseGet(object, path, pathKey) {
 
 module.exports = baseGet;
 
-},{"./toObject":116}],63:[function(require,module,exports){
+},{"./toObject":113}],60:[function(require,module,exports){
 var baseIsEqualDeep = require('./baseIsEqualDeep'),
     isObject = require('../lang/isObject'),
     isObjectLike = require('./isObjectLike');
@@ -4995,7 +3692,7 @@ function baseIsEqual(value, other, customizer, isLoose, stackA, stackB) {
 
 module.exports = baseIsEqual;
 
-},{"../lang/isObject":124,"./baseIsEqualDeep":64,"./isObjectLike":106}],64:[function(require,module,exports){
+},{"../lang/isObject":121,"./baseIsEqualDeep":61,"./isObjectLike":103}],61:[function(require,module,exports){
 var equalArrays = require('./equalArrays'),
     equalByTag = require('./equalByTag'),
     equalObjects = require('./equalObjects'),
@@ -5099,7 +3796,7 @@ function baseIsEqualDeep(object, other, equalFunc, customizer, isLoose, stackA, 
 
 module.exports = baseIsEqualDeep;
 
-},{"../lang/isArray":121,"../lang/isTypedArray":126,"./equalArrays":89,"./equalByTag":90,"./equalObjects":91}],65:[function(require,module,exports){
+},{"../lang/isArray":118,"../lang/isTypedArray":123,"./equalArrays":86,"./equalByTag":87,"./equalObjects":88}],62:[function(require,module,exports){
 var baseIsEqual = require('./baseIsEqual'),
     toObject = require('./toObject');
 
@@ -5153,7 +3850,7 @@ function baseIsMatch(object, matchData, customizer) {
 
 module.exports = baseIsMatch;
 
-},{"./baseIsEqual":63,"./toObject":116}],66:[function(require,module,exports){
+},{"./baseIsEqual":60,"./toObject":113}],63:[function(require,module,exports){
 /**
  * The function whose prototype all chaining wrappers inherit from.
  *
@@ -5165,7 +3862,7 @@ function baseLodash() {
 
 module.exports = baseLodash;
 
-},{}],67:[function(require,module,exports){
+},{}],64:[function(require,module,exports){
 var baseIsMatch = require('./baseIsMatch'),
     getMatchData = require('./getMatchData'),
     toObject = require('./toObject');
@@ -5197,7 +3894,7 @@ function baseMatches(source) {
 
 module.exports = baseMatches;
 
-},{"./baseIsMatch":65,"./getMatchData":95,"./toObject":116}],68:[function(require,module,exports){
+},{"./baseIsMatch":62,"./getMatchData":92,"./toObject":113}],65:[function(require,module,exports){
 var baseGet = require('./baseGet'),
     baseIsEqual = require('./baseIsEqual'),
     baseSlice = require('./baseSlice'),
@@ -5244,7 +3941,7 @@ function baseMatchesProperty(path, srcValue) {
 
 module.exports = baseMatchesProperty;
 
-},{"../array/last":42,"../lang/isArray":121,"./baseGet":62,"./baseIsEqual":63,"./baseSlice":74,"./isKey":103,"./isStrictComparable":107,"./toObject":116,"./toPath":117}],69:[function(require,module,exports){
+},{"../array/last":39,"../lang/isArray":118,"./baseGet":59,"./baseIsEqual":60,"./baseSlice":71,"./isKey":100,"./isStrictComparable":104,"./toObject":113,"./toPath":114}],66:[function(require,module,exports){
 var arrayEach = require('./arrayEach'),
     baseMergeDeep = require('./baseMergeDeep'),
     isArray = require('../lang/isArray'),
@@ -5302,7 +3999,7 @@ function baseMerge(object, source, customizer, stackA, stackB) {
 
 module.exports = baseMerge;
 
-},{"../lang/isArray":121,"../lang/isObject":124,"../lang/isTypedArray":126,"../object/keys":130,"./arrayEach":50,"./baseMergeDeep":70,"./isArrayLike":100,"./isObjectLike":106}],70:[function(require,module,exports){
+},{"../lang/isArray":118,"../lang/isObject":121,"../lang/isTypedArray":123,"../object/keys":127,"./arrayEach":47,"./baseMergeDeep":67,"./isArrayLike":97,"./isObjectLike":103}],67:[function(require,module,exports){
 var arrayCopy = require('./arrayCopy'),
     isArguments = require('../lang/isArguments'),
     isArray = require('../lang/isArray'),
@@ -5371,7 +4068,7 @@ function baseMergeDeep(object, source, key, mergeFunc, customizer, stackA, stack
 
 module.exports = baseMergeDeep;
 
-},{"../lang/isArguments":120,"../lang/isArray":121,"../lang/isPlainObject":125,"../lang/isTypedArray":126,"../lang/toPlainObject":127,"./arrayCopy":49,"./isArrayLike":100}],71:[function(require,module,exports){
+},{"../lang/isArguments":117,"../lang/isArray":118,"../lang/isPlainObject":122,"../lang/isTypedArray":123,"../lang/toPlainObject":124,"./arrayCopy":46,"./isArrayLike":97}],68:[function(require,module,exports){
 /**
  * The base implementation of `_.property` without support for deep paths.
  *
@@ -5387,7 +4084,7 @@ function baseProperty(key) {
 
 module.exports = baseProperty;
 
-},{}],72:[function(require,module,exports){
+},{}],69:[function(require,module,exports){
 var baseGet = require('./baseGet'),
     toPath = require('./toPath');
 
@@ -5408,7 +4105,7 @@ function basePropertyDeep(path) {
 
 module.exports = basePropertyDeep;
 
-},{"./baseGet":62,"./toPath":117}],73:[function(require,module,exports){
+},{"./baseGet":59,"./toPath":114}],70:[function(require,module,exports){
 var identity = require('../utility/identity'),
     metaMap = require('./metaMap');
 
@@ -5427,7 +4124,7 @@ var baseSetData = !metaMap ? identity : function(func, data) {
 
 module.exports = baseSetData;
 
-},{"../utility/identity":137,"./metaMap":109}],74:[function(require,module,exports){
+},{"../utility/identity":134,"./metaMap":106}],71:[function(require,module,exports){
 /**
  * The base implementation of `_.slice` without an iteratee call guard.
  *
@@ -5461,7 +4158,7 @@ function baseSlice(array, start, end) {
 
 module.exports = baseSlice;
 
-},{}],75:[function(require,module,exports){
+},{}],72:[function(require,module,exports){
 /**
  * Converts `value` to a string if it's not one. An empty string is returned
  * for `null` or `undefined` values.
@@ -5479,7 +4176,7 @@ function baseToString(value) {
 
 module.exports = baseToString;
 
-},{}],76:[function(require,module,exports){
+},{}],73:[function(require,module,exports){
 var identity = require('../utility/identity');
 
 /**
@@ -5520,7 +4217,7 @@ function bindCallback(func, thisArg, argCount) {
 
 module.exports = bindCallback;
 
-},{"../utility/identity":137}],77:[function(require,module,exports){
+},{"../utility/identity":134}],74:[function(require,module,exports){
 (function (global){
 var constant = require('../utility/constant'),
     getNative = require('./getNative');
@@ -5579,7 +4276,7 @@ if (!bufferSlice) {
 module.exports = bufferClone;
 
 }).call(this,typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{"../utility/constant":136,"./getNative":96}],78:[function(require,module,exports){
+},{"../utility/constant":133,"./getNative":93}],75:[function(require,module,exports){
 /* Native method references for those with the same name as other `lodash` methods. */
 var nativeMax = Math.max;
 
@@ -5615,7 +4312,7 @@ function composeArgs(args, partials, holders) {
 
 module.exports = composeArgs;
 
-},{}],79:[function(require,module,exports){
+},{}],76:[function(require,module,exports){
 /* Native method references for those with the same name as other `lodash` methods. */
 var nativeMax = Math.max;
 
@@ -5653,7 +4350,7 @@ function composeArgsRight(args, partials, holders) {
 
 module.exports = composeArgsRight;
 
-},{}],80:[function(require,module,exports){
+},{}],77:[function(require,module,exports){
 var bindCallback = require('./bindCallback'),
     isIterateeCall = require('./isIterateeCall'),
     restParam = require('../function/restParam');
@@ -5699,7 +4396,7 @@ function createAssigner(assigner) {
 
 module.exports = createAssigner;
 
-},{"../function/restParam":46,"./bindCallback":76,"./isIterateeCall":102}],81:[function(require,module,exports){
+},{"../function/restParam":43,"./bindCallback":73,"./isIterateeCall":99}],78:[function(require,module,exports){
 var toObject = require('./toObject');
 
 /**
@@ -5728,7 +4425,7 @@ function createBaseFor(fromRight) {
 
 module.exports = createBaseFor;
 
-},{"./toObject":116}],82:[function(require,module,exports){
+},{"./toObject":113}],79:[function(require,module,exports){
 (function (global){
 var createCtorWrapper = require('./createCtorWrapper');
 
@@ -5754,7 +4451,7 @@ function createBindWrapper(func, thisArg) {
 module.exports = createBindWrapper;
 
 }).call(this,typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{"./createCtorWrapper":83}],83:[function(require,module,exports){
+},{"./createCtorWrapper":80}],80:[function(require,module,exports){
 var baseCreate = require('./baseCreate'),
     isObject = require('../lang/isObject');
 
@@ -5791,7 +4488,7 @@ function createCtorWrapper(Ctor) {
 
 module.exports = createCtorWrapper;
 
-},{"../lang/isObject":124,"./baseCreate":58}],84:[function(require,module,exports){
+},{"../lang/isObject":121,"./baseCreate":55}],81:[function(require,module,exports){
 (function (global){
 var arrayCopy = require('./arrayCopy'),
     composeArgs = require('./composeArgs'),
@@ -5906,7 +4603,7 @@ function createHybridWrapper(func, bitmask, thisArg, partials, holders, partials
 module.exports = createHybridWrapper;
 
 }).call(this,typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{"./arrayCopy":49,"./composeArgs":78,"./composeArgsRight":79,"./createCtorWrapper":83,"./isLaziable":104,"./reorder":111,"./replaceHolders":112,"./setData":113}],85:[function(require,module,exports){
+},{"./arrayCopy":46,"./composeArgs":75,"./composeArgsRight":76,"./createCtorWrapper":80,"./isLaziable":101,"./reorder":108,"./replaceHolders":109,"./setData":110}],82:[function(require,module,exports){
 var baseCallback = require('./baseCallback'),
     baseForOwn = require('./baseForOwn');
 
@@ -5934,7 +4631,7 @@ function createObjectMapper(isMapKeys) {
 
 module.exports = createObjectMapper;
 
-},{"./baseCallback":55,"./baseForOwn":61}],86:[function(require,module,exports){
+},{"./baseCallback":52,"./baseForOwn":58}],83:[function(require,module,exports){
 var createWrapper = require('./createWrapper'),
     replaceHolders = require('./replaceHolders'),
     restParam = require('../function/restParam');
@@ -5956,7 +4653,7 @@ function createPartial(flag) {
 
 module.exports = createPartial;
 
-},{"../function/restParam":46,"./createWrapper":88,"./replaceHolders":112}],87:[function(require,module,exports){
+},{"../function/restParam":43,"./createWrapper":85,"./replaceHolders":109}],84:[function(require,module,exports){
 (function (global){
 var createCtorWrapper = require('./createCtorWrapper');
 
@@ -6003,7 +4700,7 @@ function createPartialWrapper(func, bitmask, thisArg, partials) {
 module.exports = createPartialWrapper;
 
 }).call(this,typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{"./createCtorWrapper":83}],88:[function(require,module,exports){
+},{"./createCtorWrapper":80}],85:[function(require,module,exports){
 var baseSetData = require('./baseSetData'),
     createBindWrapper = require('./createBindWrapper'),
     createHybridWrapper = require('./createHybridWrapper'),
@@ -6091,7 +4788,7 @@ function createWrapper(func, bitmask, thisArg, partials, holders, argPos, ary, a
 
 module.exports = createWrapper;
 
-},{"./baseSetData":73,"./createBindWrapper":82,"./createHybridWrapper":84,"./createPartialWrapper":87,"./getData":92,"./mergeData":108,"./setData":113}],89:[function(require,module,exports){
+},{"./baseSetData":70,"./createBindWrapper":79,"./createHybridWrapper":81,"./createPartialWrapper":84,"./getData":89,"./mergeData":105,"./setData":110}],86:[function(require,module,exports){
 var arraySome = require('./arraySome');
 
 /**
@@ -6144,7 +4841,7 @@ function equalArrays(array, other, equalFunc, customizer, isLoose, stackA, stack
 
 module.exports = equalArrays;
 
-},{"./arraySome":51}],90:[function(require,module,exports){
+},{"./arraySome":48}],87:[function(require,module,exports){
 /** `Object#toString` result references. */
 var boolTag = '[object Boolean]',
     dateTag = '[object Date]',
@@ -6194,7 +4891,7 @@ function equalByTag(object, other, tag) {
 
 module.exports = equalByTag;
 
-},{}],91:[function(require,module,exports){
+},{}],88:[function(require,module,exports){
 var keys = require('../object/keys');
 
 /** Used for native method references. */
@@ -6263,7 +4960,7 @@ function equalObjects(object, other, equalFunc, customizer, isLoose, stackA, sta
 
 module.exports = equalObjects;
 
-},{"../object/keys":130}],92:[function(require,module,exports){
+},{"../object/keys":127}],89:[function(require,module,exports){
 var metaMap = require('./metaMap'),
     noop = require('../utility/noop');
 
@@ -6280,7 +4977,7 @@ var getData = !metaMap ? noop : function(func) {
 
 module.exports = getData;
 
-},{"../utility/noop":138,"./metaMap":109}],93:[function(require,module,exports){
+},{"../utility/noop":135,"./metaMap":106}],90:[function(require,module,exports){
 var realNames = require('./realNames');
 
 /**
@@ -6307,7 +5004,7 @@ function getFuncName(func) {
 
 module.exports = getFuncName;
 
-},{"./realNames":110}],94:[function(require,module,exports){
+},{"./realNames":107}],91:[function(require,module,exports){
 var baseProperty = require('./baseProperty');
 
 /**
@@ -6324,7 +5021,7 @@ var getLength = baseProperty('length');
 
 module.exports = getLength;
 
-},{"./baseProperty":71}],95:[function(require,module,exports){
+},{"./baseProperty":68}],92:[function(require,module,exports){
 var isStrictComparable = require('./isStrictComparable'),
     pairs = require('../object/pairs');
 
@@ -6347,7 +5044,7 @@ function getMatchData(object) {
 
 module.exports = getMatchData;
 
-},{"../object/pairs":134,"./isStrictComparable":107}],96:[function(require,module,exports){
+},{"../object/pairs":131,"./isStrictComparable":104}],93:[function(require,module,exports){
 var isNative = require('../lang/isNative');
 
 /**
@@ -6365,7 +5062,7 @@ function getNative(object, key) {
 
 module.exports = getNative;
 
-},{"../lang/isNative":123}],97:[function(require,module,exports){
+},{"../lang/isNative":120}],94:[function(require,module,exports){
 /** Used for native method references. */
 var objectProto = Object.prototype;
 
@@ -6393,7 +5090,7 @@ function initCloneArray(array) {
 
 module.exports = initCloneArray;
 
-},{}],98:[function(require,module,exports){
+},{}],95:[function(require,module,exports){
 var bufferClone = require('./bufferClone');
 
 /** `Object#toString` result references. */
@@ -6458,7 +5155,7 @@ function initCloneByTag(object, tag, isDeep) {
 
 module.exports = initCloneByTag;
 
-},{"./bufferClone":77}],99:[function(require,module,exports){
+},{"./bufferClone":74}],96:[function(require,module,exports){
 /**
  * Initializes an object clone.
  *
@@ -6476,7 +5173,7 @@ function initCloneObject(object) {
 
 module.exports = initCloneObject;
 
-},{}],100:[function(require,module,exports){
+},{}],97:[function(require,module,exports){
 var getLength = require('./getLength'),
     isLength = require('./isLength');
 
@@ -6493,7 +5190,7 @@ function isArrayLike(value) {
 
 module.exports = isArrayLike;
 
-},{"./getLength":94,"./isLength":105}],101:[function(require,module,exports){
+},{"./getLength":91,"./isLength":102}],98:[function(require,module,exports){
 /** Used to detect unsigned integer values. */
 var reIsUint = /^\d+$/;
 
@@ -6519,7 +5216,7 @@ function isIndex(value, length) {
 
 module.exports = isIndex;
 
-},{}],102:[function(require,module,exports){
+},{}],99:[function(require,module,exports){
 var isArrayLike = require('./isArrayLike'),
     isIndex = require('./isIndex'),
     isObject = require('../lang/isObject');
@@ -6549,7 +5246,7 @@ function isIterateeCall(value, index, object) {
 
 module.exports = isIterateeCall;
 
-},{"../lang/isObject":124,"./isArrayLike":100,"./isIndex":101}],103:[function(require,module,exports){
+},{"../lang/isObject":121,"./isArrayLike":97,"./isIndex":98}],100:[function(require,module,exports){
 var isArray = require('../lang/isArray'),
     toObject = require('./toObject');
 
@@ -6579,7 +5276,7 @@ function isKey(value, object) {
 
 module.exports = isKey;
 
-},{"../lang/isArray":121,"./toObject":116}],104:[function(require,module,exports){
+},{"../lang/isArray":118,"./toObject":113}],101:[function(require,module,exports){
 var LazyWrapper = require('./LazyWrapper'),
     getData = require('./getData'),
     getFuncName = require('./getFuncName'),
@@ -6607,7 +5304,7 @@ function isLaziable(func) {
 
 module.exports = isLaziable;
 
-},{"../chain/lodash":43,"./LazyWrapper":47,"./getData":92,"./getFuncName":93}],105:[function(require,module,exports){
+},{"../chain/lodash":40,"./LazyWrapper":44,"./getData":89,"./getFuncName":90}],102:[function(require,module,exports){
 /**
  * Used as the [maximum length](https://people.mozilla.org/~jorendorff/es6-draft.html#sec-number.max_safe_integer)
  * of an array-like value.
@@ -6629,7 +5326,7 @@ function isLength(value) {
 
 module.exports = isLength;
 
-},{}],106:[function(require,module,exports){
+},{}],103:[function(require,module,exports){
 /**
  * Checks if `value` is object-like.
  *
@@ -6643,7 +5340,7 @@ function isObjectLike(value) {
 
 module.exports = isObjectLike;
 
-},{}],107:[function(require,module,exports){
+},{}],104:[function(require,module,exports){
 var isObject = require('../lang/isObject');
 
 /**
@@ -6660,7 +5357,7 @@ function isStrictComparable(value) {
 
 module.exports = isStrictComparable;
 
-},{"../lang/isObject":124}],108:[function(require,module,exports){
+},{"../lang/isObject":121}],105:[function(require,module,exports){
 var arrayCopy = require('./arrayCopy'),
     composeArgs = require('./composeArgs'),
     composeArgsRight = require('./composeArgsRight'),
@@ -6751,7 +5448,7 @@ function mergeData(data, source) {
 
 module.exports = mergeData;
 
-},{"./arrayCopy":49,"./composeArgs":78,"./composeArgsRight":79,"./replaceHolders":112}],109:[function(require,module,exports){
+},{"./arrayCopy":46,"./composeArgs":75,"./composeArgsRight":76,"./replaceHolders":109}],106:[function(require,module,exports){
 (function (global){
 var getNative = require('./getNative');
 
@@ -6764,13 +5461,13 @@ var metaMap = WeakMap && new WeakMap;
 module.exports = metaMap;
 
 }).call(this,typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{"./getNative":96}],110:[function(require,module,exports){
+},{"./getNative":93}],107:[function(require,module,exports){
 /** Used to lookup unminified function names. */
 var realNames = {};
 
 module.exports = realNames;
 
-},{}],111:[function(require,module,exports){
+},{}],108:[function(require,module,exports){
 var arrayCopy = require('./arrayCopy'),
     isIndex = require('./isIndex');
 
@@ -6801,7 +5498,7 @@ function reorder(array, indexes) {
 
 module.exports = reorder;
 
-},{"./arrayCopy":49,"./isIndex":101}],112:[function(require,module,exports){
+},{"./arrayCopy":46,"./isIndex":98}],109:[function(require,module,exports){
 /** Used as the internal argument placeholder. */
 var PLACEHOLDER = '__lodash_placeholder__';
 
@@ -6831,7 +5528,7 @@ function replaceHolders(array, placeholder) {
 
 module.exports = replaceHolders;
 
-},{}],113:[function(require,module,exports){
+},{}],110:[function(require,module,exports){
 var baseSetData = require('./baseSetData'),
     now = require('../date/now');
 
@@ -6874,7 +5571,7 @@ var setData = (function() {
 
 module.exports = setData;
 
-},{"../date/now":44,"./baseSetData":73}],114:[function(require,module,exports){
+},{"../date/now":41,"./baseSetData":70}],111:[function(require,module,exports){
 var baseForIn = require('./baseForIn'),
     isObjectLike = require('./isObjectLike');
 
@@ -6926,7 +5623,7 @@ function shimIsPlainObject(value) {
 
 module.exports = shimIsPlainObject;
 
-},{"./baseForIn":60,"./isObjectLike":106}],115:[function(require,module,exports){
+},{"./baseForIn":57,"./isObjectLike":103}],112:[function(require,module,exports){
 var isArguments = require('../lang/isArguments'),
     isArray = require('../lang/isArray'),
     isIndex = require('./isIndex'),
@@ -6969,7 +5666,7 @@ function shimKeys(object) {
 
 module.exports = shimKeys;
 
-},{"../lang/isArguments":120,"../lang/isArray":121,"../object/keysIn":131,"./isIndex":101,"./isLength":105}],116:[function(require,module,exports){
+},{"../lang/isArguments":117,"../lang/isArray":118,"../object/keysIn":128,"./isIndex":98,"./isLength":102}],113:[function(require,module,exports){
 var isObject = require('../lang/isObject');
 
 /**
@@ -6985,7 +5682,7 @@ function toObject(value) {
 
 module.exports = toObject;
 
-},{"../lang/isObject":124}],117:[function(require,module,exports){
+},{"../lang/isObject":121}],114:[function(require,module,exports){
 var baseToString = require('./baseToString'),
     isArray = require('../lang/isArray');
 
@@ -7015,7 +5712,7 @@ function toPath(value) {
 
 module.exports = toPath;
 
-},{"../lang/isArray":121,"./baseToString":75}],118:[function(require,module,exports){
+},{"../lang/isArray":118,"./baseToString":72}],115:[function(require,module,exports){
 var LazyWrapper = require('./LazyWrapper'),
     LodashWrapper = require('./LodashWrapper'),
     arrayCopy = require('./arrayCopy');
@@ -7035,7 +5732,7 @@ function wrapperClone(wrapper) {
 
 module.exports = wrapperClone;
 
-},{"./LazyWrapper":47,"./LodashWrapper":48,"./arrayCopy":49}],119:[function(require,module,exports){
+},{"./LazyWrapper":44,"./LodashWrapper":45,"./arrayCopy":46}],116:[function(require,module,exports){
 var baseClone = require('../internal/baseClone'),
     bindCallback = require('../internal/bindCallback');
 
@@ -7092,7 +5789,7 @@ function cloneDeep(value, customizer, thisArg) {
 
 module.exports = cloneDeep;
 
-},{"../internal/baseClone":56,"../internal/bindCallback":76}],120:[function(require,module,exports){
+},{"../internal/baseClone":53,"../internal/bindCallback":73}],117:[function(require,module,exports){
 var isArrayLike = require('../internal/isArrayLike'),
     isObjectLike = require('../internal/isObjectLike');
 
@@ -7130,7 +5827,7 @@ function isArguments(value) {
 
 module.exports = isArguments;
 
-},{"../internal/isArrayLike":100,"../internal/isObjectLike":106}],121:[function(require,module,exports){
+},{"../internal/isArrayLike":97,"../internal/isObjectLike":103}],118:[function(require,module,exports){
 var getNative = require('../internal/getNative'),
     isLength = require('../internal/isLength'),
     isObjectLike = require('../internal/isObjectLike');
@@ -7172,7 +5869,7 @@ var isArray = nativeIsArray || function(value) {
 
 module.exports = isArray;
 
-},{"../internal/getNative":96,"../internal/isLength":105,"../internal/isObjectLike":106}],122:[function(require,module,exports){
+},{"../internal/getNative":93,"../internal/isLength":102,"../internal/isObjectLike":103}],119:[function(require,module,exports){
 var isObjectLike = require('../internal/isObjectLike');
 
 /** `Object#toString` result references. */
@@ -7209,7 +5906,7 @@ function isDate(value) {
 
 module.exports = isDate;
 
-},{"../internal/isObjectLike":106}],123:[function(require,module,exports){
+},{"../internal/isObjectLike":103}],120:[function(require,module,exports){
 var escapeRegExp = require('../string/escapeRegExp'),
     isObjectLike = require('../internal/isObjectLike');
 
@@ -7268,7 +5965,7 @@ function isNative(value) {
 
 module.exports = isNative;
 
-},{"../internal/isObjectLike":106,"../string/escapeRegExp":135}],124:[function(require,module,exports){
+},{"../internal/isObjectLike":103,"../string/escapeRegExp":132}],121:[function(require,module,exports){
 /**
  * Checks if `value` is the [language type](https://es5.github.io/#x8) of `Object`.
  * (e.g. arrays, functions, objects, regexes, `new Number(0)`, and `new String('')`)
@@ -7298,7 +5995,7 @@ function isObject(value) {
 
 module.exports = isObject;
 
-},{}],125:[function(require,module,exports){
+},{}],122:[function(require,module,exports){
 var getNative = require('../internal/getNative'),
     shimIsPlainObject = require('../internal/shimIsPlainObject');
 
@@ -7361,7 +6058,7 @@ var isPlainObject = !getPrototypeOf ? shimIsPlainObject : function(value) {
 
 module.exports = isPlainObject;
 
-},{"../internal/getNative":96,"../internal/shimIsPlainObject":114}],126:[function(require,module,exports){
+},{"../internal/getNative":93,"../internal/shimIsPlainObject":111}],123:[function(require,module,exports){
 var isLength = require('../internal/isLength'),
     isObjectLike = require('../internal/isObjectLike');
 
@@ -7437,7 +6134,7 @@ function isTypedArray(value) {
 
 module.exports = isTypedArray;
 
-},{"../internal/isLength":105,"../internal/isObjectLike":106}],127:[function(require,module,exports){
+},{"../internal/isLength":102,"../internal/isObjectLike":103}],124:[function(require,module,exports){
 var baseCopy = require('../internal/baseCopy'),
     keysIn = require('../object/keysIn');
 
@@ -7470,7 +6167,7 @@ function toPlainObject(value) {
 
 module.exports = toPlainObject;
 
-},{"../internal/baseCopy":57,"../object/keysIn":131}],128:[function(require,module,exports){
+},{"../internal/baseCopy":54,"../object/keysIn":128}],125:[function(require,module,exports){
 var assignWith = require('../internal/assignWith'),
     baseAssign = require('../internal/baseAssign'),
     createAssigner = require('../internal/createAssigner');
@@ -7515,7 +6212,7 @@ var assign = createAssigner(function(object, source, customizer) {
 
 module.exports = assign;
 
-},{"../internal/assignWith":53,"../internal/baseAssign":54,"../internal/createAssigner":80}],129:[function(require,module,exports){
+},{"../internal/assignWith":50,"../internal/baseAssign":51,"../internal/createAssigner":77}],126:[function(require,module,exports){
 var assign = require('./assign'),
     assignDefaults = require('../internal/assignDefaults'),
     restParam = require('../function/restParam');
@@ -7549,7 +6246,7 @@ var defaults = restParam(function(args) {
 
 module.exports = defaults;
 
-},{"../function/restParam":46,"../internal/assignDefaults":52,"./assign":128}],130:[function(require,module,exports){
+},{"../function/restParam":43,"../internal/assignDefaults":49,"./assign":125}],127:[function(require,module,exports){
 var getNative = require('../internal/getNative'),
     isArrayLike = require('../internal/isArrayLike'),
     isObject = require('../lang/isObject'),
@@ -7596,7 +6293,7 @@ var keys = !nativeKeys ? shimKeys : function(object) {
 
 module.exports = keys;
 
-},{"../internal/getNative":96,"../internal/isArrayLike":100,"../internal/shimKeys":115,"../lang/isObject":124}],131:[function(require,module,exports){
+},{"../internal/getNative":93,"../internal/isArrayLike":97,"../internal/shimKeys":112,"../lang/isObject":121}],128:[function(require,module,exports){
 var isArguments = require('../lang/isArguments'),
     isArray = require('../lang/isArray'),
     isIndex = require('../internal/isIndex'),
@@ -7662,7 +6359,7 @@ function keysIn(object) {
 
 module.exports = keysIn;
 
-},{"../internal/isIndex":101,"../internal/isLength":105,"../lang/isArguments":120,"../lang/isArray":121,"../lang/isObject":124}],132:[function(require,module,exports){
+},{"../internal/isIndex":98,"../internal/isLength":102,"../lang/isArguments":117,"../lang/isArray":118,"../lang/isObject":121}],129:[function(require,module,exports){
 var createObjectMapper = require('../internal/createObjectMapper');
 
 /**
@@ -7710,7 +6407,7 @@ var mapValues = createObjectMapper();
 
 module.exports = mapValues;
 
-},{"../internal/createObjectMapper":85}],133:[function(require,module,exports){
+},{"../internal/createObjectMapper":82}],130:[function(require,module,exports){
 var baseMerge = require('../internal/baseMerge'),
     createAssigner = require('../internal/createAssigner');
 
@@ -7766,7 +6463,7 @@ var merge = createAssigner(baseMerge);
 
 module.exports = merge;
 
-},{"../internal/baseMerge":69,"../internal/createAssigner":80}],134:[function(require,module,exports){
+},{"../internal/baseMerge":66,"../internal/createAssigner":77}],131:[function(require,module,exports){
 var keys = require('./keys'),
     toObject = require('../internal/toObject');
 
@@ -7801,7 +6498,7 @@ function pairs(object) {
 
 module.exports = pairs;
 
-},{"../internal/toObject":116,"./keys":130}],135:[function(require,module,exports){
+},{"../internal/toObject":113,"./keys":127}],132:[function(require,module,exports){
 var baseToString = require('../internal/baseToString');
 
 /**
@@ -7835,7 +6532,7 @@ function escapeRegExp(string) {
 
 module.exports = escapeRegExp;
 
-},{"../internal/baseToString":75}],136:[function(require,module,exports){
+},{"../internal/baseToString":72}],133:[function(require,module,exports){
 /**
  * Creates a function that returns `value`.
  *
@@ -7860,7 +6557,7 @@ function constant(value) {
 
 module.exports = constant;
 
-},{}],137:[function(require,module,exports){
+},{}],134:[function(require,module,exports){
 /**
  * This method returns the first argument provided to it.
  *
@@ -7882,7 +6579,7 @@ function identity(value) {
 
 module.exports = identity;
 
-},{}],138:[function(require,module,exports){
+},{}],135:[function(require,module,exports){
 /**
  * A no-operation function that returns `undefined` regardless of the
  * arguments it receives.
@@ -7903,7 +6600,7 @@ function noop() {
 
 module.exports = noop;
 
-},{}],139:[function(require,module,exports){
+},{}],136:[function(require,module,exports){
 var baseProperty = require('../internal/baseProperty'),
     basePropertyDeep = require('../internal/basePropertyDeep'),
     isKey = require('../internal/isKey');
@@ -7936,7 +6633,7 @@ function property(path) {
 
 module.exports = property;
 
-},{"../internal/baseProperty":71,"../internal/basePropertyDeep":72,"../internal/isKey":103}],140:[function(require,module,exports){
+},{"../internal/baseProperty":68,"../internal/basePropertyDeep":69,"../internal/isKey":100}],137:[function(require,module,exports){
 (function() {
   var check;
 
@@ -7952,7 +6649,7 @@ module.exports = property;
 
 }).call(this);
 
-},{"./check":141}],141:[function(require,module,exports){
+},{"./check":138}],138:[function(require,module,exports){
 (function() {
   module.exports = {
     typeAsString: function(input) {
@@ -7968,7 +6665,7 @@ module.exports = property;
 
 }).call(this);
 
-},{}],142:[function(require,module,exports){
+},{}],139:[function(require,module,exports){
 (function() {
   var Failure, Success, assign, types, _ref;
 
@@ -7993,7 +6690,7 @@ module.exports = property;
 
 }).call(this);
 
-},{"./types/composites":143,"./types/json":145,"./types/list":146,"./types/objects":147,"./types/optional":148,"./types/primitives":149,"./types/projections":150,"./types/recursive":151,"./types/try":152,"data.validation":153,"lodash-node/modern/object/assign":192}],143:[function(require,module,exports){
+},{"./types/composites":140,"./types/json":142,"./types/list":143,"./types/objects":144,"./types/optional":145,"./types/primitives":146,"./types/projections":147,"./types/recursive":148,"./types/try":149,"data.validation":150,"lodash-node/modern/object/assign":189}],140:[function(require,module,exports){
 (function() {
   var Failure, Success, assert, _ref;
 
@@ -8027,7 +6724,7 @@ module.exports = property;
 
 }).call(this);
 
-},{"../assert":140,"data.validation":153}],144:[function(require,module,exports){
+},{"../assert":137,"data.validation":150}],141:[function(require,module,exports){
 (function() {
   module.exports = {
     objectWithProperty: function(name) {
@@ -8042,7 +6739,7 @@ module.exports = property;
 
 }).call(this);
 
-},{}],145:[function(require,module,exports){
+},{}],142:[function(require,module,exports){
 (function() {
   var List, Optional, arrayTypeFromItemSchema, contains, mapValues, objectTypeFromPropertySchema, objects, primitive, typeFromJsonSchema;
 
@@ -8101,7 +6798,7 @@ module.exports = property;
 
 }).call(this);
 
-},{"./list":146,"./objects":147,"./optional":148,"./primitives":149,"lodash-node/modern/collection/contains":156,"lodash-node/modern/object/mapValues":195}],146:[function(require,module,exports){
+},{"./list":143,"./objects":144,"./optional":145,"./primitives":146,"lodash-node/modern/collection/contains":153,"lodash-node/modern/object/mapValues":192}],143:[function(require,module,exports){
 (function() {
   var Failure, List, Success, assert, check, listSequence, objectWithProperty, _ref;
 
@@ -8159,7 +6856,7 @@ module.exports = property;
 
 }).call(this);
 
-},{"../assert":140,"../check":141,"./helpers":144,"data.validation":153}],147:[function(require,module,exports){
+},{"../assert":137,"../check":138,"./helpers":141,"data.validation":150}],144:[function(require,module,exports){
 (function() {
   var Failure, Success, assert, check, mapValues, objectSequence, objects, pairs, primitive, zipObject, _ref;
 
@@ -8244,7 +6941,7 @@ module.exports = property;
 
 }).call(this);
 
-},{"../assert":140,"../check":141,"./primitives":149,"data.validation":153,"lodash-node/modern/array/zipObject":155,"lodash-node/modern/object/mapValues":195,"lodash-node/modern/object/pairs":196}],148:[function(require,module,exports){
+},{"../assert":137,"../check":138,"./primitives":146,"data.validation":150,"lodash-node/modern/array/zipObject":152,"lodash-node/modern/object/mapValues":192,"lodash-node/modern/object/pairs":193}],145:[function(require,module,exports){
 (function() {
   var Success, assert;
 
@@ -8265,7 +6962,7 @@ module.exports = property;
 
 }).call(this);
 
-},{"../assert":140,"data.validation":153}],149:[function(require,module,exports){
+},{"../assert":137,"data.validation":150}],146:[function(require,module,exports){
 (function() {
   var Failure, Success, check, nativeTypeValidator, types, _ref;
 
@@ -8303,7 +7000,7 @@ module.exports = property;
 
 }).call(this);
 
-},{"../check":141,"data.validation":153}],150:[function(require,module,exports){
+},{"../check":138,"data.validation":150}],147:[function(require,module,exports){
 (function() {
   var assert, objectWithProperty, primitive;
 
@@ -8327,7 +7024,7 @@ module.exports = property;
 
 }).call(this);
 
-},{"../assert":140,"./helpers":144,"./primitives":149}],151:[function(require,module,exports){
+},{"../assert":137,"./helpers":141,"./primitives":146}],148:[function(require,module,exports){
 (function() {
   var assert;
 
@@ -8347,7 +7044,7 @@ module.exports = property;
 
 }).call(this);
 
-},{"../assert":140}],152:[function(require,module,exports){
+},{"../assert":137}],149:[function(require,module,exports){
 (function() {
   var Failure, Success, Try, _ref;
 
@@ -8367,7 +7064,7 @@ module.exports = property;
 
 }).call(this);
 
-},{"data.validation":153}],153:[function(require,module,exports){
+},{"data.validation":150}],150:[function(require,module,exports){
 // Copyright (c) 2013-2014 Quildreen Motta <quildreen@gmail.com>
 //
 // Permission is hereby granted, free of charge, to any person
@@ -8390,7 +7087,7 @@ module.exports = property;
 // WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 module.exports = require('./validation')
-},{"./validation":154}],154:[function(require,module,exports){
+},{"./validation":151}],151:[function(require,module,exports){
 // Copyright (c) 2013-2014 Quildreen Motta <quildreen@gmail.com>
 //
 // Permission is hereby granted, free of charge, to any person
@@ -8773,7 +7470,7 @@ Failure.prototype.failureMap = function(f) {
 Validation.prototype.leftMap = Validation.prototype.failureMap
 Success.prototype.leftMap    = Success.prototype.failureMap
 Failure.prototype.leftMap    = Failure.prototype.failureMap
-},{}],155:[function(require,module,exports){
+},{}],152:[function(require,module,exports){
 var isArray = require('../lang/isArray');
 
 /**
@@ -8818,10 +7515,10 @@ function zipObject(props, values) {
 
 module.exports = zipObject;
 
-},{"../lang/isArray":187}],156:[function(require,module,exports){
+},{"../lang/isArray":184}],153:[function(require,module,exports){
 module.exports = require('./includes');
 
-},{"./includes":157}],157:[function(require,module,exports){
+},{"./includes":154}],154:[function(require,module,exports){
 var baseIndexOf = require('../internal/baseIndexOf'),
     isArray = require('../lang/isArray'),
     isIterateeCall = require('../internal/isIterateeCall'),
@@ -8885,7 +7582,7 @@ function includes(collection, target, fromIndex, guard) {
 
 module.exports = includes;
 
-},{"../internal/baseIndexOf":163,"../internal/isIterateeCall":180,"../internal/isLength":181,"../lang/isArray":187,"../lang/isString":190,"../object/values":197}],158:[function(require,module,exports){
+},{"../internal/baseIndexOf":160,"../internal/isIterateeCall":177,"../internal/isLength":178,"../lang/isArray":184,"../lang/isString":187,"../object/values":194}],155:[function(require,module,exports){
 var baseCopy = require('./baseCopy'),
     keys = require('../object/keys');
 
@@ -8922,7 +7619,7 @@ function baseAssign(object, source, customizer) {
 
 module.exports = baseAssign;
 
-},{"../object/keys":193,"./baseCopy":160}],159:[function(require,module,exports){
+},{"../object/keys":190,"./baseCopy":157}],156:[function(require,module,exports){
 var baseMatches = require('./baseMatches'),
     baseMatchesProperty = require('./baseMatchesProperty'),
     baseProperty = require('./baseProperty'),
@@ -8959,7 +7656,7 @@ function baseCallback(func, thisArg, argCount) {
 
 module.exports = baseCallback;
 
-},{"../utility/identity":201,"./baseMatches":167,"./baseMatchesProperty":168,"./baseProperty":169,"./bindCallback":172}],160:[function(require,module,exports){
+},{"../utility/identity":198,"./baseMatches":164,"./baseMatchesProperty":165,"./baseProperty":166,"./bindCallback":169}],157:[function(require,module,exports){
 /**
  * Copies the properties of `source` to `object`.
  *
@@ -8986,7 +7683,7 @@ function baseCopy(source, object, props) {
 
 module.exports = baseCopy;
 
-},{}],161:[function(require,module,exports){
+},{}],158:[function(require,module,exports){
 var createBaseFor = require('./createBaseFor');
 
 /**
@@ -9005,9 +7702,9 @@ var baseFor = createBaseFor();
 
 module.exports = baseFor;
 
-},{"./createBaseFor":174}],162:[function(require,module,exports){
-arguments[4][61][0].apply(exports,arguments)
-},{"../object/keys":193,"./baseFor":161}],163:[function(require,module,exports){
+},{"./createBaseFor":171}],159:[function(require,module,exports){
+arguments[4][58][0].apply(exports,arguments)
+},{"../object/keys":190,"./baseFor":158}],160:[function(require,module,exports){
 var indexOfNaN = require('./indexOfNaN');
 
 /**
@@ -9036,7 +7733,7 @@ function baseIndexOf(array, value, fromIndex) {
 
 module.exports = baseIndexOf;
 
-},{"./indexOfNaN":178}],164:[function(require,module,exports){
+},{"./indexOfNaN":175}],161:[function(require,module,exports){
 var baseIsEqualDeep = require('./baseIsEqualDeep');
 
 /**
@@ -9072,7 +7769,7 @@ function baseIsEqual(value, other, customizer, isLoose, stackA, stackB) {
 
 module.exports = baseIsEqual;
 
-},{"./baseIsEqualDeep":165}],165:[function(require,module,exports){
+},{"./baseIsEqualDeep":162}],162:[function(require,module,exports){
 var equalArrays = require('./equalArrays'),
     equalByTag = require('./equalByTag'),
     equalObjects = require('./equalObjects'),
@@ -9181,7 +7878,7 @@ function baseIsEqualDeep(object, other, equalFunc, customizer, isLoose, stackA, 
 
 module.exports = baseIsEqualDeep;
 
-},{"../lang/isArray":187,"../lang/isTypedArray":191,"./equalArrays":175,"./equalByTag":176,"./equalObjects":177}],166:[function(require,module,exports){
+},{"../lang/isArray":184,"../lang/isTypedArray":188,"./equalArrays":172,"./equalByTag":173,"./equalObjects":174}],163:[function(require,module,exports){
 var baseIsEqual = require('./baseIsEqual');
 
 /**
@@ -9232,7 +7929,7 @@ function baseIsMatch(object, props, values, strictCompareFlags, customizer) {
 
 module.exports = baseIsMatch;
 
-},{"./baseIsEqual":164}],167:[function(require,module,exports){
+},{"./baseIsEqual":161}],164:[function(require,module,exports){
 var baseIsMatch = require('./baseIsMatch'),
     constant = require('../utility/constant'),
     isStrictComparable = require('./isStrictComparable'),
@@ -9279,7 +7976,7 @@ function baseMatches(source) {
 
 module.exports = baseMatches;
 
-},{"../object/keys":193,"../utility/constant":200,"./baseIsMatch":166,"./isStrictComparable":183,"./toObject":185}],168:[function(require,module,exports){
+},{"../object/keys":190,"../utility/constant":197,"./baseIsMatch":163,"./isStrictComparable":180,"./toObject":182}],165:[function(require,module,exports){
 var baseIsEqual = require('./baseIsEqual'),
     isStrictComparable = require('./isStrictComparable'),
     toObject = require('./toObject');
@@ -9307,7 +8004,7 @@ function baseMatchesProperty(key, value) {
 
 module.exports = baseMatchesProperty;
 
-},{"./baseIsEqual":164,"./isStrictComparable":183,"./toObject":185}],169:[function(require,module,exports){
+},{"./baseIsEqual":161,"./isStrictComparable":180,"./toObject":182}],166:[function(require,module,exports){
 /**
  * The base implementation of `_.property` which does not coerce `key` to a string.
  *
@@ -9323,7 +8020,7 @@ function baseProperty(key) {
 
 module.exports = baseProperty;
 
-},{}],170:[function(require,module,exports){
+},{}],167:[function(require,module,exports){
 /**
  * Converts `value` to a string if it is not one. An empty string is returned
  * for `null` or `undefined` values.
@@ -9341,7 +8038,7 @@ function baseToString(value) {
 
 module.exports = baseToString;
 
-},{}],171:[function(require,module,exports){
+},{}],168:[function(require,module,exports){
 /**
  * The base implementation of `_.values` and `_.valuesIn` which creates an
  * array of `object` property values corresponding to the property names
@@ -9365,7 +8062,7 @@ function baseValues(object, props) {
 
 module.exports = baseValues;
 
-},{}],172:[function(require,module,exports){
+},{}],169:[function(require,module,exports){
 var identity = require('../utility/identity');
 
 /**
@@ -9406,7 +8103,7 @@ function bindCallback(func, thisArg, argCount) {
 
 module.exports = bindCallback;
 
-},{"../utility/identity":201}],173:[function(require,module,exports){
+},{"../utility/identity":198}],170:[function(require,module,exports){
 var bindCallback = require('./bindCallback'),
     isIterateeCall = require('./isIterateeCall');
 
@@ -9457,9 +8154,9 @@ function createAssigner(assigner) {
 
 module.exports = createAssigner;
 
-},{"./bindCallback":172,"./isIterateeCall":180}],174:[function(require,module,exports){
-arguments[4][81][0].apply(exports,arguments)
-},{"./toObject":185}],175:[function(require,module,exports){
+},{"./bindCallback":169,"./isIterateeCall":177}],171:[function(require,module,exports){
+arguments[4][78][0].apply(exports,arguments)
+},{"./toObject":182}],172:[function(require,module,exports){
 /**
  * A specialized version of `baseIsEqualDeep` for arrays with support for
  * partial deep comparisons.
@@ -9515,7 +8212,7 @@ function equalArrays(array, other, equalFunc, customizer, isLoose, stackA, stack
 
 module.exports = equalArrays;
 
-},{}],176:[function(require,module,exports){
+},{}],173:[function(require,module,exports){
 /** `Object#toString` result references. */
 var boolTag = '[object Boolean]',
     dateTag = '[object Date]',
@@ -9566,7 +8263,7 @@ function equalByTag(object, other, tag) {
 
 module.exports = equalByTag;
 
-},{}],177:[function(require,module,exports){
+},{}],174:[function(require,module,exports){
 var keys = require('../object/keys');
 
 /** Used for native method references. */
@@ -9642,7 +8339,7 @@ function equalObjects(object, other, equalFunc, customizer, isLoose, stackA, sta
 
 module.exports = equalObjects;
 
-},{"../object/keys":193}],178:[function(require,module,exports){
+},{"../object/keys":190}],175:[function(require,module,exports){
 /**
  * Gets the index at which the first occurrence of `NaN` is found in `array`.
  *
@@ -9667,7 +8364,7 @@ function indexOfNaN(array, fromIndex, fromRight) {
 
 module.exports = indexOfNaN;
 
-},{}],179:[function(require,module,exports){
+},{}],176:[function(require,module,exports){
 /**
  * Used as the [maximum length](https://people.mozilla.org/~jorendorff/es6-draft.html#sec-number.max_safe_integer)
  * of an array-like value.
@@ -9690,7 +8387,7 @@ function isIndex(value, length) {
 
 module.exports = isIndex;
 
-},{}],180:[function(require,module,exports){
+},{}],177:[function(require,module,exports){
 var isIndex = require('./isIndex'),
     isLength = require('./isLength'),
     isObject = require('../lang/isObject');
@@ -9724,7 +8421,7 @@ function isIterateeCall(value, index, object) {
 
 module.exports = isIterateeCall;
 
-},{"../lang/isObject":189,"./isIndex":179,"./isLength":181}],181:[function(require,module,exports){
+},{"../lang/isObject":186,"./isIndex":176,"./isLength":178}],178:[function(require,module,exports){
 /**
  * Used as the [maximum length](https://people.mozilla.org/~jorendorff/es6-draft.html#sec-number.max_safe_integer)
  * of an array-like value.
@@ -9746,9 +8443,9 @@ function isLength(value) {
 
 module.exports = isLength;
 
-},{}],182:[function(require,module,exports){
-module.exports=require(106)
-},{}],183:[function(require,module,exports){
+},{}],179:[function(require,module,exports){
+module.exports=require(103)
+},{}],180:[function(require,module,exports){
 var isObject = require('../lang/isObject');
 
 /**
@@ -9765,7 +8462,7 @@ function isStrictComparable(value) {
 
 module.exports = isStrictComparable;
 
-},{"../lang/isObject":189}],184:[function(require,module,exports){
+},{"../lang/isObject":186}],181:[function(require,module,exports){
 var isArguments = require('../lang/isArguments'),
     isArray = require('../lang/isArray'),
     isIndex = require('./isIndex'),
@@ -9809,7 +8506,7 @@ function shimKeys(object) {
 
 module.exports = shimKeys;
 
-},{"../lang/isArguments":186,"../lang/isArray":187,"../object/keysIn":194,"../support":199,"./isIndex":179,"./isLength":181}],185:[function(require,module,exports){
+},{"../lang/isArguments":183,"../lang/isArray":184,"../object/keysIn":191,"../support":196,"./isIndex":176,"./isLength":178}],182:[function(require,module,exports){
 var isObject = require('../lang/isObject');
 
 /**
@@ -9825,7 +8522,7 @@ function toObject(value) {
 
 module.exports = toObject;
 
-},{"../lang/isObject":189}],186:[function(require,module,exports){
+},{"../lang/isObject":186}],183:[function(require,module,exports){
 var isLength = require('../internal/isLength'),
     isObjectLike = require('../internal/isObjectLike');
 
@@ -9864,7 +8561,7 @@ function isArguments(value) {
 
 module.exports = isArguments;
 
-},{"../internal/isLength":181,"../internal/isObjectLike":182}],187:[function(require,module,exports){
+},{"../internal/isLength":178,"../internal/isObjectLike":179}],184:[function(require,module,exports){
 var isLength = require('../internal/isLength'),
     isNative = require('./isNative'),
     isObjectLike = require('../internal/isObjectLike');
@@ -9906,7 +8603,7 @@ var isArray = nativeIsArray || function(value) {
 
 module.exports = isArray;
 
-},{"../internal/isLength":181,"../internal/isObjectLike":182,"./isNative":188}],188:[function(require,module,exports){
+},{"../internal/isLength":178,"../internal/isObjectLike":179,"./isNative":185}],185:[function(require,module,exports){
 var escapeRegExp = require('../string/escapeRegExp'),
     isObjectLike = require('../internal/isObjectLike');
 
@@ -9962,7 +8659,7 @@ function isNative(value) {
 
 module.exports = isNative;
 
-},{"../internal/isObjectLike":182,"../string/escapeRegExp":198}],189:[function(require,module,exports){
+},{"../internal/isObjectLike":179,"../string/escapeRegExp":195}],186:[function(require,module,exports){
 /**
  * Checks if `value` is the [language type](https://es5.github.io/#x8) of `Object`.
  * (e.g. arrays, functions, objects, regexes, `new Number(0)`, and `new String('')`)
@@ -9992,7 +8689,7 @@ function isObject(value) {
 
 module.exports = isObject;
 
-},{}],190:[function(require,module,exports){
+},{}],187:[function(require,module,exports){
 var isObjectLike = require('../internal/isObjectLike');
 
 /** `Object#toString` result references. */
@@ -10029,9 +8726,9 @@ function isString(value) {
 
 module.exports = isString;
 
-},{"../internal/isObjectLike":182}],191:[function(require,module,exports){
-arguments[4][126][0].apply(exports,arguments)
-},{"../internal/isLength":181,"../internal/isObjectLike":182}],192:[function(require,module,exports){
+},{"../internal/isObjectLike":179}],188:[function(require,module,exports){
+arguments[4][123][0].apply(exports,arguments)
+},{"../internal/isLength":178,"../internal/isObjectLike":179}],189:[function(require,module,exports){
 var baseAssign = require('../internal/baseAssign'),
     createAssigner = require('../internal/createAssigner');
 
@@ -10068,7 +8765,7 @@ var assign = createAssigner(baseAssign);
 
 module.exports = assign;
 
-},{"../internal/baseAssign":158,"../internal/createAssigner":173}],193:[function(require,module,exports){
+},{"../internal/baseAssign":155,"../internal/createAssigner":170}],190:[function(require,module,exports){
 var isLength = require('../internal/isLength'),
     isNative = require('../lang/isNative'),
     isObject = require('../lang/isObject'),
@@ -10118,7 +8815,7 @@ var keys = !nativeKeys ? shimKeys : function(object) {
 
 module.exports = keys;
 
-},{"../internal/isLength":181,"../internal/shimKeys":184,"../lang/isNative":188,"../lang/isObject":189}],194:[function(require,module,exports){
+},{"../internal/isLength":178,"../internal/shimKeys":181,"../lang/isNative":185,"../lang/isObject":186}],191:[function(require,module,exports){
 var isArguments = require('../lang/isArguments'),
     isArray = require('../lang/isArray'),
     isIndex = require('../internal/isIndex'),
@@ -10185,7 +8882,7 @@ function keysIn(object) {
 
 module.exports = keysIn;
 
-},{"../internal/isIndex":179,"../internal/isLength":181,"../lang/isArguments":186,"../lang/isArray":187,"../lang/isObject":189,"../support":199}],195:[function(require,module,exports){
+},{"../internal/isIndex":176,"../internal/isLength":178,"../lang/isArguments":183,"../lang/isArray":184,"../lang/isObject":186,"../support":196}],192:[function(require,module,exports){
 var baseCallback = require('../internal/baseCallback'),
     baseForOwn = require('../internal/baseForOwn');
 
@@ -10242,7 +8939,7 @@ function mapValues(object, iteratee, thisArg) {
 
 module.exports = mapValues;
 
-},{"../internal/baseCallback":159,"../internal/baseForOwn":162}],196:[function(require,module,exports){
+},{"../internal/baseCallback":156,"../internal/baseForOwn":159}],193:[function(require,module,exports){
 var keys = require('./keys');
 
 /**
@@ -10274,7 +8971,7 @@ function pairs(object) {
 
 module.exports = pairs;
 
-},{"./keys":193}],197:[function(require,module,exports){
+},{"./keys":190}],194:[function(require,module,exports){
 var baseValues = require('../internal/baseValues'),
     keys = require('./keys');
 
@@ -10309,9 +9006,9 @@ function values(object) {
 
 module.exports = values;
 
-},{"../internal/baseValues":171,"./keys":193}],198:[function(require,module,exports){
-arguments[4][135][0].apply(exports,arguments)
-},{"../internal/baseToString":170}],199:[function(require,module,exports){
+},{"../internal/baseValues":168,"./keys":190}],195:[function(require,module,exports){
+arguments[4][132][0].apply(exports,arguments)
+},{"../internal/baseToString":167}],196:[function(require,module,exports){
 (function (global){
 /** Used for native method references. */
 var objectProto = Object.prototype;
@@ -10385,3148 +9082,3406 @@ var support = {};
 module.exports = support;
 
 }).call(this,typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{}],200:[function(require,module,exports){
-module.exports=require(136)
-},{}],201:[function(require,module,exports){
-module.exports=require(137)
-},{}],202:[function(require,module,exports){
+},{}],197:[function(require,module,exports){
+module.exports=require(133)
+},{}],198:[function(require,module,exports){
+module.exports=require(134)
+},{}],199:[function(require,module,exports){
 (function (global){
 (function() {
-  var Bacon, BufferingSource, Bus, CompositeUnsubscribe, ConsumingSource, Desc, Dispatcher, End, Error, Event, EventStream, Exception, Initial, Next, None, Observable, Property, PropertyDispatcher, Some, Source, UpdateBarrier, addPropertyInitValueToStream, assert, assertArray, assertEventStream, assertFunction, assertNoArguments, assertString, cloneArray, compositeUnsubscribe, containsDuplicateDeps, convertArgsToFunction, describe, end, eventIdCounter, findDeps, flatMap_, former, idCounter, initial, isArray, isFieldKey, isFunction, isObservable, latter, liftCallback, makeFunction, makeFunctionArgs, makeFunction_, makeObservable, makeSpawner, next, nop, partiallyApplied, recursionDepth, registerObs, spys, toCombinator, toEvent, toFieldExtractor, toFieldKey, toOption, toSimpleExtractor, withDescription, withMethodCallSupport, _, _ref,
-    __slice = [].slice,
-    __hasProp = {}.hasOwnProperty,
-    __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; },
-    __bind = function(fn, me){ return function(){ return fn.apply(me, arguments); }; };
+var _slice = Array.prototype.slice;
+var Bacon = {
+  toString: function () {
+    return "Bacon";
+  }
+};
 
-  Bacon = {
-    toString: function() {
-      return "Bacon";
+Bacon.version = '0.7.83';
+
+var Exception = (typeof global !== "undefined" && global !== null ? global : this).Error;
+var nop = function () {};
+var latter = function (_, x) {
+  return x;
+};
+var former = function (x, _) {
+  return x;
+};
+var cloneArray = function (xs) {
+  return xs.slice(0);
+};
+var assert = function (message, condition) {
+  if (!condition) {
+    throw new Exception(message);
+  }
+};
+var assertObservableIsProperty = function (x) {
+  if ((x != null ? x._isObservable : void 0) && !(x != null ? x._isProperty : void 0)) {
+    throw new Exception("Observable is not a Property : " + x);
+  }
+};
+var assertEventStream = function (event) {
+  if (!(event != null ? event._isEventStream : void 0)) {
+    throw new Exception("not an EventStream : " + event);
+  }
+};
+
+var assertObservable = function (event) {
+  if (!(event != null ? event._isObservable : void 0)) {
+    throw new Exception("not an Observable : " + event);
+  }
+};
+var assertFunction = function (f) {
+  return assert("not a function : " + f, _.isFunction(f));
+};
+var isArray = function (xs) {
+  return xs instanceof Array;
+};
+var isObservable = function (x) {
+  return x && x._isObservable;
+};
+var assertArray = function (xs) {
+  if (!isArray(xs)) {
+    throw new Exception("not an array : " + xs);
+  }
+};
+var assertNoArguments = function (args) {
+  return assert("no arguments supported", args.length === 0);
+};
+var assertString = function (x) {
+  if (typeof x === "string") {
+    throw new Exception("not a string : " + x);
+  }
+};
+
+var extend = function (target) {
+  var length = arguments.length;
+  for (var i = 1; 1 < length ? i < length : i > length; 1 < length ? i++ : i--) {
+    for (var prop in arguments[i]) {
+      target[prop] = arguments[i][prop];
     }
-  };
+  }
+  return target;
+};
 
-  Bacon.version = '0.7.34';
-
-  Exception = (typeof global !== "undefined" && global !== null ? global : this).Error;
-
-  Bacon.fromBinder = function(binder, eventTransformer) {
-    if (eventTransformer == null) {
-      eventTransformer = _.id;
+var inherit = function (child, parent) {
+  var hasProp = ({}).hasOwnProperty;
+  var ctor = function () {};
+  ctor.prototype = parent.prototype;
+  child.prototype = new ctor();
+  for (var key in parent) {
+    if (hasProp.call(parent, key)) {
+      child[key] = parent[key];
     }
-    return new EventStream(describe(Bacon, "fromBinder", binder, eventTransformer), function(sink) {
-      var unbind, unbinder, unbound;
-      unbound = false;
-      unbind = function() {
-        if (typeof unbinder !== "undefined" && unbinder !== null) {
-          if (!unbound) {
-            unbinder();
-          }
-          return unbound = true;
-        }
+  }
+  return child;
+};
+
+var _ = {
+  indexOf: (function () {
+    if (Array.prototype.indexOf) {
+      return function (xs, x) {
+        return xs.indexOf(x);
       };
-      unbinder = binder(function() {
-        var args, event, reply, value, _i, _len;
-        args = 1 <= arguments.length ? __slice.call(arguments, 0) : [];
-        value = eventTransformer.apply(this, args);
-        if (!(isArray(value) && _.last(value) instanceof Event)) {
-          value = [value];
-        }
-        reply = Bacon.more;
-        for (_i = 0, _len = value.length; _i < _len; _i++) {
-          event = value[_i];
-          reply = sink(event = toEvent(event));
-          if (reply === Bacon.noMore || event.isEnd()) {
-            if (unbinder != null) {
-              unbind();
-            } else {
-              Bacon.scheduler.setTimeout(unbind, 0);
-            }
-            return reply;
+    } else {
+      return function (xs, x) {
+        for (var i = 0, y; i < xs.length; i++) {
+          y = xs[i];
+          if (x === y) {
+            return i;
           }
         }
-        return reply;
-      });
-      return unbind;
+        return -1;
+      };
+    }
+  })(),
+  indexWhere: function (xs, f) {
+    for (var i = 0, y; i < xs.length; i++) {
+      y = xs[i];
+      if (f(y)) {
+        return i;
+      }
+    }
+    return -1;
+  },
+  head: function (xs) {
+    return xs[0];
+  },
+  always: function (x) {
+    return function () {
+      return x;
+    };
+  },
+  negate: function (f) {
+    return function (x) {
+      return !f(x);
+    };
+  },
+  empty: function (xs) {
+    return xs.length === 0;
+  },
+  tail: function (xs) {
+    return xs.slice(1, xs.length);
+  },
+  filter: function (f, xs) {
+    var filtered = [];
+    for (var i = 0, x; i < xs.length; i++) {
+      x = xs[i];
+      if (f(x)) {
+        filtered.push(x);
+      }
+    }
+    return filtered;
+  },
+  map: function (f, xs) {
+    return (function () {
+      var result = [];
+      for (var i = 0, x; i < xs.length; i++) {
+        x = xs[i];
+        result.push(f(x));
+      }
+      return result;
+    })();
+  },
+  each: function (xs, f) {
+    for (var key in xs) {
+      if (Object.prototype.hasOwnProperty.call(xs, key)) {
+        var value = xs[key];
+        f(key, value);
+      }
+    }
+  },
+  toArray: function (xs) {
+    return isArray(xs) ? xs : [xs];
+  },
+  contains: function (xs, x) {
+    return _.indexOf(xs, x) !== -1;
+  },
+  id: function (x) {
+    return x;
+  },
+  last: function (xs) {
+    return xs[xs.length - 1];
+  },
+  all: function (xs) {
+    var f = arguments.length <= 1 || arguments[1] === undefined ? _.id : arguments[1];
+
+    for (var i = 0, x; i < xs.length; i++) {
+      x = xs[i];
+      if (!f(x)) {
+        return false;
+      }
+    }
+    return true;
+  },
+  any: function (xs) {
+    var f = arguments.length <= 1 || arguments[1] === undefined ? _.id : arguments[1];
+
+    for (var i = 0, x; i < xs.length; i++) {
+      x = xs[i];
+      if (f(x)) {
+        return true;
+      }
+    }
+    return false;
+  },
+  without: function (x, xs) {
+    return _.filter(function (y) {
+      return y !== x;
+    }, xs);
+  },
+  remove: function (x, xs) {
+    var i = _.indexOf(xs, x);
+    if (i >= 0) {
+      return xs.splice(i, 1);
+    }
+  },
+  fold: function (xs, seed, f) {
+    for (var i = 0, x; i < xs.length; i++) {
+      x = xs[i];
+      seed = f(seed, x);
+    }
+    return seed;
+  },
+  flatMap: function (f, xs) {
+    return _.fold(xs, [], function (ys, x) {
+      return ys.concat(f(x));
     });
-  };
-
-  Bacon.$ = {};
-
-  Bacon.$.asEventStream = function(eventName, selector, eventTransformer) {
-    var _ref;
-    if (isFunction(selector)) {
-      _ref = [selector, void 0], eventTransformer = _ref[0], selector = _ref[1];
+  },
+  cached: function (f) {
+    var value = None;
+    return function () {
+      if (typeof value !== "undefined" && value !== null ? value._isNone : undefined) {
+        value = f();
+        f = undefined;
+      }
+      return value;
+    };
+  },
+  bind: function (fn, me) {
+    return function () {
+      return fn.apply(me, arguments);
+    };
+  },
+  isFunction: function (f) {
+    return typeof f === "function";
+  },
+  toString: function (obj) {
+    var internals, key, value;
+    var hasProp = ({}).hasOwnProperty;
+    try {
+      recursionDepth++;
+      if (obj == null) {
+        return "undefined";
+      } else if (_.isFunction(obj)) {
+        return "function";
+      } else if (isArray(obj)) {
+        if (recursionDepth > 5) {
+          return "[..]";
+        }
+        return "[" + _.map(_.toString, obj).toString() + "]";
+      } else if ((obj != null ? obj.toString : void 0) != null && obj.toString !== Object.prototype.toString) {
+        return obj.toString();
+      } else if (typeof obj === "object") {
+        if (recursionDepth > 5) {
+          return "{..}";
+        }
+        internals = (function () {
+          var results = [];
+          for (key in obj) {
+            if (!hasProp.call(obj, key)) continue;
+            value = (function () {
+              var error;
+              try {
+                return obj[key];
+              } catch (error) {
+                return error;
+              }
+            })();
+            results.push(_.toString(key) + ":" + _.toString(value));
+          }
+          return results;
+        })();
+        return "{" + internals + "}";
+      } else {
+        return obj;
+      }
+    } finally {
+      recursionDepth--;
     }
-    return withDescription(this.selector || this, "asEventStream", eventName, Bacon.fromBinder((function(_this) {
-      return function(handler) {
-        _this.on(eventName, selector, handler);
-        return function() {
-          return _this.off(eventName, selector, handler);
-        };
-      };
-    })(this), eventTransformer));
+  }
+};
+
+var recursionDepth = 0;
+
+Bacon._ = _;
+
+var UpdateBarrier = Bacon.UpdateBarrier = (function () {
+  var rootEvent;
+  var waiterObs = [];
+  var waiters = {};
+  var afters = [];
+  var aftersIndex = 0;
+  var flushed = {};
+
+  var afterTransaction = function (f) {
+    if (rootEvent) {
+      return afters.push(f);
+    } else {
+      return f();
+    }
   };
 
-  if ((_ref = typeof jQuery !== "undefined" && jQuery !== null ? jQuery : typeof Zepto !== "undefined" && Zepto !== null ? Zepto : void 0) != null) {
-    _ref.fn.asEventStream = Bacon.$.asEventStream;
+  var whenDoneWith = function (obs, f) {
+    if (rootEvent) {
+      var obsWaiters = waiters[obs.id];
+      if (!(typeof obsWaiters !== "undefined" && obsWaiters !== null)) {
+        obsWaiters = waiters[obs.id] = [f];
+        return waiterObs.push(obs);
+      } else {
+        return obsWaiters.push(f);
+      }
+    } else {
+      return f();
+    }
+  };
+
+  var flush = function () {
+    while (waiterObs.length > 0) {
+      flushWaiters(0, true);
+    }
+    flushed = {};
+  };
+
+  var flushWaiters = function (index, deps) {
+    var obs = waiterObs[index];
+    var obsId = obs.id;
+    var obsWaiters = waiters[obsId];
+    waiterObs.splice(index, 1);
+    delete waiters[obsId];
+    if (deps && waiterObs.length > 0) {
+      flushDepsOf(obs);
+    }
+    for (var i = 0, f; i < obsWaiters.length; i++) {
+      f = obsWaiters[i];
+      f();
+    }
+  };
+
+  var flushDepsOf = function (obs) {
+    if (flushed[obs.id]) return;
+    var deps = obs.internalDeps();
+    for (var i = 0, dep; i < deps.length; i++) {
+      dep = deps[i];
+      flushDepsOf(dep);
+      if (waiters[dep.id]) {
+        var index = _.indexOf(waiterObs, dep);
+        flushWaiters(index, false);
+      }
+    }
+    flushed[obs.id] = true;
+  };
+
+  var inTransaction = function (event, context, f, args) {
+    if (rootEvent) {
+      return f.apply(context, args);
+    } else {
+      rootEvent = event;
+      try {
+        var result = f.apply(context, args);
+
+        flush();
+      } finally {
+        rootEvent = undefined;
+        while (aftersIndex < afters.length) {
+          var after = afters[aftersIndex];
+          aftersIndex++;
+          after();
+        }
+        aftersIndex = 0;
+        afters = [];
+      }
+      return result;
+    }
+  };
+
+  var currentEventId = function () {
+    return rootEvent ? rootEvent.id : undefined;
+  };
+
+  var wrappedSubscribe = function (obs, sink) {
+    var unsubd = false;
+    var shouldUnsub = false;
+    var doUnsub = function () {
+      shouldUnsub = true;
+      return shouldUnsub;
+    };
+    var unsub = function () {
+      unsubd = true;
+      return doUnsub();
+    };
+    doUnsub = obs.dispatcher.subscribe(function (event) {
+      return afterTransaction(function () {
+        if (!unsubd) {
+          var reply = sink(event);
+          if (reply === Bacon.noMore) {
+            return unsub();
+          }
+        }
+      });
+    });
+    if (shouldUnsub) {
+      doUnsub();
+    }
+    return unsub;
+  };
+
+  var hasWaiters = function () {
+    return waiterObs.length > 0;
+  };
+
+  return { whenDoneWith: whenDoneWith, hasWaiters: hasWaiters, inTransaction: inTransaction, currentEventId: currentEventId, wrappedSubscribe: wrappedSubscribe, afterTransaction: afterTransaction };
+})();
+
+function Source(obs, sync) {
+  var lazy = arguments.length <= 2 || arguments[2] === undefined ? false : arguments[2];
+
+  this.obs = obs;
+  this.sync = sync;
+  this.lazy = lazy;
+  this.queue = [];
+}
+
+extend(Source.prototype, {
+  _isSource: true,
+
+  subscribe: function (sink) {
+    return this.obs.dispatcher.subscribe(sink);
+  },
+  toString: function () {
+    return this.obs.toString();
+  },
+  markEnded: function () {
+    this.ended = true;
+    return true;
+  },
+  consume: function () {
+    if (this.lazy) {
+      return { value: _.always(this.queue[0]) };
+    } else {
+      return this.queue[0];
+    }
+  },
+  push: function (x) {
+    this.queue = [x];
+    return [x];
+  },
+  mayHave: function () {
+    return true;
+  },
+  hasAtLeast: function () {
+    return this.queue.length;
+  },
+  flatten: true
+});
+
+function ConsumingSource() {
+  Source.apply(this, arguments);
+}
+
+inherit(ConsumingSource, Source);
+extend(ConsumingSource.prototype, {
+  consume: function () {
+    return this.queue.shift();
+  },
+  push: function (x) {
+    return this.queue.push(x);
+  },
+  mayHave: function (c) {
+    return !this.ended || this.queue.length >= c;
+  },
+  hasAtLeast: function (c) {
+    return this.queue.length >= c;
+  },
+  flatten: false
+});
+
+function BufferingSource(obs) {
+  Source.call(this, obs, true);
+}
+
+inherit(BufferingSource, Source);
+extend(BufferingSource.prototype, {
+  consume: function () {
+    var values = this.queue;
+    this.queue = [];
+    return {
+      value: function () {
+        return values;
+      }
+    };
+  },
+  push: function (x) {
+    return this.queue.push(x.value());
+  },
+  hasAtLeast: function () {
+    return true;
+  }
+});
+
+Source.isTrigger = function (s) {
+  if (s != null ? s._isSource : void 0) {
+    return s.sync;
+  } else {
+    return s != null ? s._isEventStream : void 0;
+  }
+};
+
+Source.fromObservable = function (s) {
+  if (s != null ? s._isSource : void 0) {
+    return s;
+  } else if (s != null ? s._isProperty : void 0) {
+    return new Source(s, false);
+  } else {
+    return new ConsumingSource(s, true);
+  }
+};
+
+function Desc(context, method, args) {
+  this.context = context;
+  this.method = method;
+  this.args = args;
+}
+
+extend(Desc.prototype, {
+  _isDesc: true,
+  deps: function () {
+    if (!this.cached) {
+      this.cached = findDeps([this.context].concat(this.args));
+    }
+    return this.cached;
+  },
+  toString: function () {
+    return _.toString(this.context) + "." + _.toString(this.method) + "(" + _.map(_.toString, this.args) + ")";
+  }
+});
+
+var describe = function (context, method) {
+  var ref = context || method;
+  if (ref && ref._isDesc) {
+    return context || method;
+  } else {
+    for (var _len = arguments.length, args = Array(_len > 2 ? _len - 2 : 0), _key = 2; _key < _len; _key++) {
+      args[_key - 2] = arguments[_key];
+    }
+
+    return new Desc(context, method, args);
+  }
+};
+
+var withDesc = function (desc, obs) {
+  obs.desc = desc;
+  return obs;
+};
+
+var findDeps = function (x) {
+  if (isArray(x)) {
+    return _.flatMap(findDeps, x);
+  } else if (isObservable(x)) {
+    return [x];
+  } else if (typeof x !== "undefined" && x !== null ? x._isSource : undefined) {
+    return [x.obs];
+  } else {
+    return [];
+  }
+};
+
+Bacon.Desc = Desc;
+Bacon.Desc.empty = new Bacon.Desc("", "", []);
+
+var withMethodCallSupport = function (wrapped) {
+  return function (f) {
+    for (var _len2 = arguments.length, args = Array(_len2 > 1 ? _len2 - 1 : 0), _key2 = 1; _key2 < _len2; _key2++) {
+      args[_key2 - 1] = arguments[_key2];
+    }
+
+    if (typeof f === "object" && args.length) {
+      var context = f;
+      var methodName = args[0];
+      f = function () {
+        return context[methodName].apply(context, arguments);
+      };
+      args = args.slice(1);
+    }
+    return wrapped.apply(undefined, [f].concat(args));
+  };
+};
+
+var makeFunctionArgs = function (args) {
+  args = Array.prototype.slice.call(args);
+  return makeFunction_.apply(undefined, args);
+};
+
+var partiallyApplied = function (f, applied) {
+  return function () {
+    for (var _len3 = arguments.length, args = Array(_len3), _key3 = 0; _key3 < _len3; _key3++) {
+      args[_key3] = arguments[_key3];
+    }
+
+    return f.apply(undefined, applied.concat(args));
+  };
+};
+
+var toSimpleExtractor = function (args) {
+  return function (key) {
+    return function (value) {
+      if (!(typeof value !== "undefined" && value !== null)) {
+        return;
+      } else {
+        var fieldValue = value[key];
+        if (_.isFunction(fieldValue)) {
+          return fieldValue.apply(value, args);
+        } else {
+          return fieldValue;
+        }
+      }
+    };
+  };
+};
+
+var toFieldExtractor = function (f, args) {
+  var parts = f.slice(1).split(".");
+  var partFuncs = _.map(toSimpleExtractor(args), parts);
+  return function (value) {
+    for (var i = 0, f; i < partFuncs.length; i++) {
+      f = partFuncs[i];
+      value = f(value);
+    }
+    return value;
+  };
+};
+
+var isFieldKey = function (f) {
+  return typeof f === "string" && f.length > 1 && f.charAt(0) === ".";
+};
+
+var makeFunction_ = withMethodCallSupport(function (f) {
+  for (var _len4 = arguments.length, args = Array(_len4 > 1 ? _len4 - 1 : 0), _key4 = 1; _key4 < _len4; _key4++) {
+    args[_key4 - 1] = arguments[_key4];
   }
 
-  Bacon.fromEventTarget = function(target, eventName, eventTransformer) {
-    var sub, unsub, _ref1, _ref2, _ref3, _ref4, _ref5, _ref6;
-    sub = (_ref1 = (_ref2 = (_ref3 = target.addEventListener) != null ? _ref3 : target.addListener) != null ? _ref2 : target.bind) != null ? _ref1 : target.on;
-    unsub = (_ref4 = (_ref5 = (_ref6 = target.removeEventListener) != null ? _ref6 : target.removeListener) != null ? _ref5 : target.unbind) != null ? _ref4 : target.off;
-    return withDescription(Bacon, "fromEventTarget", target, eventName, Bacon.fromBinder(function(handler) {
-      sub.call(target, eventName, handler);
-      return function() {
-        return unsub.call(target, eventName, handler);
-      };
-    }, eventTransformer));
-  };
-
-  Bacon.fromPromise = function(promise, abort) {
-    return withDescription(Bacon, "fromPromise", promise, Bacon.fromBinder(function(handler) {
-      promise.then(handler, function(e) {
-        return handler(new Error(e));
-      });
-      return function() {
-        if (abort) {
-          return typeof promise.abort === "function" ? promise.abort() : void 0;
-        }
-      };
-    }, (function(value) {
-      return [value, end()];
-    })));
-  };
-
-  Bacon.noMore = ["<no-more>"];
-
-  Bacon.more = ["<more>"];
-
-  Bacon.later = function(delay, value) {
-    return withDescription(Bacon, "later", delay, value, Bacon.fromPoll(delay, function() {
-      return [value, end()];
-    }));
-  };
-
-  Bacon.sequentially = function(delay, values) {
-    var index;
-    index = 0;
-    return withDescription(Bacon, "sequentially", delay, values, Bacon.fromPoll(delay, function() {
-      var value;
-      value = values[index++];
-      if (index < values.length) {
-        return value;
-      } else if (index === values.length) {
-        return [value, end()];
-      } else {
-        return end();
-      }
-    }));
-  };
-
-  Bacon.repeatedly = function(delay, values) {
-    var index;
-    index = 0;
-    return withDescription(Bacon, "repeatedly", delay, values, Bacon.fromPoll(delay, function() {
-      return values[index++ % values.length];
-    }));
-  };
-
-  Bacon.spy = function(spy) {
-    return spys.push(spy);
-  };
-
-  spys = [];
-
-  registerObs = function(obs) {
-    var spy, _i, _len;
-    if (spys.length) {
-      if (!registerObs.running) {
-        try {
-          registerObs.running = true;
-          for (_i = 0, _len = spys.length; _i < _len; _i++) {
-            spy = spys[_i];
-            spy(obs);
-          }
-        } finally {
-          delete registerObs.running;
-        }
-      }
-    }
-    return void 0;
-  };
-
-  withMethodCallSupport = function(wrapped) {
-    return function() {
-      var args, context, f, methodName;
-      f = arguments[0], args = 2 <= arguments.length ? __slice.call(arguments, 1) : [];
-      if (typeof f === "object" && args.length) {
-        context = f;
-        methodName = args[0];
-        f = function() {
-          return context[methodName].apply(context, arguments);
-        };
-        args = args.slice(1);
-      }
-      return wrapped.apply(null, [f].concat(__slice.call(args)));
-    };
-  };
-
-  liftCallback = function(desc, wrapped) {
-    return withMethodCallSupport(function() {
-      var args, f, stream;
-      f = arguments[0], args = 2 <= arguments.length ? __slice.call(arguments, 1) : [];
-      stream = partiallyApplied(wrapped, [
-        function(values, callback) {
-          return f.apply(null, __slice.call(values).concat([callback]));
-        }
-      ]);
-      return withDescription.apply(null, [Bacon, desc, f].concat(__slice.call(args), [Bacon.combineAsArray(args).flatMap(stream)]));
-    });
-  };
-
-  Bacon.fromCallback = liftCallback("fromCallback", function() {
-    var args, f;
-    f = arguments[0], args = 2 <= arguments.length ? __slice.call(arguments, 1) : [];
-    return Bacon.fromBinder(function(handler) {
-      makeFunction(f, args)(handler);
-      return nop;
-    }, (function(value) {
-      return [value, end()];
-    }));
-  });
-
-  Bacon.fromNodeCallback = liftCallback("fromNodeCallback", function() {
-    var args, f;
-    f = arguments[0], args = 2 <= arguments.length ? __slice.call(arguments, 1) : [];
-    return Bacon.fromBinder(function(handler) {
-      makeFunction(f, args)(handler);
-      return nop;
-    }, function(error, value) {
-      if (error) {
-        return [new Error(error), end()];
-      }
-      return [value, end()];
-    });
-  });
-
-  Bacon.fromPoll = function(delay, poll) {
-    return withDescription(Bacon, "fromPoll", delay, poll, Bacon.fromBinder((function(handler) {
-      var id;
-      id = Bacon.scheduler.setInterval(handler, delay);
-      return function() {
-        return Bacon.scheduler.clearInterval(id);
-      };
-    }), poll));
-  };
-
-  Bacon.interval = function(delay, value) {
-    if (value == null) {
-      value = {};
-    }
-    return withDescription(Bacon, "interval", delay, value, Bacon.fromPoll(delay, function() {
-      return next(value);
-    }));
-  };
-
-  Bacon.constant = function(value) {
-    return new Property(describe(Bacon, "constant", value), function(sink) {
-      sink(initial(value));
-      sink(end());
-      return nop;
-    });
-  };
-
-  Bacon.never = function() {
-    return new EventStream(describe(Bacon, "never"), function(sink) {
-      sink(end());
-      return nop;
-    });
-  };
-
-  Bacon.once = function(value) {
-    return new EventStream(describe(Bacon, "once", value), function(sink) {
-      sink(toEvent(value));
-      sink(end());
-      return nop;
-    });
-  };
-
-  Bacon.fromArray = function(values) {
-    var i;
-    assertArray(values);
-    i = 0;
-    return new EventStream(describe(Bacon, "fromArray", values), function(sink) {
-      var reply, unsubd, value;
-      unsubd = false;
-      reply = Bacon.more;
-      while ((reply !== Bacon.noMore) && !unsubd) {
-        if (i >= values.length) {
-          sink(end());
-          reply = Bacon.noMore;
-        } else {
-          value = values[i++];
-          reply = sink(toEvent(value));
-        }
-      }
-      return function() {
-        return unsubd = true;
-      };
-    });
-  };
-
-  Bacon.mergeAll = function() {
-    var streams;
-    streams = 1 <= arguments.length ? __slice.call(arguments, 0) : [];
-    if (isArray(streams[0])) {
-      streams = streams[0];
-    }
-    if (streams.length) {
-      return new EventStream(describe.apply(null, [Bacon, "mergeAll"].concat(__slice.call(streams))), function(sink) {
-        var ends, sinks, smartSink;
-        ends = 0;
-        smartSink = function(obs) {
-          return function(unsubBoth) {
-            return obs.dispatcher.subscribe(function(event) {
-              var reply;
-              if (event.isEnd()) {
-                ends++;
-                if (ends === streams.length) {
-                  return sink(end());
-                } else {
-                  return Bacon.more;
-                }
-              } else {
-                reply = sink(event);
-                if (reply === Bacon.noMore) {
-                  unsubBoth();
-                }
-                return reply;
-              }
-            });
-          };
-        };
-        sinks = _.map(smartSink, streams);
-        return compositeUnsubscribe.apply(null, sinks);
-      });
+  if (_.isFunction(f)) {
+    if (args.length) {
+      return partiallyApplied(f, args);
     } else {
-      return Bacon.never();
+      return f;
     }
-  };
+  } else if (isFieldKey(f)) {
+    return toFieldExtractor(f, args);
+  } else {
+    return _.always(f);
+  }
+});
 
-  Bacon.zipAsArray = function() {
-    var streams;
-    streams = 1 <= arguments.length ? __slice.call(arguments, 0) : [];
-    if (isArray(streams[0])) {
-      streams = streams[0];
-    }
-    return withDescription.apply(null, [Bacon, "zipAsArray"].concat(__slice.call(streams), [Bacon.zipWith(streams, function() {
-      var xs;
-      xs = 1 <= arguments.length ? __slice.call(arguments, 0) : [];
-      return xs;
-    })]));
-  };
+var makeFunction = function (f, args) {
+  return makeFunction_.apply(undefined, [f].concat(args));
+};
 
-  Bacon.zipWith = function() {
-    var f, streams, _ref1;
-    f = arguments[0], streams = 2 <= arguments.length ? __slice.call(arguments, 1) : [];
-    if (!isFunction(f)) {
-      _ref1 = [f, streams[0]], streams = _ref1[0], f = _ref1[1];
-    }
-    streams = _.map((function(s) {
-      return s.toEventStream();
-    }), streams);
-    return withDescription.apply(null, [Bacon, "zipWith", f].concat(__slice.call(streams), [Bacon.when(streams, f)]));
-  };
+var convertArgsToFunction = function (obs, f, args, method) {
+  if (typeof f !== "undefined" && f !== null ? f._isProperty : undefined) {
+    var sampled = f.sampledBy(obs, function (p, s) {
+      return [p, s];
+    });
+    return method.call(sampled, function (_ref) {
+      var p = _ref[0];
+      var s = _ref[1];
+      return p;
+    }).map(function (_ref2) {
+      var p = _ref2[0];
+      var s = _ref2[1];
+      return s;
+    });
+  } else {
+    f = makeFunction(f, args);
+    return method.call(obs, f);
+  }
+};
 
-  Bacon.groupSimultaneous = function() {
-    var s, sources, streams;
-    streams = 1 <= arguments.length ? __slice.call(arguments, 0) : [];
-    if (streams.length === 1 && isArray(streams[0])) {
-      streams = streams[0];
-    }
-    sources = (function() {
-      var _i, _len, _results;
-      _results = [];
-      for (_i = 0, _len = streams.length; _i < _len; _i++) {
-        s = streams[_i];
-        _results.push(new BufferingSource(s));
-      }
-      return _results;
-    })();
-    return withDescription.apply(null, [Bacon, "groupSimultaneous"].concat(__slice.call(streams), [Bacon.when(sources, (function() {
-      var xs;
-      xs = 1 <= arguments.length ? __slice.call(arguments, 0) : [];
-      return xs;
-    }))]));
-  };
+var toCombinator = function (f) {
+  if (_.isFunction(f)) {
+    return f;
+  } else if (isFieldKey(f)) {
+    var key = toFieldKey(f);
+    return function (left, right) {
+      return left[key](right);
+    };
+  } else {
+    throw new Exception("not a function or a field key: " + f);
+  }
+};
 
-  Bacon.combineAsArray = function() {
-    var index, s, sources, stream, streams, _i, _len;
-    streams = 1 <= arguments.length ? __slice.call(arguments, 0) : [];
-    if (streams.length === 1 && isArray(streams[0])) {
-      streams = streams[0];
-    }
-    for (index = _i = 0, _len = streams.length; _i < _len; index = ++_i) {
-      stream = streams[index];
-      if (!(isObservable(stream))) {
-        streams[index] = Bacon.constant(stream);
-      }
-    }
-    if (streams.length) {
-      sources = (function() {
-        var _j, _len1, _results;
-        _results = [];
-        for (_j = 0, _len1 = streams.length; _j < _len1; _j++) {
-          s = streams[_j];
-          _results.push(new Source(s, true));
-        }
-        return _results;
-      })();
-      return withDescription.apply(null, [Bacon, "combineAsArray"].concat(__slice.call(streams), [Bacon.when(sources, (function() {
-        var xs;
-        xs = 1 <= arguments.length ? __slice.call(arguments, 0) : [];
-        return xs;
-      })).toProperty()]));
+var toFieldKey = function (f) {
+  return f.slice(1);
+};
+
+function Some(value) {
+  this.value = value;
+}
+
+extend(Some.prototype, {
+  _isSome: true,
+  getOrElse: function () {
+    return this.value;
+  },
+  get: function () {
+    return this.value;
+  },
+  filter: function (f) {
+    if (f(this.value)) {
+      return new Some(this.value);
     } else {
-      return Bacon.constant([]);
+      return None;
     }
-  };
+  },
+  map: function (f) {
+    return new Some(f(this.value));
+  },
+  forEach: function (f) {
+    return f(this.value);
+  },
+  isDefined: true,
+  toArray: function () {
+    return [this.value];
+  },
+  inspect: function () {
+    return "Some(" + this.value + ")";
+  },
+  toString: function () {
+    return this.inspect();
+  }
+});
 
-  Bacon.onValues = function() {
-    var f, streams, _i;
-    streams = 2 <= arguments.length ? __slice.call(arguments, 0, _i = arguments.length - 1) : (_i = 0, []), f = arguments[_i++];
-    return Bacon.combineAsArray(streams).onValues(f);
-  };
+var None = {
+  _isNone: true,
+  getOrElse: function (value) {
+    return value;
+  },
+  filter: function () {
+    return None;
+  },
+  map: function () {
+    return None;
+  },
+  forEach: function () {},
+  isDefined: false,
+  toArray: function () {
+    return [];
+  },
+  inspect: function () {
+    return "None";
+  },
+  toString: function () {
+    return this.inspect();
+  }
+};
 
-  Bacon.combineWith = function() {
-    var f, streams;
-    f = arguments[0], streams = 2 <= arguments.length ? __slice.call(arguments, 1) : [];
-    return withDescription.apply(null, [Bacon, "combineWith", f].concat(__slice.call(streams), [Bacon.combineAsArray(streams).map(function(values) {
-      return f.apply(null, values);
-    })]));
-  };
+var toOption = function (v) {
+  if ((typeof v !== "undefined" && v !== null ? v._isSome : undefined) || (typeof v !== "undefined" && v !== null ? v._isNone : undefined)) {
+    return v;
+  } else {
+    return new Some(v);
+  }
+};
 
-  Bacon.combineTemplate = function(template) {
-    var applyStreamValue, combinator, compile, compileTemplate, constantValue, current, funcs, mkContext, setValue, streams;
-    funcs = [];
-    streams = [];
-    current = function(ctxStack) {
-      return ctxStack[ctxStack.length - 1];
-    };
-    setValue = function(ctxStack, key, value) {
-      return current(ctxStack)[key] = value;
-    };
-    applyStreamValue = function(key, index) {
-      return function(ctxStack, values) {
-        return setValue(ctxStack, key, values[index]);
-      };
-    };
-    constantValue = function(key, value) {
-      return function(ctxStack) {
-        return setValue(ctxStack, key, value);
-      };
-    };
-    mkContext = function(template) {
-      if (isArray(template)) {
-        return [];
-      } else {
-        return {};
+Bacon.noMore = "<no-more>";
+Bacon.more = "<more>";
+
+var eventIdCounter = 0;
+
+function Event() {
+  this.id = ++eventIdCounter;
+}
+
+Event.prototype._isEvent = true;
+Event.prototype.isEvent = function () {
+  return true;
+};
+Event.prototype.isEnd = function () {
+  return false;
+};
+Event.prototype.isInitial = function () {
+  return false;
+};
+Event.prototype.isNext = function () {
+  return false;
+};
+Event.prototype.isError = function () {
+  return false;
+};
+Event.prototype.hasValue = function () {
+  return false;
+};
+Event.prototype.filter = function () {
+  return true;
+};
+Event.prototype.inspect = function () {
+  return this.toString();
+};
+Event.prototype.log = function () {
+  return this.toString();
+};
+
+function Next(valueF, eager) {
+  if (!(this instanceof Next)) {
+    return new Next(valueF, eager);
+  }
+
+  Event.call(this);
+
+  if (!eager && _.isFunction(valueF) || (valueF != null ? valueF._isNext : void 0)) {
+    this.valueF = valueF;
+    this.valueInternal = void 0;
+  } else {
+    this.valueF = void 0;
+    this.valueInternal = valueF;
+  }
+}
+
+inherit(Next, Event);
+
+Next.prototype.isNext = function () {
+  return true;
+};
+Next.prototype.hasValue = function () {
+  return true;
+};
+Next.prototype.value = function () {
+  var ref;
+  if ((ref = this.valueF) != null ? ref._isNext : void 0) {
+    this.valueInternal = this.valueF.value();
+    this.valueF = void 0;
+  } else if (this.valueF) {
+    this.valueInternal = this.valueF();
+    this.valueF = void 0;
+  }
+  return this.valueInternal;
+};
+
+Next.prototype.fmap = function (f) {
+  var event, value;
+  if (this.valueInternal) {
+    value = this.valueInternal;
+    return this.apply(function () {
+      return f(value);
+    });
+  } else {
+    event = this;
+    return this.apply(function () {
+      return f(event.value());
+    });
+  }
+};
+
+Next.prototype.apply = function (value) {
+  return new Next(value);
+};
+Next.prototype.filter = function (f) {
+  return f(this.value());
+};
+Next.prototype.toString = function () {
+  return _.toString(this.value());
+};
+Next.prototype.log = function () {
+  return this.value();
+};
+Next.prototype._isNext = true;
+
+function Initial(valueF, eager) {
+  if (!(this instanceof Initial)) {
+    return new Initial(valueF, eager);
+  }
+  Next.call(this, valueF, eager);
+}
+
+inherit(Initial, Next);
+Initial.prototype._isInitial = true;
+Initial.prototype.isInitial = function () {
+  return true;
+};
+Initial.prototype.isNext = function () {
+  return false;
+};
+Initial.prototype.apply = function (value) {
+  return new Initial(value);
+};
+Initial.prototype.toNext = function () {
+  return new Next(this);
+};
+
+function End() {
+  if (!(this instanceof End)) {
+    return new End();
+  }
+  Event.call(this);
+}
+
+inherit(End, Event);
+End.prototype.isEnd = function () {
+  return true;
+};
+End.prototype.fmap = function () {
+  return this;
+};
+End.prototype.apply = function () {
+  return this;
+};
+End.prototype.toString = function () {
+  return "<end>";
+};
+
+function Error(error) {
+  if (!(this instanceof Error)) {
+    return new Error(error);
+  }
+  this.error = error;
+  Event.call(this);
+}
+
+inherit(Error, Event);
+Error.prototype.isError = function () {
+  return true;
+};
+Error.prototype.fmap = function () {
+  return this;
+};
+Error.prototype.apply = function () {
+  return this;
+};
+Error.prototype.toString = function () {
+  return "<error> " + _.toString(this.error);
+};
+
+Bacon.Event = Event;
+Bacon.Initial = Initial;
+Bacon.Next = Next;
+Bacon.End = End;
+Bacon.Error = Error;
+
+var initialEvent = function (value) {
+  return new Initial(value, true);
+};
+var nextEvent = function (value) {
+  return new Next(value, true);
+};
+var endEvent = function () {
+  return new End();
+};
+var toEvent = function (x) {
+  if (x && x._isEvent) {
+    return x;
+  } else {
+    return nextEvent(x);
+  }
+};
+
+var idCounter = 0;
+var registerObs = function () {};
+
+function Observable(desc) {
+  this.desc = desc;
+  this.id = ++idCounter;
+  this.initialDesc = this.desc;
+}
+
+extend(Observable.prototype, {
+  _isObservable: true,
+
+  subscribe: function (sink) {
+    return UpdateBarrier.wrappedSubscribe(this, sink);
+  },
+
+  subscribeInternal: function (sink) {
+    return this.dispatcher.subscribe(sink);
+  },
+
+  onValue: function () {
+    var f = makeFunctionArgs(arguments);
+    return this.subscribe(function (event) {
+      if (event.hasValue()) {
+        return f(event.value());
       }
-    };
-    compile = function(key, value) {
-      var popContext, pushContext;
-      if (isObservable(value)) {
-        streams.push(value);
-        return funcs.push(applyStreamValue(key, streams.length - 1));
-      } else if (value === Object(value) && typeof value !== "function" && !(value instanceof RegExp) && !(value instanceof Date)) {
-        pushContext = function(key) {
-          return function(ctxStack) {
-            var newContext;
-            newContext = mkContext(value);
-            setValue(ctxStack, key, newContext);
-            return ctxStack.push(newContext);
-          };
-        };
-        popContext = function(ctxStack) {
-          return ctxStack.pop();
-        };
-        funcs.push(pushContext(key));
-        compileTemplate(value);
-        return funcs.push(popContext);
-      } else {
-        return funcs.push(constantValue(key, value));
-      }
-    };
-    compileTemplate = function(template) {
-      return _.each(template, compile);
-    };
-    compileTemplate(template);
-    combinator = function(values) {
-      var ctxStack, f, rootContext, _i, _len;
-      rootContext = mkContext(template);
-      ctxStack = [rootContext];
-      for (_i = 0, _len = funcs.length; _i < _len; _i++) {
-        f = funcs[_i];
-        f(ctxStack, values);
-      }
-      return rootContext;
-    };
-    return withDescription(Bacon, "combineTemplate", template, Bacon.combineAsArray(streams).map(combinator));
-  };
+    });
+  },
 
-  Bacon.retry = function(options) {
-    var delay, isRetryable, maxRetries, retries, retry, source;
-    if (!isFunction(options.source)) {
-      throw new Exception("'source' option has to be a function");
+  onValues: function (f) {
+    return this.onValue(function (args) {
+      return f.apply(undefined, args);
+    });
+  },
+
+  onError: function () {
+    var f = makeFunctionArgs(arguments);
+    return this.subscribe(function (event) {
+      if (event.isError()) {
+        return f(event.error);
+      }
+    });
+  },
+
+  onEnd: function () {
+    var f = makeFunctionArgs(arguments);
+    return this.subscribe(function (event) {
+      if (event.isEnd()) {
+        return f();
+      }
+    });
+  },
+
+  name: function (name) {
+    this._name = name;
+    return this;
+  },
+
+  withDescription: function () {
+    this.desc = describe.apply(undefined, arguments);
+    return this;
+  },
+
+  toString: function () {
+    if (this._name) {
+      return this._name;
+    } else {
+      return this.desc.toString();
     }
-    source = options.source;
-    retries = options.retries || 0;
-    maxRetries = options.maxRetries || retries;
-    delay = options.delay || function() {
+  },
+
+  internalDeps: function () {
+    return this.initialDesc.deps();
+  }
+});
+
+Observable.prototype.assign = Observable.prototype.onValue;
+Observable.prototype.forEach = Observable.prototype.onValue;
+Observable.prototype.inspect = Observable.prototype.toString;
+
+Bacon.Observable = Observable;
+
+function CompositeUnsubscribe() {
+  var ss = arguments.length <= 0 || arguments[0] === undefined ? [] : arguments[0];
+
+  this.unsubscribe = _.bind(this.unsubscribe, this);
+  this.unsubscribed = false;
+  this.subscriptions = [];
+  this.starting = [];
+  for (var i = 0, s; i < ss.length; i++) {
+    s = ss[i];
+    this.add(s);
+  }
+}
+
+extend(CompositeUnsubscribe.prototype, {
+  add: function (subscription) {
+    var _this2 = this;
+
+    if (this.unsubscribed) {
+      return;
+    }
+    var ended = false;
+    var unsub = nop;
+    this.starting.push(subscription);
+    var unsubMe = function () {
+      if (_this2.unsubscribed) {
+        return;
+      }
+      ended = true;
+      _this2.remove(unsub);
+      return _.remove(subscription, _this2.starting);
+    };
+    unsub = subscription(this.unsubscribe, unsubMe);
+    if (!(this.unsubscribed || ended)) {
+      this.subscriptions.push(unsub);
+    } else {
+      unsub();
+    }
+    _.remove(subscription, this.starting);
+    return unsub;
+  },
+
+  remove: function (unsub) {
+    if (this.unsubscribed) {
+      return;
+    }
+    if (_.remove(unsub, this.subscriptions) !== undefined) {
+      return unsub();
+    }
+  },
+
+  unsubscribe: function () {
+    if (this.unsubscribed) {
+      return;
+    }
+    this.unsubscribed = true;
+    var iterable = this.subscriptions;
+    for (var i = 0; i < iterable.length; i++) {
+      iterable[i]();
+    }
+    this.subscriptions = [];
+    this.starting = [];
+    return [];
+  },
+
+  count: function () {
+    if (this.unsubscribed) {
       return 0;
+    }
+    return this.subscriptions.length + this.starting.length;
+  },
+
+  empty: function () {
+    return this.count() === 0;
+  }
+});
+
+Bacon.CompositeUnsubscribe = CompositeUnsubscribe;
+
+function Dispatcher(_subscribe, _handleEvent) {
+  this._subscribe = _subscribe;
+  this._handleEvent = _handleEvent;
+  this.subscribe = _.bind(this.subscribe, this);
+  this.handleEvent = _.bind(this.handleEvent, this);
+  this.pushing = false;
+  this.ended = false;
+  this.prevError = undefined;
+  this.unsubSrc = undefined;
+  this.subscriptions = [];
+  this.queue = [];
+}
+
+Dispatcher.prototype.hasSubscribers = function () {
+  return this.subscriptions.length > 0;
+};
+
+Dispatcher.prototype.removeSub = function (subscription) {
+  this.subscriptions = _.without(subscription, this.subscriptions);
+  return this.subscriptions;
+};
+
+Dispatcher.prototype.push = function (event) {
+  if (event.isEnd()) {
+    this.ended = true;
+  }
+  return UpdateBarrier.inTransaction(event, this, this.pushIt, [event]);
+};
+
+Dispatcher.prototype.pushToSubscriptions = function (event) {
+  try {
+    var tmp = this.subscriptions;
+    var len = tmp.length;
+    for (var i = 0; i < len; i++) {
+      var sub = tmp[i];
+      var reply = sub.sink(event);
+      if (reply === Bacon.noMore || event.isEnd()) {
+        this.removeSub(sub);
+      }
+    }
+    return true;
+  } catch (error) {
+    this.pushing = false;
+    this.queue = [];
+    throw error;
+  }
+};
+
+Dispatcher.prototype.pushIt = function (event) {
+  if (!this.pushing) {
+    if (event === this.prevError) {
+      return;
+    }
+    if (event.isError()) {
+      this.prevError = event;
+    }
+    this.pushing = true;
+    this.pushToSubscriptions(event);
+    this.pushing = false;
+    while (this.queue.length) {
+      event = this.queue.shift();
+      this.push(event);
+    }
+    if (this.hasSubscribers()) {
+      return Bacon.more;
+    } else {
+      this.unsubscribeFromSource();
+      return Bacon.noMore;
+    }
+  } else {
+    this.queue.push(event);
+    return Bacon.more;
+  }
+};
+
+Dispatcher.prototype.handleEvent = function (event) {
+  if (this._handleEvent) {
+    return this._handleEvent(event);
+  } else {
+    return this.push(event);
+  }
+};
+
+Dispatcher.prototype.unsubscribeFromSource = function () {
+  if (this.unsubSrc) {
+    this.unsubSrc();
+  }
+  this.unsubSrc = undefined;
+};
+
+Dispatcher.prototype.subscribe = function (sink) {
+  var subscription;
+  if (this.ended) {
+    sink(endEvent());
+    return nop;
+  } else {
+    assertFunction(sink);
+    subscription = {
+      sink: sink
     };
-    isRetryable = options.isRetryable || function() {
-      return true;
-    };
-    retry = function(context) {
-      var delayedRetry, nextAttemptOptions;
-      nextAttemptOptions = {
-        source: source,
-        retries: retries - 1,
-        maxRetries: maxRetries,
-        delay: delay,
-        isRetryable: isRetryable
+    this.subscriptions.push(subscription);
+    if (this.subscriptions.length === 1) {
+      this.unsubSrc = this._subscribe(this.handleEvent);
+      assertFunction(this.unsubSrc);
+    }
+    return (function (_this) {
+      return function () {
+        _this.removeSub(subscription);
+        if (!_this.hasSubscribers()) {
+          return _this.unsubscribeFromSource();
+        }
       };
-      delayedRetry = function() {
-        return Bacon.retry(nextAttemptOptions);
+    })(this);
+  }
+};
+
+Bacon.Dispatcher = Dispatcher;
+
+function EventStream(desc, subscribe, handler) {
+  if (!(this instanceof EventStream)) {
+    return new EventStream(desc, subscribe, handler);
+  }
+  if (_.isFunction(desc)) {
+    handler = subscribe;
+    subscribe = desc;
+    desc = Desc.empty;
+  }
+  Observable.call(this, desc);
+  assertFunction(subscribe);
+  this.dispatcher = new Dispatcher(subscribe, handler);
+  registerObs(this);
+}
+
+inherit(EventStream, Observable);
+extend(EventStream.prototype, {
+  _isEventStream: true,
+
+  toProperty: function (initValue_) {
+    var initValue = arguments.length === 0 ? None : toOption(function () {
+      return initValue_;
+    });
+    var disp = this.dispatcher;
+    var desc = new Bacon.Desc(this, "toProperty", [initValue_]);
+    return new Property(desc, function (sink) {
+      var initSent = false;
+      var subbed = false;
+      var unsub = nop;
+      var reply = Bacon.more;
+      var sendInit = function () {
+        if (!initSent) {
+          return initValue.forEach(function (value) {
+            initSent = true;
+            reply = sink(new Initial(value));
+            if (reply === Bacon.noMore) {
+              unsub();
+              unsub = nop;
+              return nop;
+            }
+          });
+        }
       };
-      return Bacon.later(delay(context)).filter(false).concat(Bacon.once().flatMap(delayedRetry));
-    };
-    return withDescription(Bacon, "retry", options, source().flatMapError(function(e) {
-      if (isRetryable(e) && retries > 0) {
-        return retry({
-          error: e,
-          retriesDone: maxRetries - retries
-        });
-      } else {
-        return Bacon.once(new Error(e));
-      }
-    }));
-  };
 
-  eventIdCounter = 0;
-
-  Event = (function() {
-    function Event() {
-      this.id = ++eventIdCounter;
-    }
-
-    Event.prototype.isEvent = function() {
-      return true;
-    };
-
-    Event.prototype.isEnd = function() {
-      return false;
-    };
-
-    Event.prototype.isInitial = function() {
-      return false;
-    };
-
-    Event.prototype.isNext = function() {
-      return false;
-    };
-
-    Event.prototype.isError = function() {
-      return false;
-    };
-
-    Event.prototype.hasValue = function() {
-      return false;
-    };
-
-    Event.prototype.filter = function() {
-      return true;
-    };
-
-    Event.prototype.inspect = function() {
-      return this.toString();
-    };
-
-    Event.prototype.log = function() {
-      return this.toString();
-    };
-
-    return Event;
-
-  })();
-
-  Next = (function(_super) {
-    __extends(Next, _super);
-
-    function Next(valueF, eager) {
-      Next.__super__.constructor.call(this);
-      if (!eager && isFunction(valueF) || valueF instanceof Next) {
-        this.valueF = valueF;
-        this.valueInternal = void 0;
-      } else {
-        this.valueF = void 0;
-        this.valueInternal = valueF;
-      }
-    }
-
-    Next.prototype.isNext = function() {
-      return true;
-    };
-
-    Next.prototype.hasValue = function() {
-      return true;
-    };
-
-    Next.prototype.value = function() {
-      if (this.valueF instanceof Next) {
-        this.valueInternal = this.valueF.value();
-        this.valueF = void 0;
-      } else if (this.valueF) {
-        this.valueInternal = this.valueF();
-        this.valueF = void 0;
-      }
-      return this.valueInternal;
-    };
-
-    Next.prototype.fmap = function(f) {
-      var event, value;
-      if (this.valueInternal) {
-        value = this.valueInternal;
-        return this.apply(function() {
-          return f(value);
-        });
-      } else {
-        event = this;
-        return this.apply(function() {
-          return f(event.value());
-        });
-      }
-    };
-
-    Next.prototype.apply = function(value) {
-      return new Next(value);
-    };
-
-    Next.prototype.filter = function(f) {
-      return f(this.value());
-    };
-
-    Next.prototype.toString = function() {
-      return _.toString(this.value());
-    };
-
-    Next.prototype.log = function() {
-      return this.value();
-    };
-
-    return Next;
-
-  })(Event);
-
-  Initial = (function(_super) {
-    __extends(Initial, _super);
-
-    function Initial() {
-      return Initial.__super__.constructor.apply(this, arguments);
-    }
-
-    Initial.prototype.isInitial = function() {
-      return true;
-    };
-
-    Initial.prototype.isNext = function() {
-      return false;
-    };
-
-    Initial.prototype.apply = function(value) {
-      return new Initial(value);
-    };
-
-    Initial.prototype.toNext = function() {
-      return new Next(this);
-    };
-
-    return Initial;
-
-  })(Next);
-
-  End = (function(_super) {
-    __extends(End, _super);
-
-    function End() {
-      return End.__super__.constructor.apply(this, arguments);
-    }
-
-    End.prototype.isEnd = function() {
-      return true;
-    };
-
-    End.prototype.fmap = function() {
-      return this;
-    };
-
-    End.prototype.apply = function() {
-      return this;
-    };
-
-    End.prototype.toString = function() {
-      return "<end>";
-    };
-
-    return End;
-
-  })(Event);
-
-  Error = (function(_super) {
-    __extends(Error, _super);
-
-    function Error(error) {
-      this.error = error;
-    }
-
-    Error.prototype.isError = function() {
-      return true;
-    };
-
-    Error.prototype.fmap = function() {
-      return this;
-    };
-
-    Error.prototype.apply = function() {
-      return this;
-    };
-
-    Error.prototype.toString = function() {
-      return "<error> " + _.toString(this.error);
-    };
-
-    return Error;
-
-  })(Event);
-
-  idCounter = 0;
-
-  Observable = (function() {
-    function Observable(desc) {
-      this.id = ++idCounter;
-      withDescription(desc, this);
-      this.initialDesc = this.desc;
-    }
-
-    Observable.prototype.subscribe = function(sink) {
-      return UpdateBarrier.wrappedSubscribe(this, sink);
-    };
-
-    Observable.prototype.subscribeInternal = function(sink) {
-      return this.dispatcher.subscribe(sink);
-    };
-
-    Observable.prototype.onValue = function() {
-      var f;
-      f = makeFunctionArgs(arguments);
-      return this.subscribe(function(event) {
+      unsub = disp.subscribe(function (event) {
         if (event.hasValue()) {
-          return f(event.value());
+          if (event.isInitial() && !subbed) {
+            initValue = new Some(function () {
+              return event.value();
+            });
+            return Bacon.more;
+          } else {
+            if (!event.isInitial()) {
+              sendInit();
+            }
+            initSent = true;
+            initValue = new Some(event);
+            return sink(event);
+          }
+        } else {
+          if (event.isEnd()) {
+            reply = sendInit();
+          }
+          if (reply !== Bacon.noMore) {
+            return sink(event);
+          }
         }
       });
-    };
+      subbed = true;
+      sendInit();
+      return unsub;
+    });
+  },
 
-    Observable.prototype.onValues = function(f) {
-      return this.onValue(function(args) {
-        return f.apply(null, args);
-      });
-    };
+  toEventStream: function () {
+    return this;
+  },
 
-    Observable.prototype.onError = function() {
-      var f;
-      f = makeFunctionArgs(arguments);
-      return this.subscribe(function(event) {
-        if (event.isError()) {
-          return f(event.error);
+  withHandler: function (handler) {
+    return new EventStream(new Bacon.Desc(this, "withHandler", [handler]), this.dispatcher.subscribe, handler);
+  }
+});
+
+Bacon.EventStream = EventStream;
+
+Bacon.never = function () {
+  return new EventStream(describe(Bacon, "never"), function (sink) {
+    sink(endEvent());
+    return nop;
+  });
+};
+
+Bacon.when = function () {
+  if (arguments.length === 0) {
+    return Bacon.never();
+  }
+  var len = arguments.length;
+  var usage = "when: expecting arguments in the form (Observable+,function)+";
+
+  assert(usage, len % 2 === 0);
+  var sources = [];
+  var pats = [];
+  var i = 0;
+  var patterns = [];
+  while (i < len) {
+    patterns[i] = arguments[i];
+    patterns[i + 1] = arguments[i + 1];
+    var patSources = _.toArray(arguments[i]);
+    var f = constantToFunction(arguments[i + 1]);
+    var pat = { f: f, ixs: [] };
+    var triggerFound = false;
+    for (var j = 0, s; j < patSources.length; j++) {
+      s = patSources[j];
+      var index = _.indexOf(sources, s);
+      if (!triggerFound) {
+        triggerFound = Source.isTrigger(s);
+      }
+      if (index < 0) {
+        sources.push(s);
+        index = sources.length - 1;
+      }
+      for (var k = 0, ix; k < pat.ixs.length; k++) {
+        ix = pat.ixs[k];
+        if (ix.index === index) {
+          ix.count++;
         }
-      });
-    };
+      }
+      pat.ixs.push({ index: index, count: 1 });
+    }
 
-    Observable.prototype.onEnd = function() {
-      var f;
-      f = makeFunctionArgs(arguments);
-      return this.subscribe(function(event) {
-        if (event.isEnd()) {
-          return f();
+    assert("At least one EventStream required", triggerFound || !patSources.length);
+
+    if (patSources.length > 0) {
+      pats.push(pat);
+    }
+    i = i + 2;
+  }
+
+  if (!sources.length) {
+    return Bacon.never();
+  }
+
+  sources = _.map(Source.fromObservable, sources);
+  var needsBarrier = _.any(sources, function (s) {
+    return s.flatten;
+  }) && containsDuplicateDeps(_.map(function (s) {
+    return s.obs;
+  }, sources));
+
+  var desc = new Bacon.Desc(Bacon, "when", patterns);
+  var resultStream = new EventStream(desc, function (sink) {
+    var triggers = [];
+    var ends = false;
+    var match = function (p) {
+      for (var i1 = 0, i; i1 < p.ixs.length; i1++) {
+        i = p.ixs[i1];
+        if (!sources[i.index].hasAtLeast(i.count)) {
+          return false;
         }
-      });
+      }
+      return true;
     };
-
-    Observable.prototype.errors = function() {
-      return withDescription(this, "errors", this.filter(function() {
-        return false;
-      }));
+    var cannotSync = function (source) {
+      return !source.sync || source.ended;
     };
+    var cannotMatch = function (p) {
+      for (var i1 = 0, i; i1 < p.ixs.length; i1++) {
+        i = p.ixs[i1];
+        if (!sources[i.index].mayHave(i.count)) {
+          return true;
+        }
+      }
+    };
+    var nonFlattened = function (trigger) {
+      return !trigger.source.flatten;
+    };
+    var part = function (source) {
+      return function (unsubAll) {
+        var flushLater = function () {
+          return UpdateBarrier.whenDoneWith(resultStream, flush);
+        };
+        var flushWhileTriggers = function () {
+          if (triggers.length > 0) {
+            var reply = Bacon.more;
+            var trigger = triggers.pop();
+            for (var i1 = 0, p; i1 < pats.length; i1++) {
+              p = pats[i1];
+              if (match(p)) {
+                var events = (function () {
+                  var result = [];
+                  for (var i2 = 0, i; i2 < p.ixs.length; i2++) {
+                    i = p.ixs[i2];
+                    result.push(sources[i.index].consume());
+                  }
+                  return result;
+                })();
+                reply = sink(trigger.e.apply(function () {
+                  var _p;
 
-    Observable.prototype.filter = function() {
-      var args, f;
-      f = arguments[0], args = 2 <= arguments.length ? __slice.call(arguments, 1) : [];
-      return convertArgsToFunction(this, f, args, function(f) {
-        return withDescription(this, "filter", f, this.withHandler(function(event) {
-          if (event.filter(f)) {
-            return this.push(event);
+                  var values = (function () {
+                    var result = [];
+                    for (var i2 = 0, event; i2 < events.length; i2++) {
+                      event = events[i2];
+                      result.push(event.value());
+                    }
+                    return result;
+                  })();
+
+                  return (_p = p).f.apply(_p, values);
+                }));
+                if (triggers.length) {
+                  triggers = _.filter(nonFlattened, triggers);
+                }
+                if (reply === Bacon.noMore) {
+                  return reply;
+                } else {
+                  return flushWhileTriggers();
+                }
+              }
+            }
           } else {
             return Bacon.more;
           }
-        }));
-      });
-    };
-
-    Observable.prototype.takeWhile = function() {
-      var args, f;
-      f = arguments[0], args = 2 <= arguments.length ? __slice.call(arguments, 1) : [];
-      return convertArgsToFunction(this, f, args, function(f) {
-        return withDescription(this, "takeWhile", f, this.withHandler(function(event) {
-          if (event.filter(f)) {
-            return this.push(event);
-          } else {
-            this.push(end());
-            return Bacon.noMore;
-          }
-        }));
-      });
-    };
-
-    Observable.prototype.endOnError = function() {
-      var args, f;
-      f = arguments[0], args = 2 <= arguments.length ? __slice.call(arguments, 1) : [];
-      if (f == null) {
-        f = true;
-      }
-      return convertArgsToFunction(this, f, args, function(f) {
-        return withDescription(this, "endOnError", this.withHandler(function(event) {
-          if (event.isError() && f(event.error)) {
-            this.push(event);
-            return this.push(end());
-          } else {
-            return this.push(event);
-          }
-        }));
-      });
-    };
-
-    Observable.prototype.take = function(count) {
-      if (count <= 0) {
-        return Bacon.never();
-      }
-      return withDescription(this, "take", count, this.withHandler(function(event) {
-        if (!event.hasValue()) {
-          return this.push(event);
-        } else {
-          count--;
-          if (count > 0) {
-            return this.push(event);
-          } else {
-            if (count === 0) {
-              this.push(event);
+        };
+        var flush = function () {
+          var reply = flushWhileTriggers();
+          if (ends) {
+            if (_.all(sources, cannotSync) || _.all(pats, cannotMatch)) {
+              reply = Bacon.noMore;
+              sink(endEvent());
             }
-            this.push(end());
-            return Bacon.noMore;
           }
-        }
-      }));
+          if (reply === Bacon.noMore) {
+            unsubAll();
+          }
+
+          return reply;
+        };
+        return source.subscribe(function (e) {
+          if (e.isEnd()) {
+            ends = true;
+            source.markEnded();
+            flushLater();
+          } else if (e.isError()) {
+            var reply = sink(e);
+          } else {
+            source.push(e);
+            if (source.sync) {
+              triggers.push({ source: source, e: e });
+              if (needsBarrier || UpdateBarrier.hasWaiters()) {
+                flushLater();
+              } else {
+                flush();
+              }
+            }
+          }
+          if (reply === Bacon.noMore) {
+            unsubAll();
+          }
+          return reply || Bacon.more;
+        });
+      };
     };
 
-    Observable.prototype.map = function() {
-      var args, p;
-      p = arguments[0], args = 2 <= arguments.length ? __slice.call(arguments, 1) : [];
-      if (p instanceof Property) {
-        return p.sampledBy(this, former);
+    return new Bacon.CompositeUnsubscribe((function () {
+      var result = [];
+      for (var i1 = 0, s; i1 < sources.length; i1++) {
+        s = sources[i1];
+        result.push(part(s));
+      }
+      return result;
+    })()).unsubscribe;
+  });
+  return resultStream;
+};
+
+var containsDuplicateDeps = function (observables) {
+  var state = arguments.length <= 1 || arguments[1] === undefined ? [] : arguments[1];
+
+  var checkObservable = function (obs) {
+    if (_.contains(state, obs)) {
+      return true;
+    } else {
+      var deps = obs.internalDeps();
+      if (deps.length) {
+        state.push(obs);
+        return _.any(deps, checkObservable);
       } else {
-        return convertArgsToFunction(this, p, args, function(f) {
-          return withDescription(this, "map", f, this.withHandler(function(event) {
-            return this.push(event.fmap(f));
-          }));
+        state.push(obs);
+        return false;
+      }
+    }
+  };
+
+  return _.any(observables, checkObservable);
+};
+
+var constantToFunction = function (f) {
+  if (_.isFunction(f)) {
+    return f;
+  } else {
+    return _.always(f);
+  }
+};
+
+Bacon.groupSimultaneous = function () {
+  for (var _len5 = arguments.length, streams = Array(_len5), _key5 = 0; _key5 < _len5; _key5++) {
+    streams[_key5] = arguments[_key5];
+  }
+
+  if (streams.length === 1 && isArray(streams[0])) {
+    streams = streams[0];
+  }
+  var sources = (function () {
+    var result = [];
+    for (var i = 0, s; i < streams.length; i++) {
+      s = streams[i];
+      result.push(new BufferingSource(s));
+    }
+    return result;
+  })();
+  return withDesc(new Bacon.Desc(Bacon, "groupSimultaneous", streams), Bacon.when(sources, function () {
+    for (var _len6 = arguments.length, xs = Array(_len6), _key6 = 0; _key6 < _len6; _key6++) {
+      xs[_key6] = arguments[_key6];
+    }
+
+    return xs;
+  }));
+};
+
+function PropertyDispatcher(property, subscribe, handleEvent) {
+  Dispatcher.call(this, subscribe, handleEvent);
+  this.property = property;
+  this.subscribe = _.bind(this.subscribe, this);
+  this.current = None;
+  this.currentValueRootId = undefined;
+  this.propertyEnded = false;
+}
+
+inherit(PropertyDispatcher, Dispatcher);
+extend(PropertyDispatcher.prototype, {
+  push: function (event) {
+    if (event.isEnd()) {
+      this.propertyEnded = true;
+    }
+    if (event.hasValue()) {
+      this.current = new Some(event);
+      this.currentValueRootId = UpdateBarrier.currentEventId();
+    }
+    return Dispatcher.prototype.push.call(this, event);
+  },
+
+  maybeSubSource: function (sink, reply) {
+    if (reply === Bacon.noMore) {
+      return nop;
+    } else if (this.propertyEnded) {
+      sink(endEvent());
+      return nop;
+    } else {
+      return Dispatcher.prototype.subscribe.call(this, sink);
+    }
+  },
+
+  subscribe: function (sink) {
+    var _this3 = this;
+
+    var initSent = false;
+
+    var reply = Bacon.more;
+
+    if (this.current.isDefined && (this.hasSubscribers() || this.propertyEnded)) {
+      var dispatchingId = UpdateBarrier.currentEventId();
+      var valId = this.currentValueRootId;
+      if (!this.propertyEnded && valId && dispatchingId && dispatchingId !== valId) {
+        UpdateBarrier.whenDoneWith(this.property, function () {
+          if (_this3.currentValueRootId === valId) {
+            return sink(initialEvent(_this3.current.get().value()));
+          }
+        });
+
+        return this.maybeSubSource(sink, reply);
+      } else {
+        UpdateBarrier.inTransaction(undefined, this, function () {
+          reply = sink(initialEvent(this.current.get().value()));
+          return reply;
+        }, []);
+        return this.maybeSubSource(sink, reply);
+      }
+    } else {
+      return this.maybeSubSource(sink, reply);
+    }
+  }
+});
+
+function Property(desc, subscribe, handler) {
+  Observable.call(this, desc);
+  assertFunction(subscribe);
+  this.dispatcher = new PropertyDispatcher(this, subscribe, handler);
+  registerObs(this);
+}
+
+inherit(Property, Observable);
+extend(Property.prototype, {
+  _isProperty: true,
+
+  changes: function () {
+    var _this4 = this;
+
+    return new EventStream(new Bacon.Desc(this, "changes", []), function (sink) {
+      return _this4.dispatcher.subscribe(function (event) {
+        if (!event.isInitial()) {
+          return sink(event);
+        }
+      });
+    });
+  },
+
+  withHandler: function (handler) {
+    return new Property(new Bacon.Desc(this, "withHandler", [handler]), this.dispatcher.subscribe, handler);
+  },
+
+  toProperty: function () {
+    assertNoArguments(arguments);
+    return this;
+  },
+
+  toEventStream: function () {
+    var _this5 = this;
+
+    return new EventStream(new Bacon.Desc(this, "toEventStream", []), function (sink) {
+      return _this5.dispatcher.subscribe(function (event) {
+        if (event.isInitial()) {
+          event = event.toNext();
+        }
+        return sink(event);
+      });
+    });
+  }
+});
+
+Bacon.Property = Property;
+
+Bacon.constant = function (value) {
+  return new Property(new Bacon.Desc(Bacon, "constant", [value]), function (sink) {
+    sink(initialEvent(value));
+    sink(endEvent());
+    return nop;
+  });
+};
+
+Bacon.fromBinder = function (binder) {
+  var eventTransformer = arguments.length <= 1 || arguments[1] === undefined ? _.id : arguments[1];
+
+  var desc = new Bacon.Desc(Bacon, "fromBinder", [binder, eventTransformer]);
+  return new EventStream(desc, function (sink) {
+    var unbound = false;
+    var shouldUnbind = false;
+    var unbind = function () {
+      if (!unbound) {
+        if (typeof unbinder !== "undefined" && unbinder !== null) {
+          unbinder();
+          return unbound = true;
+        } else {
+          return shouldUnbind = true;
+        }
+      }
+    };
+    var unbinder = binder(function () {
+      var ref;
+
+      for (var _len7 = arguments.length, args = Array(_len7), _key7 = 0; _key7 < _len7; _key7++) {
+        args[_key7] = arguments[_key7];
+      }
+
+      var value = eventTransformer.apply(this, args);
+      if (!(isArray(value) && ((ref = _.last(value)) != null ? ref._isEvent : undefined))) {
+        value = [value];
+      }
+      var reply = Bacon.more;
+      for (var i = 0, event; i < value.length; i++) {
+        event = value[i];
+        reply = sink(event = toEvent(event));
+        if (reply === Bacon.noMore || event.isEnd()) {
+          unbind();
+          return reply;
+        }
+      }
+      return reply;
+    });
+    if (shouldUnbind) {
+      unbind();
+    }
+    return unbind;
+  });
+};
+
+Bacon.Observable.prototype.map = function (p) {
+  for (var _len8 = arguments.length, args = Array(_len8 > 1 ? _len8 - 1 : 0), _key8 = 1; _key8 < _len8; _key8++) {
+    args[_key8 - 1] = arguments[_key8];
+  }
+
+  return convertArgsToFunction(this, p, args, function (f) {
+    return withDesc(new Bacon.Desc(this, "map", [f]), this.withHandler(function (event) {
+      return this.push(event.fmap(f));
+    }));
+  });
+};
+
+var argumentsToObservables = function (args) {
+  if (isArray(args[0])) {
+    return args[0];
+  } else {
+    return Array.prototype.slice.call(args);
+  }
+};
+
+var argumentsToObservablesAndFunction = function (args) {
+  if (_.isFunction(args[0])) {
+    return [argumentsToObservables(Array.prototype.slice.call(args, 1)), args[0]];
+  } else {
+    return [argumentsToObservables(Array.prototype.slice.call(args, 0, args.length - 1)), _.last(args)];
+  }
+};
+
+Bacon.combineAsArray = function () {
+  var streams = argumentsToObservables(arguments);
+  for (var index = 0, stream; index < streams.length; index++) {
+    stream = streams[index];
+    if (!isObservable(stream)) {
+      streams[index] = Bacon.constant(stream);
+    }
+  }
+  if (streams.length) {
+    var sources = (function () {
+      var result = [];
+      for (var i = 0, s; i < streams.length; i++) {
+        s = streams[i];
+        result.push(new Source(s, true));
+      }
+      return result;
+    })();
+    return withDesc(new Bacon.Desc(Bacon, "combineAsArray", streams), Bacon.when(sources, function () {
+      for (var _len9 = arguments.length, xs = Array(_len9), _key9 = 0; _key9 < _len9; _key9++) {
+        xs[_key9] = arguments[_key9];
+      }
+
+      return xs;
+    }).toProperty());
+  } else {
+    return Bacon.constant([]);
+  }
+};
+
+Bacon.onValues = function () {
+  for (var _len10 = arguments.length, streams = Array(_len10), _key10 = 0; _key10 < _len10; _key10++) {
+    streams[_key10] = arguments[_key10];
+  }
+
+  return Bacon.combineAsArray(streams.slice(0, streams.length - 1)).onValues(streams[streams.length - 1]);
+};
+
+Bacon.combineWith = function () {
+  var _argumentsToObservablesAndFunction = argumentsToObservablesAndFunction(arguments);
+
+  var streams = _argumentsToObservablesAndFunction[0];
+  var f = _argumentsToObservablesAndFunction[1];
+
+  var desc = new Bacon.Desc(Bacon, "combineWith", [f].concat(streams));
+  return withDesc(desc, Bacon.combineAsArray(streams).map(function (values) {
+    return f.apply(undefined, values);
+  }));
+};
+
+Bacon.Observable.prototype.combine = function (other, f) {
+  var combinator = toCombinator(f);
+  var desc = new Bacon.Desc(this, "combine", [other, f]);
+  return withDesc(desc, Bacon.combineAsArray(this, other).map(function (values) {
+    return combinator(values[0], values[1]);
+  }));
+};
+
+Bacon.Observable.prototype.withStateMachine = function (initState, f) {
+  var state = initState;
+  var desc = new Bacon.Desc(this, "withStateMachine", [initState, f]);
+  return withDesc(desc, this.withHandler(function (event) {
+    var fromF = f(state, event);
+    var newState = fromF[0];
+    var outputs = fromF[1];
+
+    state = newState;
+    var reply = Bacon.more;
+    for (var i = 0, output; i < outputs.length; i++) {
+      output = outputs[i];
+      reply = this.push(output);
+      if (reply === Bacon.noMore) {
+        return reply;
+      }
+    }
+    return reply;
+  }));
+};
+
+var equals = function (a, b) {
+  return a === b;
+};
+
+var isNone = function (object) {
+  return typeof object !== "undefined" && object !== null ? object._isNone : false;
+};
+
+Bacon.Observable.prototype.skipDuplicates = function () {
+  var isEqual = arguments.length <= 0 || arguments[0] === undefined ? equals : arguments[0];
+
+  var desc = new Bacon.Desc(this, "skipDuplicates", []);
+  return withDesc(desc, this.withStateMachine(None, function (prev, event) {
+    if (!event.hasValue()) {
+      return [prev, [event]];
+    } else if (event.isInitial() || isNone(prev) || !isEqual(prev.get(), event.value())) {
+      return [new Some(event.value()), [event]];
+    } else {
+      return [prev, []];
+    }
+  }));
+};
+
+Bacon.Observable.prototype.awaiting = function (other) {
+  var desc = new Bacon.Desc(this, "awaiting", [other]);
+  return withDesc(desc, Bacon.groupSimultaneous(this, other).map(function (values) {
+    return values[1].length === 0;
+  }).toProperty(false).skipDuplicates());
+};
+
+Bacon.Observable.prototype.not = function () {
+  return withDesc(new Bacon.Desc(this, "not", []), this.map(function (x) {
+    return !x;
+  }));
+};
+
+Bacon.Property.prototype.and = function (other) {
+  return withDesc(new Bacon.Desc(this, "and", [other]), this.combine(other, function (x, y) {
+    return x && y;
+  }));
+};
+
+Bacon.Property.prototype.or = function (other) {
+  return withDesc(new Bacon.Desc(this, "or", [other]), this.combine(other, function (x, y) {
+    return x || y;
+  }));
+};
+
+Bacon.scheduler = {
+  setTimeout: function (f, d) {
+    return setTimeout(f, d);
+  },
+  setInterval: function (f, i) {
+    return setInterval(f, i);
+  },
+  clearInterval: function (id) {
+    return clearInterval(id);
+  },
+  clearTimeout: function (id) {
+    return clearTimeout(id);
+  },
+  now: function () {
+    return new Date().getTime();
+  }
+};
+
+Bacon.EventStream.prototype.bufferWithTime = function (delay) {
+  return withDesc(new Bacon.Desc(this, "bufferWithTime", [delay]), this.bufferWithTimeOrCount(delay, Number.MAX_VALUE));
+};
+
+Bacon.EventStream.prototype.bufferWithCount = function (count) {
+  return withDesc(new Bacon.Desc(this, "bufferWithCount", [count]), this.bufferWithTimeOrCount(undefined, count));
+};
+
+Bacon.EventStream.prototype.bufferWithTimeOrCount = function (delay, count) {
+  var flushOrSchedule = function (buffer) {
+    if (buffer.values.length === count) {
+      return buffer.flush();
+    } else if (delay !== undefined) {
+      return buffer.schedule();
+    }
+  };
+  var desc = new Bacon.Desc(this, "bufferWithTimeOrCount", [delay, count]);
+  return withDesc(desc, this.buffer(delay, flushOrSchedule, flushOrSchedule));
+};
+
+Bacon.EventStream.prototype.buffer = function (delay) {
+  var onInput = arguments.length <= 1 || arguments[1] === undefined ? nop : arguments[1];
+  var onFlush = arguments.length <= 2 || arguments[2] === undefined ? nop : arguments[2];
+
+  var buffer = {
+    scheduled: null,
+    end: undefined,
+    values: [],
+    flush: function () {
+      if (this.scheduled) {
+        Bacon.scheduler.clearTimeout(this.scheduled);
+        this.scheduled = null;
+      }
+      if (this.values.length > 0) {
+        var valuesToPush = this.values;
+        this.values = [];
+        var reply = this.push(nextEvent(valuesToPush));
+        if (this.end != null) {
+          return this.push(this.end);
+        } else if (reply !== Bacon.noMore) {
+          return onFlush(this);
+        }
+      } else {
+        if (this.end != null) {
+          return this.push(this.end);
+        }
+      }
+    },
+    schedule: function () {
+      var _this6 = this;
+
+      if (!this.scheduled) {
+        return this.scheduled = delay(function () {
+          return _this6.flush();
         });
       }
+    }
+  };
+  var reply = Bacon.more;
+  if (!_.isFunction(delay)) {
+    var delayMs = delay;
+    delay = function (f) {
+      return Bacon.scheduler.setTimeout(f, delayMs);
     };
+  }
+  return withDesc(new Bacon.Desc(this, "buffer", []), this.withHandler(function (event) {
+    var _this7 = this;
 
-    Observable.prototype.mapError = function() {
-      var f;
-      f = makeFunctionArgs(arguments);
-      return withDescription(this, "mapError", f, this.withHandler(function(event) {
-        if (event.isError()) {
-          return this.push(next(f(event.error)));
-        } else {
-          return this.push(event);
-        }
-      }));
+    buffer.push = function (event) {
+      return _this7.push(event);
     };
-
-    Observable.prototype.mapEnd = function() {
-      var f;
-      f = makeFunctionArgs(arguments);
-      return withDescription(this, "mapEnd", f, this.withHandler(function(event) {
-        if (event.isEnd()) {
-          this.push(next(f(event)));
-          this.push(end());
-          return Bacon.noMore;
-        } else {
-          return this.push(event);
-        }
-      }));
-    };
-
-    Observable.prototype.doAction = function() {
-      var f;
-      f = makeFunctionArgs(arguments);
-      return withDescription(this, "doAction", f, this.withHandler(function(event) {
-        if (event.hasValue()) {
-          f(event.value());
-        }
-        return this.push(event);
-      }));
-    };
-
-    Observable.prototype.skip = function(count) {
-      return withDescription(this, "skip", count, this.withHandler(function(event) {
-        if (!event.hasValue()) {
-          return this.push(event);
-        } else if (count > 0) {
-          count--;
-          return Bacon.more;
-        } else {
-          return this.push(event);
-        }
-      }));
-    };
-
-    Observable.prototype.skipDuplicates = function(isEqual) {
-      if (isEqual == null) {
-        isEqual = function(a, b) {
-          return a === b;
-        };
+    if (event.isError()) {
+      reply = this.push(event);
+    } else if (event.isEnd()) {
+      buffer.end = event;
+      if (!buffer.scheduled) {
+        buffer.flush();
       }
-      return withDescription(this, "skipDuplicates", this.withStateMachine(None, function(prev, event) {
-        if (!event.hasValue()) {
-          return [prev, [event]];
-        } else if (event.isInitial() || prev === None || !isEqual(prev.get(), event.value())) {
-          return [new Some(event.value()), [event]];
-        } else {
-          return [prev, []];
-        }
-      }));
-    };
+    } else {
+      buffer.values.push(event.value());
 
-    Observable.prototype.skipErrors = function() {
-      return withDescription(this, "skipErrors", this.withHandler(function(event) {
-        if (event.isError()) {
+      onInput(buffer);
+    }
+    return reply;
+  }));
+};
+
+Bacon.Observable.prototype.filter = function (f) {
+  assertObservableIsProperty(f);
+
+  for (var _len11 = arguments.length, args = Array(_len11 > 1 ? _len11 - 1 : 0), _key11 = 1; _key11 < _len11; _key11++) {
+    args[_key11 - 1] = arguments[_key11];
+  }
+
+  return convertArgsToFunction(this, f, args, function (f) {
+    return withDesc(new Bacon.Desc(this, "filter", [f]), this.withHandler(function (event) {
+      if (event.filter(f)) {
+        return this.push(event);
+      } else {
+        return Bacon.more;
+      }
+    }));
+  });
+};
+
+Bacon.once = function (value) {
+  return new EventStream(new Desc(Bacon, "once", [value]), function (sink) {
+    sink(toEvent(value));
+    sink(endEvent());
+    return nop;
+  });
+};
+
+Bacon.EventStream.prototype.concat = function (right) {
+  var left = this;
+  return new EventStream(new Bacon.Desc(left, "concat", [right]), function (sink) {
+    var unsubRight = nop;
+    var unsubLeft = left.dispatcher.subscribe(function (e) {
+      if (e.isEnd()) {
+        unsubRight = right.dispatcher.subscribe(sink);
+        return unsubRight;
+      } else {
+        return sink(e);
+      }
+    });
+    return function () {
+      return (unsubLeft(), unsubRight());
+    };
+  });
+};
+
+Bacon.Observable.prototype.flatMap = function () {
+  return flatMap_(this, makeSpawner(arguments));
+};
+
+Bacon.Observable.prototype.flatMapFirst = function () {
+  return flatMap_(this, makeSpawner(arguments), true);
+};
+
+var makeSpawner = function (args) {
+  if (args.length === 1 && isObservable(args[0])) {
+    return _.always(args[0]);
+  } else {
+    return makeFunctionArgs(args);
+  }
+};
+
+var makeObservable = function (x) {
+  if (isObservable(x)) {
+    return x;
+  } else {
+    return Bacon.once(x);
+  }
+};
+
+var flatMap_ = function (root, f, firstOnly, limit) {
+  var rootDep = [root];
+  var childDeps = [];
+  var desc = new Bacon.Desc(root, "flatMap" + (firstOnly ? "First" : ""), [f]);
+  var result = new EventStream(desc, function (sink) {
+    var composite = new CompositeUnsubscribe();
+    var queue = [];
+    var spawn = function (event) {
+      var child = makeObservable(f(event.value()));
+      childDeps.push(child);
+      return composite.add(function (unsubAll, unsubMe) {
+        return child.dispatcher.subscribe(function (event) {
+          if (event.isEnd()) {
+            _.remove(child, childDeps);
+            checkQueue();
+            checkEnd(unsubMe);
+            return Bacon.noMore;
+          } else {
+            if (typeof event !== "undefined" && event !== null ? event._isInitial : undefined) {
+              event = event.toNext();
+            }
+            var reply = sink(event);
+            if (reply === Bacon.noMore) {
+              unsubAll();
+            }
+            return reply;
+          }
+        });
+      });
+    };
+    var checkQueue = function () {
+      var event = queue.shift();
+      if (event) {
+        return spawn(event);
+      }
+    };
+    var checkEnd = function (unsub) {
+      unsub();
+      if (composite.empty()) {
+        return sink(endEvent());
+      }
+    };
+    composite.add(function (__, unsubRoot) {
+      return root.dispatcher.subscribe(function (event) {
+        if (event.isEnd()) {
+          return checkEnd(unsubRoot);
+        } else if (event.isError()) {
+          return sink(event);
+        } else if (firstOnly && composite.count() > 1) {
           return Bacon.more;
         } else {
-          return this.push(event);
+          if (composite.unsubscribed) {
+            return Bacon.noMore;
+          }
+          if (limit && composite.count() > limit) {
+            return queue.push(event);
+          } else {
+            return spawn(event);
+          }
         }
-      }));
-    };
+      });
+    });
+    return composite.unsubscribe;
+  });
+  result.internalDeps = function () {
+    if (childDeps.length) {
+      return rootDep.concat(childDeps);
+    } else {
+      return rootDep;
+    }
+  };
+  return result;
+};
 
-    Observable.prototype.withStateMachine = function(initState, f) {
-      var state;
-      state = initState;
-      return withDescription(this, "withStateMachine", initState, f, this.withHandler(function(event) {
-        var fromF, newState, output, outputs, reply, _i, _len;
-        fromF = f(state, event);
-        newState = fromF[0], outputs = fromF[1];
-        state = newState;
-        reply = Bacon.more;
-        for (_i = 0, _len = outputs.length; _i < _len; _i++) {
-          output = outputs[_i];
-          reply = this.push(output);
-          if (reply === Bacon.noMore) {
-            return reply;
+Bacon.Observable.prototype.flatMapWithConcurrencyLimit = function (limit) {
+  for (var _len12 = arguments.length, args = Array(_len12 > 1 ? _len12 - 1 : 0), _key12 = 1; _key12 < _len12; _key12++) {
+    args[_key12 - 1] = arguments[_key12];
+  }
+
+  var desc = new Bacon.Desc(this, "flatMapWithConcurrencyLimit", [limit].concat(args));
+  return withDesc(desc, flatMap_(this, makeSpawner(args), false, limit));
+};
+
+Bacon.Observable.prototype.flatMapConcat = function () {
+  var desc = new Bacon.Desc(this, "flatMapConcat", Array.prototype.slice.call(arguments, 0));
+  return withDesc(desc, this.flatMapWithConcurrencyLimit.apply(this, [1].concat(_slice.call(arguments))));
+};
+
+Bacon.later = function (delay, value) {
+  return withDesc(new Bacon.Desc(Bacon, "later", [delay, value]), Bacon.fromBinder(function (sink) {
+    var sender = function () {
+      return sink([value, endEvent()]);
+    };
+    var id = Bacon.scheduler.setTimeout(sender, delay);
+    return function () {
+      return Bacon.scheduler.clearTimeout(id);
+    };
+  }));
+};
+
+Bacon.Observable.prototype.bufferingThrottle = function (minimumInterval) {
+  var desc = new Bacon.Desc(this, "bufferingThrottle", [minimumInterval]);
+  return withDesc(desc, this.flatMapConcat(function (x) {
+    return Bacon.once(x).concat(Bacon.later(minimumInterval).filter(false));
+  }));
+};
+
+Bacon.Property.prototype.bufferingThrottle = function () {
+  return Bacon.Observable.prototype.bufferingThrottle.apply(this, arguments).toProperty();
+};
+
+function Bus() {
+  if (!(this instanceof Bus)) {
+    return new Bus();
+  }
+
+  this.unsubAll = _.bind(this.unsubAll, this);
+  this.subscribeAll = _.bind(this.subscribeAll, this);
+  this.guardedSink = _.bind(this.guardedSink, this);
+
+  this.sink = undefined;
+  this.subscriptions = [];
+  this.ended = false;
+  EventStream.call(this, new Bacon.Desc(Bacon, "Bus", []), this.subscribeAll);
+}
+
+inherit(Bus, EventStream);
+extend(Bus.prototype, {
+  unsubAll: function () {
+    var iterable = this.subscriptions;
+    for (var i = 0, sub; i < iterable.length; i++) {
+      sub = iterable[i];
+      if (typeof sub.unsub === "function") {
+        sub.unsub();
+      }
+    }
+  },
+
+  subscribeAll: function (newSink) {
+    if (this.ended) {
+      newSink(endEvent());
+    } else {
+      this.sink = newSink;
+      var iterable = cloneArray(this.subscriptions);
+      for (var i = 0, subscription; i < iterable.length; i++) {
+        subscription = iterable[i];
+        this.subscribeInput(subscription);
+      }
+    }
+    return this.unsubAll;
+  },
+
+  guardedSink: function (input) {
+    var _this8 = this;
+
+    return function (event) {
+      if (event.isEnd()) {
+        _this8.unsubscribeInput(input);
+        return Bacon.noMore;
+      } else {
+        return _this8.sink(event);
+      }
+    };
+  },
+
+  subscribeInput: function (subscription) {
+    subscription.unsub = subscription.input.dispatcher.subscribe(this.guardedSink(subscription.input));
+    return subscription.unsub;
+  },
+
+  unsubscribeInput: function (input) {
+    var iterable = this.subscriptions;
+    for (var i = 0, sub; i < iterable.length; i++) {
+      sub = iterable[i];
+      if (sub.input === input) {
+        if (typeof sub.unsub === "function") {
+          sub.unsub();
+        }
+        this.subscriptions.splice(i, 1);
+        return;
+      }
+    }
+  },
+
+  plug: function (input) {
+    var _this9 = this;
+
+    assertObservable(input);
+    if (this.ended) {
+      return;
+    }
+    var sub = { input: input };
+    this.subscriptions.push(sub);
+    if (typeof this.sink !== "undefined") {
+      this.subscribeInput(sub);
+    }
+    return function () {
+      return _this9.unsubscribeInput(input);
+    };
+  },
+
+  end: function () {
+    this.ended = true;
+    this.unsubAll();
+    if (typeof this.sink === "function") {
+      return this.sink(endEvent());
+    }
+  },
+
+  push: function (value) {
+    if (!this.ended && typeof this.sink === "function") {
+      return this.sink(nextEvent(value));
+    }
+  },
+
+  error: function (error) {
+    if (typeof this.sink === "function") {
+      return this.sink(new Error(error));
+    }
+  }
+});
+
+Bacon.Bus = Bus;
+
+var liftCallback = function (desc, wrapped) {
+  return withMethodCallSupport(function (f) {
+    var stream = partiallyApplied(wrapped, [function (values, callback) {
+      return f.apply(undefined, values.concat([callback]));
+    }]);
+
+    for (var _len13 = arguments.length, args = Array(_len13 > 1 ? _len13 - 1 : 0), _key13 = 1; _key13 < _len13; _key13++) {
+      args[_key13 - 1] = arguments[_key13];
+    }
+
+    return withDesc(new Bacon.Desc(Bacon, desc, [f].concat(args)), Bacon.combineAsArray(args).flatMap(stream));
+  });
+};
+
+Bacon.fromCallback = liftCallback("fromCallback", function (f) {
+  for (var _len14 = arguments.length, args = Array(_len14 > 1 ? _len14 - 1 : 0), _key14 = 1; _key14 < _len14; _key14++) {
+    args[_key14 - 1] = arguments[_key14];
+  }
+
+  return Bacon.fromBinder(function (handler) {
+    makeFunction(f, args)(handler);
+    return nop;
+  }, function (value) {
+    return [value, endEvent()];
+  });
+});
+
+Bacon.fromNodeCallback = liftCallback("fromNodeCallback", function (f) {
+  for (var _len15 = arguments.length, args = Array(_len15 > 1 ? _len15 - 1 : 0), _key15 = 1; _key15 < _len15; _key15++) {
+    args[_key15 - 1] = arguments[_key15];
+  }
+
+  return Bacon.fromBinder(function (handler) {
+    makeFunction(f, args)(handler);
+    return nop;
+  }, function (error, value) {
+    if (error) {
+      return [new Error(error), endEvent()];
+    }
+    return [value, endEvent()];
+  });
+});
+
+Bacon.combineTemplate = function (template) {
+  function current(ctxStack) {
+    return ctxStack[ctxStack.length - 1];
+  }
+  function setValue(ctxStack, key, value) {
+    current(ctxStack)[key] = value;
+    return value;
+  }
+  function applyStreamValue(key, index) {
+    return function (ctxStack, values) {
+      return setValue(ctxStack, key, values[index]);
+    };
+  }
+  function constantValue(key, value) {
+    return function (ctxStack) {
+      return setValue(ctxStack, key, value);
+    };
+  }
+
+  function mkContext(template) {
+    return isArray(template) ? [] : {};
+  }
+
+  function pushContext(key, value) {
+    return function (ctxStack) {
+      var newContext = mkContext(value);
+      setValue(ctxStack, key, newContext);
+      return ctxStack.push(newContext);
+    };
+  }
+
+  function compile(key, value) {
+    if (isObservable(value)) {
+      streams.push(value);
+      return funcs.push(applyStreamValue(key, streams.length - 1));
+    } else if (value && (value.constructor == Object || value.constructor == Array)) {
+      var popContext = function (ctxStack) {
+        return ctxStack.pop();
+      };
+      funcs.push(pushContext(key, value));
+      compileTemplate(value);
+      return funcs.push(popContext);
+    } else {
+      return funcs.push(constantValue(key, value));
+    }
+  }
+
+  function combinator(values) {
+    var rootContext = mkContext(template);
+    var ctxStack = [rootContext];
+    for (var i = 0, f; i < funcs.length; i++) {
+      f = funcs[i];
+      f(ctxStack, values);
+    }
+    return rootContext;
+  }
+
+  function compileTemplate(template) {
+    return _.each(template, compile);
+  }
+
+  var funcs = [];
+  var streams = [];
+
+  compileTemplate(template);
+
+  return withDesc(new Bacon.Desc(Bacon, "combineTemplate", [template]), Bacon.combineAsArray(streams).map(combinator));
+};
+
+var addPropertyInitValueToStream = function (property, stream) {
+  var justInitValue = new EventStream(describe(property, "justInitValue"), function (sink) {
+    var value = undefined;
+    var unsub = property.dispatcher.subscribe(function (event) {
+      if (!event.isEnd()) {
+        value = event;
+      }
+      return Bacon.noMore;
+    });
+    UpdateBarrier.whenDoneWith(justInitValue, function () {
+      if (typeof value !== "undefined" && value !== null) {
+        sink(value);
+      }
+      return sink(endEvent());
+    });
+    return unsub;
+  });
+  return justInitValue.concat(stream).toProperty();
+};
+
+Bacon.Observable.prototype.mapEnd = function () {
+  var f = makeFunctionArgs(arguments);
+  return withDesc(new Bacon.Desc(this, "mapEnd", [f]), this.withHandler(function (event) {
+    if (event.isEnd()) {
+      this.push(nextEvent(f(event)));
+      this.push(endEvent());
+      return Bacon.noMore;
+    } else {
+      return this.push(event);
+    }
+  }));
+};
+
+Bacon.Observable.prototype.skipErrors = function () {
+  return withDesc(new Bacon.Desc(this, "skipErrors", []), this.withHandler(function (event) {
+    if (event.isError()) {
+      return Bacon.more;
+    } else {
+      return this.push(event);
+    }
+  }));
+};
+
+Bacon.EventStream.prototype.takeUntil = function (stopper) {
+  var endMarker = {};
+  return withDesc(new Bacon.Desc(this, "takeUntil", [stopper]), Bacon.groupSimultaneous(this.mapEnd(endMarker), stopper.skipErrors()).withHandler(function (event) {
+    if (!event.hasValue()) {
+      return this.push(event);
+    } else {
+      var _event$value = event.value();
+
+      var data = _event$value[0];
+      var stopper = _event$value[1];
+
+      if (stopper.length) {
+        return this.push(endEvent());
+      } else {
+        var reply = Bacon.more;
+        for (var i = 0, value; i < data.length; i++) {
+          value = data[i];
+          if (value === endMarker) {
+            reply = this.push(endEvent());
+          } else {
+            reply = this.push(nextEvent(value));
           }
         }
         return reply;
-      }));
-    };
-
-    Observable.prototype.scan = function(seed, f) {
-      var acc, resultProperty, subscribe;
-      f = toCombinator(f);
-      acc = toOption(seed);
-      subscribe = (function(_this) {
-        return function(sink) {
-          var initSent, reply, sendInit, unsub;
-          initSent = false;
-          unsub = nop;
-          reply = Bacon.more;
-          sendInit = function() {
-            if (!initSent) {
-              return acc.forEach(function(value) {
-                initSent = true;
-                reply = sink(new Initial(function() {
-                  return value;
-                }));
-                if (reply === Bacon.noMore) {
-                  unsub();
-                  return unsub = nop;
-                }
-              });
-            }
-          };
-          unsub = _this.dispatcher.subscribe(function(event) {
-            var next, prev;
-            if (event.hasValue()) {
-              if (initSent && event.isInitial()) {
-                return Bacon.more;
-              } else {
-                if (!event.isInitial()) {
-                  sendInit();
-                }
-                initSent = true;
-                prev = acc.getOrElse(void 0);
-                next = f(prev, event.value());
-                acc = new Some(next);
-                return sink(event.apply(function() {
-                  return next;
-                }));
-              }
-            } else {
-              if (event.isEnd()) {
-                reply = sendInit();
-              }
-              if (reply !== Bacon.noMore) {
-                return sink(event);
-              }
-            }
-          });
-          UpdateBarrier.whenDoneWith(resultProperty, sendInit);
-          return unsub;
-        };
-      })(this);
-      return resultProperty = new Property(describe(this, "scan", seed, f), subscribe);
-    };
-
-    Observable.prototype.fold = function(seed, f) {
-      return withDescription(this, "fold", seed, f, this.scan(seed, f).sampledBy(this.filter(false).mapEnd().toProperty()));
-    };
-
-    Observable.prototype.zip = function(other, f) {
-      if (f == null) {
-        f = Array;
       }
-      return withDescription(this, "zip", other, Bacon.zipWith([this, other], f));
-    };
+    }
+  }));
+};
 
-    Observable.prototype.diff = function(start, f) {
-      f = toCombinator(f);
-      return withDescription(this, "diff", start, f, this.scan([start], function(prevTuple, next) {
-        return [next, f(prevTuple[0], next)];
-      }).filter(function(tuple) {
-        return tuple.length === 2;
-      }).map(function(tuple) {
-        return tuple[1];
-      }));
-    };
+Bacon.Property.prototype.takeUntil = function (stopper) {
+  var changes = this.changes().takeUntil(stopper);
+  return withDesc(new Bacon.Desc(this, "takeUntil", [stopper]), addPropertyInitValueToStream(this, changes));
+};
 
-    Observable.prototype.flatMap = function() {
-      return flatMap_(this, makeSpawner(arguments));
-    };
+Bacon.Observable.prototype.flatMapLatest = function () {
+  var f = makeSpawner(arguments);
+  var stream = this.toEventStream();
+  return withDesc(new Bacon.Desc(this, "flatMapLatest", [f]), stream.flatMap(function (value) {
+    return makeObservable(f(value)).takeUntil(stream);
+  }));
+};
 
-    Observable.prototype.flatMapFirst = function() {
-      return flatMap_(this, makeSpawner(arguments), true);
-    };
+Bacon.Property.prototype.delayChanges = function (desc, f) {
+  return withDesc(desc, addPropertyInitValueToStream(this, f(this.changes())));
+};
 
-    Observable.prototype.flatMapWithConcurrencyLimit = function() {
-      var args, limit;
-      limit = arguments[0], args = 2 <= arguments.length ? __slice.call(arguments, 1) : [];
-      return withDescription.apply(null, [this, "flatMapWithConcurrencyLimit", limit].concat(__slice.call(args), [flatMap_(this, makeSpawner(args), false, limit)]));
-    };
+Bacon.EventStream.prototype.delay = function (delay) {
+  return withDesc(new Bacon.Desc(this, "delay", [delay]), this.flatMap(function (value) {
+    return Bacon.later(delay, value);
+  }));
+};
 
-    Observable.prototype.flatMapLatest = function() {
-      var f, stream;
-      f = makeSpawner(arguments);
-      stream = this.toEventStream();
-      return withDescription(this, "flatMapLatest", f, stream.flatMap(function(value) {
-        return makeObservable(f(value)).takeUntil(stream);
-      }));
-    };
+Bacon.Property.prototype.delay = function (delay) {
+  return this.delayChanges(new Bacon.Desc(this, "delay", [delay]), function (changes) {
+    return changes.delay(delay);
+  });
+};
 
-    Observable.prototype.flatMapError = function(fn) {
-      return withDescription(this, "flatMapError", fn, this.mapError(function(err) {
-        return new Error(err);
-      }).flatMap(function(x) {
-        if (x instanceof Error) {
-          return fn(x.error);
+Bacon.EventStream.prototype.debounce = function (delay) {
+  return withDesc(new Bacon.Desc(this, "debounce", [delay]), this.flatMapLatest(function (value) {
+    return Bacon.later(delay, value);
+  }));
+};
+
+Bacon.Property.prototype.debounce = function (delay) {
+  return this.delayChanges(new Bacon.Desc(this, "debounce", [delay]), function (changes) {
+    return changes.debounce(delay);
+  });
+};
+
+Bacon.EventStream.prototype.debounceImmediate = function (delay) {
+  return withDesc(new Bacon.Desc(this, "debounceImmediate", [delay]), this.flatMapFirst(function (value) {
+    return Bacon.once(value).concat(Bacon.later(delay).filter(false));
+  }));
+};
+
+Bacon.Observable.prototype.decode = function (cases) {
+  return withDesc(new Bacon.Desc(this, "decode", [cases]), this.combine(Bacon.combineTemplate(cases), function (key, values) {
+    return values[key];
+  }));
+};
+
+Bacon.Observable.prototype.scan = function (seed, f) {
+  var _this10 = this;
+
+  var resultProperty;
+  f = toCombinator(f);
+  var acc = toOption(seed);
+  var initHandled = false;
+  var subscribe = function (sink) {
+    var initSent = false;
+    var unsub = nop;
+    var reply = Bacon.more;
+    var sendInit = function () {
+      if (!initSent) {
+        return acc.forEach(function (value) {
+          initSent = initHandled = true;
+          reply = sink(new Initial(function () {
+            return value;
+          }));
+          if (reply === Bacon.noMore) {
+            unsub();
+            unsub = nop;
+            return unsub;
+          }
+        });
+      }
+    };
+    unsub = _this10.dispatcher.subscribe(function (event) {
+      if (event.hasValue()) {
+        if (initHandled && event.isInitial()) {
+          return Bacon.more;
         } else {
-          return Bacon.once(x);
-        }
-      }));
-    };
+            if (!event.isInitial()) {
+              sendInit();
+            }
+            initSent = initHandled = true;
+            var prev = acc.getOrElse(undefined);
+            var next = f(prev, event.value());
 
-    Observable.prototype.flatMapConcat = function() {
-      return withDescription.apply(null, [this, "flatMapConcat"].concat(__slice.call(arguments), [this.flatMapWithConcurrencyLimit.apply(this, [1].concat(__slice.call(arguments)))]));
-    };
-
-    Observable.prototype.bufferingThrottle = function(minimumInterval) {
-      return withDescription(this, "bufferingThrottle", minimumInterval, this.flatMapConcat(function(x) {
-        return Bacon.once(x).concat(Bacon.later(minimumInterval).filter(false));
-      }));
-    };
-
-    Observable.prototype.not = function() {
-      return withDescription(this, "not", this.map(function(x) {
-        return !x;
-      }));
-    };
-
-    Observable.prototype.log = function() {
-      var args;
-      args = 1 <= arguments.length ? __slice.call(arguments, 0) : [];
-      this.subscribe(function(event) {
-        return typeof console !== "undefined" && console !== null ? typeof console.log === "function" ? console.log.apply(console, __slice.call(args).concat([event.log()])) : void 0 : void 0;
-      });
-      return this;
-    };
-
-    Observable.prototype.slidingWindow = function(n, minValues) {
-      if (minValues == null) {
-        minValues = 0;
-      }
-      return withDescription(this, "slidingWindow", n, minValues, this.scan([], (function(window, value) {
-        return window.concat([value]).slice(-n);
-      })).filter((function(values) {
-        return values.length >= minValues;
-      })));
-    };
-
-    Observable.prototype.combine = function(other, f) {
-      var combinator;
-      combinator = toCombinator(f);
-      return withDescription(this, "combine", other, f, Bacon.combineAsArray(this, other).map(function(values) {
-        return combinator(values[0], values[1]);
-      }));
-    };
-
-    Observable.prototype.decode = function(cases) {
-      return withDescription(this, "decode", cases, this.combine(Bacon.combineTemplate(cases), function(key, values) {
-        return values[key];
-      }));
-    };
-
-    Observable.prototype.awaiting = function(other) {
-      return withDescription(this, "awaiting", other, Bacon.groupSimultaneous(this, other).map(function(_arg) {
-        var myValues, otherValues;
-        myValues = _arg[0], otherValues = _arg[1];
-        return otherValues.length === 0;
-      }).toProperty(false).skipDuplicates());
-    };
-
-    Observable.prototype.name = function(name) {
-      this._name = name;
-      return this;
-    };
-
-    Observable.prototype.withDescription = function() {
-      return describe.apply(null, arguments).apply(this);
-    };
-
-    Observable.prototype.toString = function() {
-      if (this._name) {
-        return this._name;
+            acc = new Some(next);
+            return sink(event.apply(function () {
+              return next;
+            }));
+          }
       } else {
-        return this.desc.toString();
+        if (event.isEnd()) {
+          reply = sendInit();
+        }
+        if (reply !== Bacon.noMore) {
+          return sink(event);
+        }
+      }
+    });
+    UpdateBarrier.whenDoneWith(resultProperty, sendInit);
+    return unsub;
+  };
+  resultProperty = new Property(new Bacon.Desc(this, "scan", [seed, f]), subscribe);
+  return resultProperty;
+};
+
+Bacon.Observable.prototype.diff = function (start, f) {
+  f = toCombinator(f);
+  return withDesc(new Bacon.Desc(this, "diff", [start, f]), this.scan([start], function (prevTuple, next) {
+    return [next, f(prevTuple[0], next)];
+  }).filter(function (tuple) {
+    return tuple.length === 2;
+  }).map(function (tuple) {
+    return tuple[1];
+  }));
+};
+
+Bacon.Observable.prototype.doAction = function () {
+  var f = makeFunctionArgs(arguments);
+  return withDesc(new Bacon.Desc(this, "doAction", [f]), this.withHandler(function (event) {
+    if (event.hasValue()) {
+      f(event.value());
+    }
+    return this.push(event);
+  }));
+};
+
+Bacon.Observable.prototype.doEnd = function () {
+  var f = makeFunctionArgs(arguments);
+  return withDesc(new Bacon.Desc(this, "doEnd", [f]), this.withHandler(function (event) {
+    if (event.isEnd()) {
+      f();
+    }
+    return this.push(event);
+  }));
+};
+
+Bacon.Observable.prototype.doError = function () {
+  var f = makeFunctionArgs(arguments);
+  return withDesc(new Bacon.Desc(this, "doError", [f]), this.withHandler(function (event) {
+    if (event.isError()) {
+      f(event.error);
+    }
+    return this.push(event);
+  }));
+};
+
+Bacon.Observable.prototype.doLog = function () {
+  for (var _len16 = arguments.length, args = Array(_len16), _key16 = 0; _key16 < _len16; _key16++) {
+    args[_key16] = arguments[_key16];
+  }
+
+  return withDesc(new Bacon.Desc(this, "doLog", args), this.withHandler(function (event) {
+    if (typeof console !== "undefined" && console !== null && typeof console.log === "function") {
+      console.log.apply(console, args.concat([event.log()]));
+    }
+    return this.push(event);
+  }));
+};
+
+Bacon.Observable.prototype.endOnError = function (f) {
+  if (!(typeof f !== "undefined" && f !== null)) {
+    f = true;
+  }
+
+  for (var _len17 = arguments.length, args = Array(_len17 > 1 ? _len17 - 1 : 0), _key17 = 1; _key17 < _len17; _key17++) {
+    args[_key17 - 1] = arguments[_key17];
+  }
+
+  return convertArgsToFunction(this, f, args, function (f) {
+    return withDesc(new Bacon.Desc(this, "endOnError", []), this.withHandler(function (event) {
+      if (event.isError() && f(event.error)) {
+        this.push(event);
+        return this.push(endEvent());
+      } else {
+        return this.push(event);
+      }
+    }));
+  });
+};
+
+Observable.prototype.errors = function () {
+  return withDesc(new Bacon.Desc(this, "errors", []), this.filter(function () {
+    return false;
+  }));
+};
+
+Bacon.Observable.prototype.take = function (count) {
+  if (count <= 0) {
+    return Bacon.never();
+  }
+  return withDesc(new Bacon.Desc(this, "take", [count]), this.withHandler(function (event) {
+    if (!event.hasValue()) {
+      return this.push(event);
+    } else {
+      count--;
+      if (count > 0) {
+        return this.push(event);
+      } else {
+        if (count === 0) {
+          this.push(event);
+        }
+        this.push(endEvent());
+        return Bacon.noMore;
+      }
+    }
+  }));
+};
+
+Bacon.Observable.prototype.first = function () {
+  return withDesc(new Bacon.Desc(this, "first", []), this.take(1));
+};
+
+Bacon.Observable.prototype.mapError = function () {
+  var f = makeFunctionArgs(arguments);
+  return withDesc(new Bacon.Desc(this, "mapError", [f]), this.withHandler(function (event) {
+    if (event.isError()) {
+      return this.push(nextEvent(f(event.error)));
+    } else {
+      return this.push(event);
+    }
+  }));
+};
+
+Bacon.Observable.prototype.flatMapError = function (fn) {
+  var desc = new Bacon.Desc(this, "flatMapError", [fn]);
+  return withDesc(desc, this.mapError(function (err) {
+    return new Error(err);
+  }).flatMap(function (x) {
+    if (x instanceof Error) {
+      return fn(x.error);
+    } else {
+      return Bacon.once(x);
+    }
+  }));
+};
+
+Bacon.EventStream.prototype.sampledBy = function (sampler, combinator) {
+  return withDesc(new Bacon.Desc(this, "sampledBy", [sampler, combinator]), this.toProperty().sampledBy(sampler, combinator));
+};
+
+Bacon.Property.prototype.sampledBy = function (sampler, combinator) {
+  var lazy = false;
+  if (typeof combinator !== "undefined" && combinator !== null) {
+    combinator = toCombinator(combinator);
+  } else {
+    lazy = true;
+    combinator = function (f) {
+      return f.value();
+    };
+  }
+  var thisSource = new Source(this, false, lazy);
+  var samplerSource = new Source(sampler, true, lazy);
+  var stream = Bacon.when([thisSource, samplerSource], combinator);
+  var result = sampler._isProperty ? stream.toProperty() : stream;
+  return withDesc(new Bacon.Desc(this, "sampledBy", [sampler, combinator]), result);
+};
+
+Bacon.Property.prototype.sample = function (interval) {
+  return withDesc(new Bacon.Desc(this, "sample", [interval]), this.sampledBy(Bacon.interval(interval, {})));
+};
+
+Bacon.Observable.prototype.map = function (p) {
+  if (p && p._isProperty) {
+    return p.sampledBy(this, former);
+  } else {
+    for (var _len18 = arguments.length, args = Array(_len18 > 1 ? _len18 - 1 : 0), _key18 = 1; _key18 < _len18; _key18++) {
+      args[_key18 - 1] = arguments[_key18];
+    }
+
+    return convertArgsToFunction(this, p, args, function (f) {
+      return withDesc(new Bacon.Desc(this, "map", [f]), this.withHandler(function (event) {
+        return this.push(event.fmap(f));
+      }));
+    });
+  }
+};
+
+Bacon.Observable.prototype.fold = function (seed, f) {
+  return withDesc(new Bacon.Desc(this, "fold", [seed, f]), this.scan(seed, f).sampledBy(this.filter(false).mapEnd().toProperty()));
+};
+
+Observable.prototype.reduce = Observable.prototype.fold;
+
+var eventMethods = [["addEventListener", "removeEventListener"], ["addListener", "removeListener"], ["on", "off"], ["bind", "unbind"]];
+
+var findHandlerMethods = function (target) {
+  var pair;
+  for (var i = 0; i < eventMethods.length; i++) {
+    pair = eventMethods[i];
+    var methodPair = [target[pair[0]], target[pair[1]]];
+    if (methodPair[0] && methodPair[1]) {
+      return methodPair;
+    }
+  }
+  for (var j = 0; j < eventMethods.length; j++) {
+    pair = eventMethods[j];
+    var addListener = target[pair[0]];
+    if (addListener) {
+      return [addListener, function () {}];
+    }
+  }
+  throw new Error("No suitable event methods in " + target);
+};
+
+Bacon.fromEventTarget = function (target, eventName, eventTransformer) {
+  var _findHandlerMethods = findHandlerMethods(target);
+
+  var sub = _findHandlerMethods[0];
+  var unsub = _findHandlerMethods[1];
+
+  var desc = new Bacon.Desc(Bacon, "fromEvent", [target, eventName]);
+  return withDesc(desc, Bacon.fromBinder(function (handler) {
+    sub.call(target, eventName, handler);
+    return function () {
+      return unsub.call(target, eventName, handler);
+    };
+  }, eventTransformer));
+};
+
+Bacon.fromEvent = Bacon.fromEventTarget;
+
+Bacon.fromPoll = function (delay, poll) {
+  var desc = new Bacon.Desc(Bacon, "fromPoll", [delay, poll]);
+  return withDesc(desc, Bacon.fromBinder(function (handler) {
+    var id = Bacon.scheduler.setInterval(handler, delay);
+    return function () {
+      return Bacon.scheduler.clearInterval(id);
+    };
+  }, poll));
+};
+
+function valueAndEnd(value) {
+  return [value, endEvent()];
+}
+
+Bacon.fromPromise = function (promise, abort) {
+  var eventTransformer = arguments.length <= 2 || arguments[2] === undefined ? valueAndEnd : arguments[2];
+
+  return withDesc(new Bacon.Desc(Bacon, "fromPromise", [promise]), Bacon.fromBinder(function (handler) {
+    var bound = promise.then(handler, function (e) {
+      return handler(new Error(e));
+    });
+    if (bound && typeof bound.done === "function") {
+      bound.done();
+    }
+
+    if (abort) {
+      return function () {
+        if (typeof promise.abort === "function") {
+          return promise.abort();
+        }
+      };
+    } else {
+      return function () {};
+    }
+  }, eventTransformer));
+};
+
+Bacon.Observable.prototype.groupBy = function (keyF) {
+  var limitF = arguments.length <= 1 || arguments[1] === undefined ? Bacon._.id : arguments[1];
+
+  var streams = {};
+  var src = this;
+  return src.filter(function (x) {
+    return !streams[keyF(x)];
+  }).map(function (x) {
+    var key = keyF(x);
+    var similar = src.filter(function (x) {
+      return keyF(x) === key;
+    });
+    var data = Bacon.once(x).concat(similar);
+    var limited = limitF(data, x).withHandler(function (event) {
+      this.push(event);
+      if (event.isEnd()) {
+        return delete streams[key];
+      }
+    });
+    streams[key] = limited;
+    return limited;
+  });
+};
+
+Bacon.fromArray = function (values) {
+  assertArray(values);
+  if (!values.length) {
+    return withDesc(new Bacon.Desc(Bacon, "fromArray", values), Bacon.never());
+  } else {
+    var i = 0;
+    return new EventStream(new Bacon.Desc(Bacon, "fromArray", [values]), function (sink) {
+      var unsubd = false;
+      var reply = Bacon.more;
+      var pushing = false;
+      var pushNeeded = false;
+      var push = function () {
+        pushNeeded = true;
+        if (pushing) {
+          return;
+        }
+        pushing = true;
+        while (pushNeeded) {
+          pushNeeded = false;
+          if (reply !== Bacon.noMore && !unsubd) {
+            var value = values[i++];
+            reply = sink(toEvent(value));
+            if (reply !== Bacon.noMore) {
+              if (i === values.length) {
+                sink(endEvent());
+              } else {
+                UpdateBarrier.afterTransaction(push);
+              }
+            }
+          }
+        }
+        pushing = false;
+        return pushing;
+      };
+
+      push();
+      return function () {
+        unsubd = true;
+        return unsubd;
+      };
+    });
+  }
+};
+
+Bacon.EventStream.prototype.holdWhen = function (valve) {
+  var onHold = false;
+  var bufferedValues = [];
+  var src = this;
+  return new EventStream(new Bacon.Desc(this, "holdWhen", [valve]), function (sink) {
+    var composite = new CompositeUnsubscribe();
+    var subscribed = false;
+    var endIfBothEnded = function (unsub) {
+      if (typeof unsub === "function") {
+        unsub();
+      }
+      if (composite.empty() && subscribed) {
+        return sink(endEvent());
       }
     };
-
-    Observable.prototype.internalDeps = function() {
-      return this.initialDesc.deps();
-    };
-
-    return Observable;
-
-  })();
-
-  Observable.prototype.reduce = Observable.prototype.fold;
-
-  Observable.prototype.assign = Observable.prototype.onValue;
-
-  Observable.prototype.inspect = Observable.prototype.toString;
-
-  flatMap_ = function(root, f, firstOnly, limit) {
-    var childDeps, result, rootDep;
-    rootDep = [root];
-    childDeps = [];
-    result = new EventStream(describe(root, "flatMap" + (firstOnly ? "First" : ""), f), function(sink) {
-      var checkEnd, checkQueue, composite, queue, spawn;
-      composite = new CompositeUnsubscribe();
-      queue = [];
-      spawn = function(event) {
-        var child;
-        child = makeObservable(f(event.value()));
-        childDeps.push(child);
-        return composite.add(function(unsubAll, unsubMe) {
-          return child.dispatcher.subscribe(function(event) {
-            var reply;
-            if (event.isEnd()) {
-              _.remove(child, childDeps);
-              checkQueue();
-              checkEnd(unsubMe);
-              return Bacon.noMore;
-            } else {
-              if (event instanceof Initial) {
-                event = event.toNext();
+    composite.add(function (unsubAll, unsubMe) {
+      return valve.subscribeInternal(function (event) {
+        if (event.hasValue()) {
+          onHold = event.value();
+          if (!onHold) {
+            var toSend = bufferedValues;
+            bufferedValues = [];
+            return (function () {
+              var result = [];
+              for (var i = 0, value; i < toSend.length; i++) {
+                value = toSend[i];
+                result.push(sink(nextEvent(value)));
               }
-              reply = sink(event);
+              return result;
+            })();
+          }
+        } else if (event.isEnd()) {
+          return endIfBothEnded(unsubMe);
+        } else {
+          return sink(event);
+        }
+      });
+    });
+    composite.add(function (unsubAll, unsubMe) {
+      return src.subscribeInternal(function (event) {
+        if (onHold && event.hasValue()) {
+          return bufferedValues.push(event.value());
+        } else if (event.isEnd() && bufferedValues.length) {
+          return endIfBothEnded(unsubMe);
+        } else {
+          return sink(event);
+        }
+      });
+    });
+    subscribed = true;
+    endIfBothEnded();
+    return composite.unsubscribe;
+  });
+};
+
+Bacon.interval = function (delay) {
+  var value = arguments.length <= 1 || arguments[1] === undefined ? {} : arguments[1];
+
+  return withDesc(new Bacon.Desc(Bacon, "interval", [delay, value]), Bacon.fromPoll(delay, function () {
+    return nextEvent(value);
+  }));
+};
+
+Bacon.$ = {};
+Bacon.$.asEventStream = function (eventName, selector, eventTransformer) {
+  var _this11 = this;
+
+  if (_.isFunction(selector)) {
+    eventTransformer = selector;
+    selector = undefined;
+  }
+
+  return withDesc(new Bacon.Desc(this.selector || this, "asEventStream", [eventName]), Bacon.fromBinder(function (handler) {
+    _this11.on(eventName, selector, handler);
+    return function () {
+      return _this11.off(eventName, selector, handler);
+    };
+  }, eventTransformer));
+};
+
+if (typeof jQuery !== "undefined" && jQuery) {
+  jQuery.fn.asEventStream = Bacon.$.asEventStream;
+}
+
+if (typeof Zepto !== "undefined" && Zepto) {
+  Zepto.fn.asEventStream = Bacon.$.asEventStream;
+}
+
+Bacon.Observable.prototype.last = function () {
+  var lastEvent;
+
+  return withDesc(new Bacon.Desc(this, "last", []), this.withHandler(function (event) {
+    if (event.isEnd()) {
+      if (lastEvent) {
+        this.push(lastEvent);
+      }
+      this.push(endEvent());
+      return Bacon.noMore;
+    } else {
+      lastEvent = event;
+    }
+  }));
+};
+
+Bacon.Observable.prototype.log = function () {
+  for (var _len19 = arguments.length, args = Array(_len19), _key19 = 0; _key19 < _len19; _key19++) {
+    args[_key19] = arguments[_key19];
+  }
+
+  this.subscribe(function (event) {
+    if (typeof console !== "undefined" && typeof console.log === "function") {
+      console.log.apply(console, args.concat([event.log()]));
+    }
+  });
+  return this;
+};
+
+Bacon.EventStream.prototype.merge = function (right) {
+  assertEventStream(right);
+  var left = this;
+  return withDesc(new Bacon.Desc(left, "merge", [right]), Bacon.mergeAll(this, right));
+};
+
+Bacon.mergeAll = function () {
+  var streams = argumentsToObservables(arguments);
+  if (streams.length) {
+    return new EventStream(new Bacon.Desc(Bacon, "mergeAll", streams), function (sink) {
+      var ends = 0;
+      var smartSink = function (obs) {
+        return function (unsubBoth) {
+          return obs.dispatcher.subscribe(function (event) {
+            if (event.isEnd()) {
+              ends++;
+              if (ends === streams.length) {
+                return sink(endEvent());
+              } else {
+                return Bacon.more;
+              }
+            } else {
+              var reply = sink(event);
               if (reply === Bacon.noMore) {
-                unsubAll();
+                unsubBoth();
               }
               return reply;
             }
           });
-        });
+        };
       };
-      checkQueue = function() {
-        var event;
-        event = queue.shift();
-        if (event) {
-          return spawn(event);
-        }
-      };
-      checkEnd = function(unsub) {
-        unsub();
-        if (composite.empty()) {
-          return sink(end());
-        }
-      };
-      composite.add(function(__, unsubRoot) {
-        return root.dispatcher.subscribe(function(event) {
-          if (event.isEnd()) {
-            return checkEnd(unsubRoot);
-          } else if (event.isError()) {
-            return sink(event);
-          } else if (firstOnly && composite.count() > 1) {
-            return Bacon.more;
-          } else {
-            if (composite.unsubscribed) {
-              return Bacon.noMore;
-            }
-            if (limit && composite.count() > limit) {
-              return queue.push(event);
-            } else {
-              return spawn(event);
-            }
-          }
-        });
-      });
-      return composite.unsubscribe;
+      var sinks = _.map(smartSink, streams);
+      return new Bacon.CompositeUnsubscribe(sinks).unsubscribe;
     });
-    result.internalDeps = function() {
-      if (childDeps.length) {
-        return rootDep.concat(childDeps);
-      } else {
-        return rootDep;
-      }
-    };
-    return result;
-  };
-
-  EventStream = (function(_super) {
-    __extends(EventStream, _super);
-
-    function EventStream(desc, subscribe, handler) {
-      if (isFunction(desc)) {
-        handler = subscribe;
-        subscribe = desc;
-        desc = [];
-      }
-      EventStream.__super__.constructor.call(this, desc);
-      assertFunction(subscribe);
-      this.dispatcher = new Dispatcher(subscribe, handler);
-      registerObs(this);
-    }
-
-    EventStream.prototype.delay = function(delay) {
-      return withDescription(this, "delay", delay, this.flatMap(function(value) {
-        return Bacon.later(delay, value);
-      }));
-    };
-
-    EventStream.prototype.debounce = function(delay) {
-      return withDescription(this, "debounce", delay, this.flatMapLatest(function(value) {
-        return Bacon.later(delay, value);
-      }));
-    };
-
-    EventStream.prototype.debounceImmediate = function(delay) {
-      return withDescription(this, "debounceImmediate", delay, this.flatMapFirst(function(value) {
-        return Bacon.once(value).concat(Bacon.later(delay).filter(false));
-      }));
-    };
-
-    EventStream.prototype.throttle = function(delay) {
-      return withDescription(this, "throttle", delay, this.bufferWithTime(delay).map(function(values) {
-        return values[values.length - 1];
-      }));
-    };
-
-    EventStream.prototype.bufferWithTime = function(delay) {
-      return withDescription(this, "bufferWithTime", delay, this.bufferWithTimeOrCount(delay, Number.MAX_VALUE));
-    };
-
-    EventStream.prototype.bufferWithCount = function(count) {
-      return withDescription(this, "bufferWithCount", count, this.bufferWithTimeOrCount(void 0, count));
-    };
-
-    EventStream.prototype.bufferWithTimeOrCount = function(delay, count) {
-      var flushOrSchedule;
-      flushOrSchedule = function(buffer) {
-        if (buffer.values.length === count) {
-          return buffer.flush();
-        } else if (delay !== void 0) {
-          return buffer.schedule();
-        }
-      };
-      return withDescription(this, "bufferWithTimeOrCount", delay, count, this.buffer(delay, flushOrSchedule, flushOrSchedule));
-    };
-
-    EventStream.prototype.buffer = function(delay, onInput, onFlush) {
-      var buffer, delayMs, reply;
-      if (onInput == null) {
-        onInput = nop;
-      }
-      if (onFlush == null) {
-        onFlush = nop;
-      }
-      buffer = {
-        scheduled: false,
-        end: void 0,
-        values: [],
-        flush: function() {
-          var reply;
-          this.scheduled = false;
-          if (this.values.length > 0) {
-            reply = this.push(next(this.values));
-            this.values = [];
-            if (this.end != null) {
-              return this.push(this.end);
-            } else if (reply !== Bacon.noMore) {
-              return onFlush(this);
-            }
-          } else {
-            if (this.end != null) {
-              return this.push(this.end);
-            }
-          }
-        },
-        schedule: function() {
-          if (!this.scheduled) {
-            this.scheduled = true;
-            return delay((function(_this) {
-              return function() {
-                return _this.flush();
-              };
-            })(this));
-          }
-        }
-      };
-      reply = Bacon.more;
-      if (!isFunction(delay)) {
-        delayMs = delay;
-        delay = function(f) {
-          return Bacon.scheduler.setTimeout(f, delayMs);
-        };
-      }
-      return withDescription(this, "buffer", this.withHandler(function(event) {
-        buffer.push = (function(_this) {
-          return function(event) {
-            return _this.push(event);
-          };
-        })(this);
-        if (event.isError()) {
-          reply = this.push(event);
-        } else if (event.isEnd()) {
-          buffer.end = event;
-          if (!buffer.scheduled) {
-            buffer.flush();
-          }
-        } else {
-          buffer.values.push(event.value());
-          onInput(buffer);
-        }
-        return reply;
-      }));
-    };
-
-    EventStream.prototype.merge = function(right) {
-      var left;
-      assertEventStream(right);
-      left = this;
-      return withDescription(left, "merge", right, Bacon.mergeAll(this, right));
-    };
-
-    EventStream.prototype.toProperty = function(initValue_) {
-      var disp, initValue;
-      initValue = arguments.length === 0 ? None : toOption(function() {
-        return initValue_;
-      });
-      disp = this.dispatcher;
-      return new Property(describe(this, "toProperty", initValue_), function(sink) {
-        var initSent, reply, sendInit, unsub;
-        initSent = false;
-        unsub = nop;
-        reply = Bacon.more;
-        sendInit = function() {
-          if (!initSent) {
-            return initValue.forEach(function(value) {
-              initSent = true;
-              reply = sink(new Initial(value));
-              if (reply === Bacon.noMore) {
-                unsub();
-                return unsub = nop;
-              }
-            });
-          }
-        };
-        unsub = disp.subscribe(function(event) {
-          if (event.hasValue()) {
-            if (initSent && event.isInitial()) {
-              return Bacon.more;
-            } else {
-              if (!event.isInitial()) {
-                sendInit();
-              }
-              initSent = true;
-              initValue = new Some(event);
-              return sink(event);
-            }
-          } else {
-            if (event.isEnd()) {
-              reply = sendInit();
-            }
-            if (reply !== Bacon.noMore) {
-              return sink(event);
-            }
-          }
-        });
-        sendInit();
-        return unsub;
-      });
-    };
-
-    EventStream.prototype.toEventStream = function() {
-      return this;
-    };
-
-    EventStream.prototype.sampledBy = function(sampler, combinator) {
-      return withDescription(this, "sampledBy", sampler, combinator, this.toProperty().sampledBy(sampler, combinator));
-    };
-
-    EventStream.prototype.concat = function(right) {
-      var left;
-      left = this;
-      return new EventStream(describe(left, "concat", right), function(sink) {
-        var unsubLeft, unsubRight;
-        unsubRight = nop;
-        unsubLeft = left.dispatcher.subscribe(function(e) {
-          if (e.isEnd()) {
-            return unsubRight = right.dispatcher.subscribe(sink);
-          } else {
-            return sink(e);
-          }
-        });
-        return function() {
-          unsubLeft();
-          return unsubRight();
-        };
-      });
-    };
-
-    EventStream.prototype.takeUntil = function(stopper) {
-      var endMarker;
-      endMarker = {};
-      return withDescription(this, "takeUntil", stopper, Bacon.groupSimultaneous(this.mapEnd(endMarker), stopper.skipErrors()).withHandler(function(event) {
-        var data, reply, value, _i, _len, _ref1;
-        if (!event.hasValue()) {
-          return this.push(event);
-        } else {
-          _ref1 = event.value(), data = _ref1[0], stopper = _ref1[1];
-          if (stopper.length) {
-            return this.push(end());
-          } else {
-            reply = Bacon.more;
-            for (_i = 0, _len = data.length; _i < _len; _i++) {
-              value = data[_i];
-              if (value === endMarker) {
-                reply = this.push(end());
-              } else {
-                reply = this.push(next(value));
-              }
-            }
-            return reply;
-          }
-        }
-      }));
-    };
-
-    EventStream.prototype.skipUntil = function(starter) {
-      var started;
-      started = starter.take(1).map(true).toProperty(false);
-      return withDescription(this, "skipUntil", starter, this.filter(started));
-    };
-
-    EventStream.prototype.skipWhile = function() {
-      var args, f, ok;
-      f = arguments[0], args = 2 <= arguments.length ? __slice.call(arguments, 1) : [];
-      ok = false;
-      return convertArgsToFunction(this, f, args, function(f) {
-        return withDescription(this, "skipWhile", f, this.withHandler(function(event) {
-          if (ok || !event.hasValue() || !f(event.value())) {
-            if (event.hasValue()) {
-              ok = true;
-            }
-            return this.push(event);
-          } else {
-            return Bacon.more;
-          }
-        }));
-      });
-    };
-
-    EventStream.prototype.holdWhen = function(valve) {
-      var putToHold, releaseHold, valve_;
-      valve_ = valve.startWith(false);
-      releaseHold = valve_.filter(function(x) {
-        return !x;
-      });
-      putToHold = valve_.filter(_.id);
-      return withDescription(this, "holdWhen", valve, this.filter(false).merge(valve_.flatMapConcat((function(_this) {
-        return function(shouldHold) {
-          if (!shouldHold) {
-            return _this.takeUntil(putToHold);
-          } else {
-            return _this.scan([], (function(xs, x) {
-              return xs.concat(x);
-            })).sampledBy(releaseHold).take(1).flatMap(Bacon.fromArray);
-          }
-        };
-      })(this))));
-    };
-
-    EventStream.prototype.startWith = function(seed) {
-      return withDescription(this, "startWith", seed, Bacon.once(seed).concat(this));
-    };
-
-    EventStream.prototype.withHandler = function(handler) {
-      return new EventStream(describe(this, "withHandler", handler), this.dispatcher.subscribe, handler);
-    };
-
-    return EventStream;
-
-  })(Observable);
-
-  Property = (function(_super) {
-    __extends(Property, _super);
-
-    function Property(desc, subscribe, handler) {
-      if (isFunction(desc)) {
-        handler = subscribe;
-        subscribe = desc;
-        desc = [];
-      }
-      Property.__super__.constructor.call(this, desc);
-      assertFunction(subscribe);
-      this.dispatcher = new PropertyDispatcher(this, subscribe, handler);
-      registerObs(this);
-    }
-
-    Property.prototype.sampledBy = function(sampler, combinator) {
-      var lazy, result, samplerSource, stream, thisSource;
-      if (combinator != null) {
-        combinator = toCombinator(combinator);
-      } else {
-        lazy = true;
-        combinator = function(f) {
-          return f.value();
-        };
-      }
-      thisSource = new Source(this, false, lazy);
-      samplerSource = new Source(sampler, true, lazy);
-      stream = Bacon.when([thisSource, samplerSource], combinator);
-      result = sampler instanceof Property ? stream.toProperty() : stream;
-      return withDescription(this, "sampledBy", sampler, combinator, result);
-    };
-
-    Property.prototype.sample = function(interval) {
-      return withDescription(this, "sample", interval, this.sampledBy(Bacon.interval(interval, {})));
-    };
-
-    Property.prototype.changes = function() {
-      return new EventStream(describe(this, "changes"), (function(_this) {
-        return function(sink) {
-          return _this.dispatcher.subscribe(function(event) {
-            if (!event.isInitial()) {
-              return sink(event);
-            }
-          });
-        };
-      })(this));
-    };
-
-    Property.prototype.withHandler = function(handler) {
-      return new Property(describe(this, "withHandler", handler), this.dispatcher.subscribe, handler);
-    };
-
-    Property.prototype.toProperty = function() {
-      assertNoArguments(arguments);
-      return this;
-    };
-
-    Property.prototype.toEventStream = function() {
-      return new EventStream(describe(this, "toEventStream"), (function(_this) {
-        return function(sink) {
-          return _this.dispatcher.subscribe(function(event) {
-            if (event.isInitial()) {
-              event = event.toNext();
-            }
-            return sink(event);
-          });
-        };
-      })(this));
-    };
-
-    Property.prototype.and = function(other) {
-      return withDescription(this, "and", other, this.combine(other, function(x, y) {
-        return x && y;
-      }));
-    };
-
-    Property.prototype.or = function(other) {
-      return withDescription(this, "or", other, this.combine(other, function(x, y) {
-        return x || y;
-      }));
-    };
-
-    Property.prototype.delay = function(delay) {
-      return this.delayChanges("delay", delay, function(changes) {
-        return changes.delay(delay);
-      });
-    };
-
-    Property.prototype.debounce = function(delay) {
-      return this.delayChanges("debounce", delay, function(changes) {
-        return changes.debounce(delay);
-      });
-    };
-
-    Property.prototype.throttle = function(delay) {
-      return this.delayChanges("throttle", delay, function(changes) {
-        return changes.throttle(delay);
-      });
-    };
-
-    Property.prototype.delayChanges = function() {
-      var desc, f, _i;
-      desc = 2 <= arguments.length ? __slice.call(arguments, 0, _i = arguments.length - 1) : (_i = 0, []), f = arguments[_i++];
-      return withDescription.apply(null, [this].concat(__slice.call(desc), [addPropertyInitValueToStream(this, f(this.changes()))]));
-    };
-
-    Property.prototype.takeUntil = function(stopper) {
-      var changes;
-      changes = this.changes().takeUntil(stopper);
-      return withDescription(this, "takeUntil", stopper, addPropertyInitValueToStream(this, changes));
-    };
-
-    Property.prototype.startWith = function(value) {
-      return withDescription(this, "startWith", value, this.scan(value, function(prev, next) {
-        return next;
-      }));
-    };
-
-    Property.prototype.bufferingThrottle = function() {
-      var _ref1;
-      return (_ref1 = Property.__super__.bufferingThrottle.apply(this, arguments)).bufferingThrottle.apply(_ref1, arguments).toProperty();
-    };
-
-    return Property;
-
-  })(Observable);
-
-  convertArgsToFunction = function(obs, f, args, method) {
-    var sampled;
-    if (f instanceof Property) {
-      sampled = f.sampledBy(obs, function(p, s) {
-        return [p, s];
-      });
-      return method.call(sampled, function(_arg) {
-        var p, s;
-        p = _arg[0], s = _arg[1];
-        return p;
-      }).map(function(_arg) {
-        var p, s;
-        p = _arg[0], s = _arg[1];
-        return s;
-      });
-    } else {
-      f = makeFunction(f, args);
-      return method.call(obs, f);
-    }
-  };
-
-  addPropertyInitValueToStream = function(property, stream) {
-    var justInitValue;
-    justInitValue = new EventStream(describe(property, "justInitValue"), function(sink) {
-      var unsub, value;
-      value = void 0;
-      unsub = property.dispatcher.subscribe(function(event) {
-        if (!event.isEnd()) {
-          value = event;
-        }
-        return Bacon.noMore;
-      });
-      UpdateBarrier.whenDoneWith(justInitValue, function() {
-        if (value != null) {
-          sink(value);
-        }
-        return sink(end());
-      });
-      return unsub;
-    });
-    return justInitValue.concat(stream).toProperty();
-  };
-
-  Dispatcher = (function() {
-    function Dispatcher(_subscribe, _handleEvent) {
-      this._subscribe = _subscribe;
-      this._handleEvent = _handleEvent;
-      this.subscribe = __bind(this.subscribe, this);
-      this.handleEvent = __bind(this.handleEvent, this);
-      this.subscriptions = [];
-      this.queue = [];
-      this.pushing = false;
-      this.ended = false;
-      this.prevError = void 0;
-      this.unsubSrc = void 0;
-    }
-
-    Dispatcher.prototype.hasSubscribers = function() {
-      return this.subscriptions.length > 0;
-    };
-
-    Dispatcher.prototype.removeSub = function(subscription) {
-      return this.subscriptions = _.without(subscription, this.subscriptions);
-    };
-
-    Dispatcher.prototype.push = function(event) {
-      if (event.isEnd()) {
-        this.ended = true;
-      }
-      return UpdateBarrier.inTransaction(event, this, this.pushIt, [event]);
-    };
-
-    Dispatcher.prototype.pushIt = function(event) {
-      var reply, sub, success, tmp, _i, _len;
-      if (!this.pushing) {
-        if (event === this.prevError) {
-          return;
-        }
-        if (event.isError()) {
-          this.prevError = event;
-        }
-        success = false;
-        try {
-          this.pushing = true;
-          tmp = this.subscriptions;
-          for (_i = 0, _len = tmp.length; _i < _len; _i++) {
-            sub = tmp[_i];
-            reply = sub.sink(event);
-            if (reply === Bacon.noMore || event.isEnd()) {
-              this.removeSub(sub);
-            }
-          }
-          success = true;
-        } finally {
-          this.pushing = false;
-          if (!success) {
-            this.queue = [];
-          }
-        }
-        success = true;
-        while (this.queue.length) {
-          event = this.queue.shift();
-          this.push(event);
-        }
-        if (this.hasSubscribers()) {
-          return Bacon.more;
-        } else {
-          this.unsubscribeFromSource();
-          return Bacon.noMore;
-        }
-      } else {
-        this.queue.push(event);
-        return Bacon.more;
-      }
-    };
-
-    Dispatcher.prototype.handleEvent = function(event) {
-      if (this._handleEvent) {
-        return this._handleEvent(event);
-      } else {
-        return this.push(event);
-      }
-    };
-
-    Dispatcher.prototype.unsubscribeFromSource = function() {
-      if (this.unsubSrc) {
-        this.unsubSrc();
-      }
-      return this.unsubSrc = void 0;
-    };
-
-    Dispatcher.prototype.subscribe = function(sink) {
-      var subscription;
-      if (this.ended) {
-        sink(end());
-        return nop;
-      } else {
-        assertFunction(sink);
-        subscription = {
-          sink: sink
-        };
-        this.subscriptions.push(subscription);
-        if (this.subscriptions.length === 1) {
-          this.unsubSrc = this._subscribe(this.handleEvent);
-          assertFunction(this.unsubSrc);
-        }
-        return (function(_this) {
-          return function() {
-            _this.removeSub(subscription);
-            if (!_this.hasSubscribers()) {
-              return _this.unsubscribeFromSource();
-            }
-          };
-        })(this);
-      }
-    };
-
-    return Dispatcher;
-
-  })();
-
-  PropertyDispatcher = (function(_super) {
-    __extends(PropertyDispatcher, _super);
-
-    function PropertyDispatcher(property, subscribe, handleEvent) {
-      this.property = property;
-      this.subscribe = __bind(this.subscribe, this);
-      PropertyDispatcher.__super__.constructor.call(this, subscribe, handleEvent);
-      this.current = None;
-      this.currentValueRootId = void 0;
-      this.propertyEnded = false;
-    }
-
-    PropertyDispatcher.prototype.push = function(event) {
-      if (event.isEnd()) {
-        this.propertyEnded = true;
-      }
-      if (event.hasValue()) {
-        this.current = new Some(event);
-        this.currentValueRootId = UpdateBarrier.currentEventId();
-      }
-      return PropertyDispatcher.__super__.push.call(this, event);
-    };
-
-    PropertyDispatcher.prototype.maybeSubSource = function(sink, reply) {
-      if (reply === Bacon.noMore) {
-        return nop;
-      } else if (this.propertyEnded) {
-        sink(end());
-        return nop;
-      } else {
-        return Dispatcher.prototype.subscribe.call(this, sink);
-      }
-    };
-
-    PropertyDispatcher.prototype.subscribe = function(sink) {
-      var dispatchingId, initSent, reply, valId;
-      initSent = false;
-      reply = Bacon.more;
-      if (this.current.isDefined && (this.hasSubscribers() || this.propertyEnded)) {
-        dispatchingId = UpdateBarrier.currentEventId();
-        valId = this.currentValueRootId;
-        if (!this.propertyEnded && valId && dispatchingId && dispatchingId !== valId) {
-          UpdateBarrier.whenDoneWith(this.property, (function(_this) {
-            return function() {
-              if (_this.currentValueRootId === valId) {
-                return sink(initial(_this.current.get().value()));
-              }
-            };
-          })(this));
-          return this.maybeSubSource(sink, reply);
-        } else {
-          UpdateBarrier.inTransaction(void 0, this, (function() {
-            return reply = (function() {
-              try {
-                return sink(initial(this.current.get().value()));
-              } catch (_error) {
-                return Bacon.more;
-              }
-            }).call(this);
-          }), []);
-          return this.maybeSubSource(sink, reply);
-        }
-      } else {
-        return this.maybeSubSource(sink, reply);
-      }
-    };
-
-    return PropertyDispatcher;
-
-  })(Dispatcher);
-
-  Bus = (function(_super) {
-    __extends(Bus, _super);
-
-    function Bus() {
-      this.guardedSink = __bind(this.guardedSink, this);
-      this.subscribeAll = __bind(this.subscribeAll, this);
-      this.unsubAll = __bind(this.unsubAll, this);
-      this.sink = void 0;
-      this.subscriptions = [];
-      this.ended = false;
-      Bus.__super__.constructor.call(this, describe(Bacon, "Bus"), this.subscribeAll);
-    }
-
-    Bus.prototype.unsubAll = function() {
-      var sub, _i, _len, _ref1;
-      _ref1 = this.subscriptions;
-      for (_i = 0, _len = _ref1.length; _i < _len; _i++) {
-        sub = _ref1[_i];
-        if (typeof sub.unsub === "function") {
-          sub.unsub();
-        }
-      }
-      return void 0;
-    };
-
-    Bus.prototype.subscribeAll = function(newSink) {
-      var subscription, _i, _len, _ref1;
-      this.sink = newSink;
-      _ref1 = cloneArray(this.subscriptions);
-      for (_i = 0, _len = _ref1.length; _i < _len; _i++) {
-        subscription = _ref1[_i];
-        this.subscribeInput(subscription);
-      }
-      return this.unsubAll;
-    };
-
-    Bus.prototype.guardedSink = function(input) {
-      return (function(_this) {
-        return function(event) {
-          if (event.isEnd()) {
-            _this.unsubscribeInput(input);
-            return Bacon.noMore;
-          } else {
-            return _this.sink(event);
-          }
-        };
-      })(this);
-    };
-
-    Bus.prototype.subscribeInput = function(subscription) {
-      return subscription.unsub = subscription.input.dispatcher.subscribe(this.guardedSink(subscription.input));
-    };
-
-    Bus.prototype.unsubscribeInput = function(input) {
-      var i, sub, _i, _len, _ref1;
-      _ref1 = this.subscriptions;
-      for (i = _i = 0, _len = _ref1.length; _i < _len; i = ++_i) {
-        sub = _ref1[i];
-        if (sub.input === input) {
-          if (typeof sub.unsub === "function") {
-            sub.unsub();
-          }
-          this.subscriptions.splice(i, 1);
-          return;
-        }
-      }
-    };
-
-    Bus.prototype.plug = function(input) {
-      var sub;
-      if (this.ended) {
-        return;
-      }
-      sub = {
-        input: input
-      };
-      this.subscriptions.push(sub);
-      if ((this.sink != null)) {
-        this.subscribeInput(sub);
-      }
-      return (function(_this) {
-        return function() {
-          return _this.unsubscribeInput(input);
-        };
-      })(this);
-    };
-
-    Bus.prototype.end = function() {
-      this.ended = true;
-      this.unsubAll();
-      return typeof this.sink === "function" ? this.sink(end()) : void 0;
-    };
-
-    Bus.prototype.push = function(value) {
-      return typeof this.sink === "function" ? this.sink(next(value)) : void 0;
-    };
-
-    Bus.prototype.error = function(error) {
-      return typeof this.sink === "function" ? this.sink(new Error(error)) : void 0;
-    };
-
-    return Bus;
-
-  })(EventStream);
-
-  Source = (function() {
-    function Source(obs, sync, lazy) {
-      this.obs = obs;
-      this.sync = sync;
-      this.lazy = lazy != null ? lazy : false;
-      this.queue = [];
-    }
-
-    Source.prototype.subscribe = function(sink) {
-      return this.obs.dispatcher.subscribe(sink);
-    };
-
-    Source.prototype.toString = function() {
-      return this.obs.toString();
-    };
-
-    Source.prototype.markEnded = function() {
-      return this.ended = true;
-    };
-
-    Source.prototype.consume = function() {
-      if (this.lazy) {
-        return {
-          value: _.always(this.queue[0])
-        };
-      } else {
-        return this.queue[0];
-      }
-    };
-
-    Source.prototype.push = function(x) {
-      return this.queue = [x];
-    };
-
-    Source.prototype.mayHave = function() {
-      return true;
-    };
-
-    Source.prototype.hasAtLeast = function() {
-      return this.queue.length;
-    };
-
-    Source.prototype.flatten = true;
-
-    return Source;
-
-  })();
-
-  ConsumingSource = (function(_super) {
-    __extends(ConsumingSource, _super);
-
-    function ConsumingSource() {
-      return ConsumingSource.__super__.constructor.apply(this, arguments);
-    }
-
-    ConsumingSource.prototype.consume = function() {
-      return this.queue.shift();
-    };
-
-    ConsumingSource.prototype.push = function(x) {
-      return this.queue.push(x);
-    };
-
-    ConsumingSource.prototype.mayHave = function(c) {
-      return !this.ended || this.queue.length >= c;
-    };
-
-    ConsumingSource.prototype.hasAtLeast = function(c) {
-      return this.queue.length >= c;
-    };
-
-    ConsumingSource.prototype.flatten = false;
-
-    return ConsumingSource;
-
-  })(Source);
-
-  BufferingSource = (function(_super) {
-    __extends(BufferingSource, _super);
-
-    function BufferingSource(obs) {
-      BufferingSource.__super__.constructor.call(this, obs, true);
-    }
-
-    BufferingSource.prototype.consume = function() {
-      var values;
-      values = this.queue;
-      this.queue = [];
-      return {
-        value: function() {
-          return values;
-        }
-      };
-    };
-
-    BufferingSource.prototype.push = function(x) {
-      return this.queue.push(x.value());
-    };
-
-    BufferingSource.prototype.hasAtLeast = function() {
-      return true;
-    };
-
-    return BufferingSource;
-
-  })(Source);
-
-  Source.isTrigger = function(s) {
-    if (s instanceof Source) {
-      return s.sync;
-    } else {
-      return s instanceof EventStream;
-    }
-  };
-
-  Source.fromObservable = function(s) {
-    if (s instanceof Source) {
-      return s;
-    } else if (s instanceof Property) {
-      return new Source(s, false);
-    } else {
-      return new ConsumingSource(s, true);
-    }
-  };
-
-  describe = function() {
-    var args, context, method;
-    context = arguments[0], method = arguments[1], args = 3 <= arguments.length ? __slice.call(arguments, 2) : [];
-    if ((context || method) instanceof Desc) {
-      return context || method;
-    } else {
-      return new Desc(context, method, args);
-    }
-  };
-
-  findDeps = function(x) {
-    if (isArray(x)) {
-      return _.flatMap(findDeps, x);
-    } else if (isObservable(x)) {
-      return [x];
-    } else if (x instanceof Source) {
-      return [x.obs];
-    } else {
-      return [];
-    }
-  };
-
-  Desc = (function() {
-    function Desc(context, method, args) {
-      this.context = context;
-      this.method = method;
-      this.args = args;
-      this.cached = void 0;
-    }
-
-    Desc.prototype.deps = function() {
-      return this.cached || (this.cached = findDeps([this.context].concat(this.args)));
-    };
-
-    Desc.prototype.apply = function(obs) {
-      obs.desc = this;
-      return obs;
-    };
-
-    Desc.prototype.toString = function() {
-      return _.toString(this.context) + "." + _.toString(this.method) + "(" + _.map(_.toString, this.args) + ")";
-    };
-
-    return Desc;
-
-  })();
-
-  withDescription = function() {
-    var desc, obs, _i;
-    desc = 2 <= arguments.length ? __slice.call(arguments, 0, _i = arguments.length - 1) : (_i = 0, []), obs = arguments[_i++];
-    return describe.apply(null, desc).apply(obs);
-  };
-
-  Bacon.when = function() {
-    var f, i, index, ix, len, needsBarrier, pat, patSources, pats, patterns, resultStream, s, sources, triggerFound, usage, _i, _j, _len, _len1, _ref1;
-    if (arguments.length === 0) {
-      return Bacon.never();
-    }
-    len = arguments.length;
-    usage = "when: expecting arguments in the form (Observable+,function)+";
-    assert(usage, len % 2 === 0);
-    sources = [];
-    pats = [];
-    i = 0;
-    patterns = [];
-    while (i < len) {
-      patterns[i] = arguments[i];
-      patterns[i + 1] = arguments[i + 1];
-      patSources = _.toArray(arguments[i]);
-      f = arguments[i + 1];
-      pat = {
-        f: (isFunction(f) ? f : (function() {
-          return f;
-        })),
-        ixs: []
-      };
-      triggerFound = false;
-      for (_i = 0, _len = patSources.length; _i < _len; _i++) {
-        s = patSources[_i];
-        index = _.indexOf(sources, s);
-        if (!triggerFound) {
-          triggerFound = Source.isTrigger(s);
-        }
-        if (index < 0) {
-          sources.push(s);
-          index = sources.length - 1;
-        }
-        _ref1 = pat.ixs;
-        for (_j = 0, _len1 = _ref1.length; _j < _len1; _j++) {
-          ix = _ref1[_j];
-          if (ix.index === index) {
-            ix.count++;
-          }
-        }
-        pat.ixs.push({
-          index: index,
-          count: 1
-        });
-      }
-      assert("At least one EventStream required", triggerFound || (!patSources.length));
-      if (patSources.length > 0) {
-        pats.push(pat);
-      }
-      i = i + 2;
-    }
-    if (!sources.length) {
-      return Bacon.never();
-    }
-    sources = _.map(Source.fromObservable, sources);
-    needsBarrier = (_.any(sources, function(s) {
-      return s.flatten;
-    })) && (containsDuplicateDeps(_.map((function(s) {
-      return s.obs;
-    }), sources)));
-    return resultStream = new EventStream(describe.apply(null, [Bacon, "when"].concat(__slice.call(patterns))), function(sink) {
-      var cannotMatch, cannotSync, ends, match, nonFlattened, part, triggers;
-      triggers = [];
-      ends = false;
-      match = function(p) {
-        var _k, _len2, _ref2;
-        _ref2 = p.ixs;
-        for (_k = 0, _len2 = _ref2.length; _k < _len2; _k++) {
-          i = _ref2[_k];
-          if (!sources[i.index].hasAtLeast(i.count)) {
-            return false;
-          }
-        }
-        return true;
-      };
-      cannotSync = function(source) {
-        return !source.sync || source.ended;
-      };
-      cannotMatch = function(p) {
-        var _k, _len2, _ref2;
-        _ref2 = p.ixs;
-        for (_k = 0, _len2 = _ref2.length; _k < _len2; _k++) {
-          i = _ref2[_k];
-          if (!sources[i.index].mayHave(i.count)) {
-            return true;
-          }
-        }
-      };
-      nonFlattened = function(trigger) {
-        return !trigger.source.flatten;
-      };
-      part = function(source) {
-        return function(unsubAll) {
-          var flush, flushLater, flushWhileTriggers;
-          flushLater = function() {
-            return UpdateBarrier.whenDoneWith(resultStream, flush);
-          };
-          flushWhileTriggers = function() {
-            var events, p, reply, trigger, _k, _len2;
-            if (triggers.length > 0) {
-              reply = Bacon.more;
-              trigger = triggers.pop();
-              for (_k = 0, _len2 = pats.length; _k < _len2; _k++) {
-                p = pats[_k];
-                if (match(p)) {
-                  events = (function() {
-                    var _l, _len3, _ref2, _results;
-                    _ref2 = p.ixs;
-                    _results = [];
-                    for (_l = 0, _len3 = _ref2.length; _l < _len3; _l++) {
-                      i = _ref2[_l];
-                      _results.push(sources[i.index].consume());
-                    }
-                    return _results;
-                  })();
-                  reply = sink(trigger.e.apply(function() {
-                    var event, values;
-                    values = (function() {
-                      var _l, _len3, _results;
-                      _results = [];
-                      for (_l = 0, _len3 = events.length; _l < _len3; _l++) {
-                        event = events[_l];
-                        _results.push(event.value());
-                      }
-                      return _results;
-                    })();
-                    return p.f.apply(p, values);
-                  }));
-                  if (triggers.length) {
-                    triggers = _.filter(nonFlattened, triggers);
-                  }
-                  if (reply === Bacon.noMore) {
-                    return reply;
-                  } else {
-                    return flushWhileTriggers();
-                  }
-                }
-              }
-            } else {
-              return Bacon.more;
-            }
-          };
-          flush = function() {
-            var reply;
-            reply = flushWhileTriggers();
-            if (ends) {
-              ends = false;
-              if (_.all(sources, cannotSync) || _.all(pats, cannotMatch)) {
-                reply = Bacon.noMore;
-                sink(end());
-              }
-            }
-            if (reply === Bacon.noMore) {
-              unsubAll();
-            }
-            return reply;
-          };
-          return source.subscribe(function(e) {
-            var reply;
-            if (e.isEnd()) {
-              ends = true;
-              source.markEnded();
-              flushLater();
-            } else if (e.isError()) {
-              reply = sink(e);
-            } else {
-              source.push(e);
-              if (source.sync) {
-                triggers.push({
-                  source: source,
-                  e: e
-                });
-                if (needsBarrier || UpdateBarrier.hasWaiters()) {
-                  flushLater();
-                } else {
-                  flush();
-                }
-              }
-            }
-            if (reply === Bacon.noMore) {
-              unsubAll();
-            }
-            return reply || Bacon.more;
-          });
-        };
-      };
-      return compositeUnsubscribe.apply(null, (function() {
-        var _k, _len2, _results;
-        _results = [];
-        for (_k = 0, _len2 = sources.length; _k < _len2; _k++) {
-          s = sources[_k];
-          _results.push(part(s));
-        }
-        return _results;
-      })());
-    });
-  };
-
-  containsDuplicateDeps = function(observables, state) {
-    var checkObservable;
-    if (state == null) {
-      state = [];
-    }
-    checkObservable = function(obs) {
-      var deps;
-      if (_.contains(state, obs)) {
-        return true;
-      } else {
-        deps = obs.internalDeps();
-        if (deps.length) {
-          state.push(obs);
-          return _.any(deps, checkObservable);
-        } else {
-          state.push(obs);
-          return false;
-        }
-      }
-    };
-    return _.any(observables, checkObservable);
-  };
-
-  Bacon.update = function() {
-    var i, initial, lateBindFirst, patterns;
-    initial = arguments[0], patterns = 2 <= arguments.length ? __slice.call(arguments, 1) : [];
-    lateBindFirst = function(f) {
-      return function() {
-        var args;
-        args = 1 <= arguments.length ? __slice.call(arguments, 0) : [];
-        return function(i) {
-          return f.apply(null, [i].concat(args));
-        };
-      };
-    };
-    i = patterns.length - 1;
-    while (i > 0) {
-      if (!(patterns[i] instanceof Function)) {
-        patterns[i] = (function(x) {
-          return function() {
-            return x;
-          };
-        })(patterns[i]);
-      }
-      patterns[i] = lateBindFirst(patterns[i]);
-      i = i - 2;
-    }
-    return withDescription.apply(null, [Bacon, "update", initial].concat(__slice.call(patterns), [Bacon.when.apply(Bacon, patterns).scan(initial, (function(x, f) {
-      return f(x);
-    }))]));
-  };
-
-  compositeUnsubscribe = function() {
-    var ss;
-    ss = 1 <= arguments.length ? __slice.call(arguments, 0) : [];
-    return new CompositeUnsubscribe(ss).unsubscribe;
-  };
-
-  CompositeUnsubscribe = (function() {
-    function CompositeUnsubscribe(ss) {
-      var s, _i, _len;
-      if (ss == null) {
-        ss = [];
-      }
-      this.unsubscribe = __bind(this.unsubscribe, this);
-      this.unsubscribed = false;
-      this.subscriptions = [];
-      this.starting = [];
-      for (_i = 0, _len = ss.length; _i < _len; _i++) {
-        s = ss[_i];
-        this.add(s);
-      }
-    }
-
-    CompositeUnsubscribe.prototype.add = function(subscription) {
-      var ended, unsub, unsubMe;
-      if (this.unsubscribed) {
-        return;
-      }
-      ended = false;
-      unsub = nop;
-      this.starting.push(subscription);
-      unsubMe = (function(_this) {
-        return function() {
-          if (_this.unsubscribed) {
-            return;
-          }
-          ended = true;
-          _this.remove(unsub);
-          return _.remove(subscription, _this.starting);
-        };
-      })(this);
-      unsub = subscription(this.unsubscribe, unsubMe);
-      if (!(this.unsubscribed || ended)) {
-        this.subscriptions.push(unsub);
-      }
-      _.remove(subscription, this.starting);
-      return unsub;
-    };
-
-    CompositeUnsubscribe.prototype.remove = function(unsub) {
-      if (this.unsubscribed) {
-        return;
-      }
-      if ((_.remove(unsub, this.subscriptions)) !== void 0) {
-        return unsub();
-      }
-    };
-
-    CompositeUnsubscribe.prototype.unsubscribe = function() {
-      var s, _i, _len, _ref1;
-      if (this.unsubscribed) {
-        return;
-      }
-      this.unsubscribed = true;
-      _ref1 = this.subscriptions;
-      for (_i = 0, _len = _ref1.length; _i < _len; _i++) {
-        s = _ref1[_i];
-        s();
-      }
-      this.subscriptions = [];
-      return this.starting = [];
-    };
-
-    CompositeUnsubscribe.prototype.count = function() {
-      if (this.unsubscribed) {
-        return 0;
-      }
-      return this.subscriptions.length + this.starting.length;
-    };
-
-    CompositeUnsubscribe.prototype.empty = function() {
-      return this.count() === 0;
-    };
-
-    return CompositeUnsubscribe;
-
-  })();
-
-  Bacon.CompositeUnsubscribe = CompositeUnsubscribe;
-
-  Some = (function() {
-    function Some(value) {
-      this.value = value;
-    }
-
-    Some.prototype.getOrElse = function() {
-      return this.value;
-    };
-
-    Some.prototype.get = function() {
-      return this.value;
-    };
-
-    Some.prototype.filter = function(f) {
-      if (f(this.value)) {
-        return new Some(this.value);
-      } else {
-        return None;
-      }
-    };
-
-    Some.prototype.map = function(f) {
-      return new Some(f(this.value));
-    };
-
-    Some.prototype.forEach = function(f) {
-      return f(this.value);
-    };
-
-    Some.prototype.isDefined = true;
-
-    Some.prototype.toArray = function() {
-      return [this.value];
-    };
-
-    Some.prototype.inspect = function() {
-      return "Some(" + this.value + ")";
-    };
-
-    Some.prototype.toString = function() {
-      return this.inspect();
-    };
-
-    return Some;
-
-  })();
-
-  None = {
-    getOrElse: function(value) {
-      return value;
-    },
-    filter: function() {
-      return None;
-    },
-    map: function() {
-      return None;
-    },
-    forEach: function() {},
-    isDefined: false,
-    toArray: function() {
-      return [];
-    },
-    inspect: function() {
-      return "None";
-    },
-    toString: function() {
-      return this.inspect();
-    }
-  };
-
-  UpdateBarrier = (function() {
-    var afterTransaction, afters, currentEventId, flush, flushDepsOf, flushWaiters, hasWaiters, inTransaction, rootEvent, waiterObs, waiters, whenDoneWith, wrappedSubscribe;
-    rootEvent = void 0;
-    waiterObs = [];
-    waiters = {};
-    afters = [];
-    afterTransaction = function(f) {
-      if (rootEvent) {
-        return afters.push(f);
-      } else {
-        return f();
-      }
-    };
-    whenDoneWith = function(obs, f) {
-      var obsWaiters;
-      if (rootEvent) {
-        obsWaiters = waiters[obs.id];
-        if (obsWaiters == null) {
-          obsWaiters = waiters[obs.id] = [f];
-          return waiterObs.push(obs);
-        } else {
-          return obsWaiters.push(f);
-        }
-      } else {
-        return f();
-      }
-    };
-    flush = function() {
-      while (waiterObs.length > 0) {
-        flushWaiters(0);
-      }
-      return void 0;
-    };
-    flushWaiters = function(index) {
-      var f, obs, obsId, obsWaiters, _i, _len;
-      obs = waiterObs[index];
-      obsId = obs.id;
-      obsWaiters = waiters[obsId];
-      waiterObs.splice(index, 1);
-      delete waiters[obsId];
-      flushDepsOf(obs);
-      for (_i = 0, _len = obsWaiters.length; _i < _len; _i++) {
-        f = obsWaiters[_i];
-        f();
-      }
-      return void 0;
-    };
-    flushDepsOf = function(obs) {
-      var dep, deps, index, _i, _len;
-      deps = obs.internalDeps();
-      for (_i = 0, _len = deps.length; _i < _len; _i++) {
-        dep = deps[_i];
-        flushDepsOf(dep);
-        if (waiters[dep.id]) {
-          index = _.indexOf(waiterObs, dep);
-          flushWaiters(index);
-        }
-      }
-      return void 0;
-    };
-    inTransaction = function(event, context, f, args) {
-      var result;
-      if (rootEvent) {
-        return f.apply(context, args);
-      } else {
-        rootEvent = event;
-        result = f.apply(context, args);
-        flush();
-        rootEvent = void 0;
-        while (afters.length > 0) {
-          afters.shift()();
-        }
-        return result;
-      }
-    };
-    currentEventId = function() {
-      if (rootEvent) {
-        return rootEvent.id;
-      } else {
-        return void 0;
-      }
-    };
-    wrappedSubscribe = function(obs, sink) {
-      var doUnsub, unsub, unsubd;
-      unsubd = false;
-      doUnsub = function() {};
-      unsub = function() {
-        unsubd = true;
-        return doUnsub();
-      };
-      doUnsub = obs.dispatcher.subscribe(function(event) {
-        return afterTransaction(function() {
-          var reply;
-          if (!unsubd) {
-            reply = sink(event);
-            if (reply === Bacon.noMore) {
-              return unsub();
-            }
-          }
-        });
-      });
-      return unsub;
-    };
-    hasWaiters = function() {
-      return waiterObs.length > 0;
-    };
-    return {
-      whenDoneWith: whenDoneWith,
-      hasWaiters: hasWaiters,
-      inTransaction: inTransaction,
-      currentEventId: currentEventId,
-      wrappedSubscribe: wrappedSubscribe
-    };
-  })();
-
-  Bacon.EventStream = EventStream;
-
-  Bacon.Property = Property;
-
-  Bacon.Observable = Observable;
-
-  Bacon.Bus = Bus;
-
-  Bacon.Initial = Initial;
-
-  Bacon.Next = Next;
-
-  Bacon.End = End;
-
-  Bacon.Error = Error;
-
-  nop = function() {};
-
-  latter = function(_, x) {
-    return x;
-  };
-
-  former = function(x, _) {
-    return x;
-  };
-
-  initial = function(value) {
-    return new Initial(value, true);
-  };
-
-  next = function(value) {
-    return new Next(value, true);
-  };
-
-  end = function() {
-    return new End();
-  };
-
-  toEvent = function(x) {
-    if (x instanceof Event) {
-      return x;
-    } else {
-      return next(x);
-    }
-  };
-
-  cloneArray = function(xs) {
-    return xs.slice(0);
-  };
-
-  assert = function(message, condition) {
-    if (!condition) {
-      throw new Exception(message);
-    }
-  };
-
-  assertEventStream = function(event) {
-    if (!(event instanceof EventStream)) {
-      throw new Exception("not an EventStream : " + event);
-    }
-  };
-
-  assertFunction = function(f) {
-    return assert("not a function : " + f, isFunction(f));
-  };
-
-  isFunction = function(f) {
-    return typeof f === "function";
-  };
-
-  isArray = function(xs) {
-    return xs instanceof Array;
-  };
-
-  isObservable = function(x) {
-    return x instanceof Observable;
-  };
-
-  assertArray = function(xs) {
-    if (!isArray(xs)) {
-      throw new Exception("not an array : " + xs);
-    }
-  };
-
-  assertNoArguments = function(args) {
-    return assert("no arguments supported", args.length === 0);
-  };
-
-  assertString = function(x) {
-    if (typeof x !== "string") {
-      throw new Exception("not a string : " + x);
-    }
-  };
-
-  partiallyApplied = function(f, applied) {
-    return function() {
-      var args;
-      args = 1 <= arguments.length ? __slice.call(arguments, 0) : [];
-      return f.apply(null, applied.concat(args));
-    };
-  };
-
-  makeSpawner = function(args) {
-    if (args.length === 1 && isObservable(args[0])) {
-      return _.always(args[0]);
-    } else {
-      return makeFunctionArgs(args);
-    }
-  };
-
-  makeFunctionArgs = function(args) {
-    args = Array.prototype.slice.call(args);
-    return makeFunction_.apply(null, args);
-  };
-
-  makeFunction_ = withMethodCallSupport(function() {
-    var args, f;
-    f = arguments[0], args = 2 <= arguments.length ? __slice.call(arguments, 1) : [];
-    if (isFunction(f)) {
-      if (args.length) {
-        return partiallyApplied(f, args);
-      } else {
-        return f;
-      }
-    } else if (isFieldKey(f)) {
-      return toFieldExtractor(f, args);
-    } else {
-      return _.always(f);
-    }
-  });
-
-  makeFunction = function(f, args) {
-    return makeFunction_.apply(null, [f].concat(__slice.call(args)));
-  };
-
-  makeObservable = function(x) {
-    if (isObservable(x)) {
-      return x;
-    } else {
-      return Bacon.once(x);
-    }
-  };
-
-  isFieldKey = function(f) {
-    return (typeof f === "string") && f.length > 1 && f.charAt(0) === ".";
-  };
-
-  Bacon.isFieldKey = isFieldKey;
-
-  toFieldExtractor = function(f, args) {
-    var partFuncs, parts;
-    parts = f.slice(1).split(".");
-    partFuncs = _.map(toSimpleExtractor(args), parts);
-    return function(value) {
-      var _i, _len;
-      for (_i = 0, _len = partFuncs.length; _i < _len; _i++) {
-        f = partFuncs[_i];
-        value = f(value);
-      }
-      return value;
-    };
-  };
-
-  toSimpleExtractor = function(args) {
-    return function(key) {
-      return function(value) {
-        var fieldValue;
-        if (value == null) {
-          return void 0;
-        } else {
-          fieldValue = value[key];
-          if (isFunction(fieldValue)) {
-            return fieldValue.apply(value, args);
-          } else {
-            return fieldValue;
-          }
-        }
-      };
-    };
-  };
-
-  toFieldKey = function(f) {
-    return f.slice(1);
-  };
-
-  toCombinator = function(f) {
-    var key;
-    if (isFunction(f)) {
-      return f;
-    } else if (isFieldKey(f)) {
-      key = toFieldKey(f);
-      return function(left, right) {
-        return left[key](right);
-      };
-    } else {
-      return assert("not a function or a field key: " + f, false);
-    }
-  };
-
-  toOption = function(v) {
-    if (v instanceof Some || v === None) {
-      return v;
-    } else {
-      return new Some(v);
-    }
-  };
-
-  _ = {
-    indexOf: Array.prototype.indexOf ? function(xs, x) {
-      return xs.indexOf(x);
-    } : function(xs, x) {
-      var i, y, _i, _len;
-      for (i = _i = 0, _len = xs.length; _i < _len; i = ++_i) {
-        y = xs[i];
-        if (x === y) {
-          return i;
-        }
-      }
-      return -1;
-    },
-    indexWhere: function(xs, f) {
-      var i, y, _i, _len;
-      for (i = _i = 0, _len = xs.length; _i < _len; i = ++_i) {
-        y = xs[i];
-        if (f(y)) {
-          return i;
-        }
-      }
-      return -1;
-    },
-    head: function(xs) {
-      return xs[0];
-    },
-    always: function(x) {
-      return function() {
-        return x;
-      };
-    },
-    negate: function(f) {
-      return function(x) {
-        return !f(x);
-      };
-    },
-    empty: function(xs) {
-      return xs.length === 0;
-    },
-    tail: function(xs) {
-      return xs.slice(1, xs.length);
-    },
-    filter: function(f, xs) {
-      var filtered, x, _i, _len;
-      filtered = [];
-      for (_i = 0, _len = xs.length; _i < _len; _i++) {
-        x = xs[_i];
-        if (f(x)) {
-          filtered.push(x);
-        }
-      }
-      return filtered;
-    },
-    map: function(f, xs) {
-      var x, _i, _len, _results;
-      _results = [];
-      for (_i = 0, _len = xs.length; _i < _len; _i++) {
-        x = xs[_i];
-        _results.push(f(x));
-      }
-      return _results;
-    },
-    each: function(xs, f) {
-      var key, value;
-      for (key in xs) {
-        value = xs[key];
-        f(key, value);
-      }
-      return void 0;
-    },
-    toArray: function(xs) {
-      if (isArray(xs)) {
-        return xs;
-      } else {
-        return [xs];
-      }
-    },
-    contains: function(xs, x) {
-      return _.indexOf(xs, x) !== -1;
-    },
-    id: function(x) {
-      return x;
-    },
-    last: function(xs) {
-      return xs[xs.length - 1];
-    },
-    all: function(xs, f) {
-      var x, _i, _len;
-      if (f == null) {
-        f = _.id;
-      }
-      for (_i = 0, _len = xs.length; _i < _len; _i++) {
-        x = xs[_i];
-        if (!f(x)) {
-          return false;
-        }
-      }
-      return true;
-    },
-    any: function(xs, f) {
-      var x, _i, _len;
-      if (f == null) {
-        f = _.id;
-      }
-      for (_i = 0, _len = xs.length; _i < _len; _i++) {
-        x = xs[_i];
-        if (f(x)) {
-          return true;
-        }
-      }
-      return false;
-    },
-    without: function(x, xs) {
-      return _.filter((function(y) {
-        return y !== x;
-      }), xs);
-    },
-    remove: function(x, xs) {
-      var i;
-      i = _.indexOf(xs, x);
-      if (i >= 0) {
-        return xs.splice(i, 1);
-      }
-    },
-    fold: function(xs, seed, f) {
-      var x, _i, _len;
-      for (_i = 0, _len = xs.length; _i < _len; _i++) {
-        x = xs[_i];
-        seed = f(seed, x);
-      }
-      return seed;
-    },
-    flatMap: function(f, xs) {
-      return _.fold(xs, [], (function(ys, x) {
-        return ys.concat(f(x));
-      }));
-    },
-    cached: function(f) {
-      var value;
-      value = None;
-      return function() {
-        if (value === None) {
-          value = f();
-          f = void 0;
-        }
-        return value;
-      };
-    },
-    toString: function(obj) {
-      var ex, internals, key, value;
-      try {
-        recursionDepth++;
-        if (obj == null) {
-          return "undefined";
-        } else if (isFunction(obj)) {
-          return "function";
-        } else if (isArray(obj)) {
-          if (recursionDepth > 5) {
-            return "[..]";
-          }
-          return "[" + _.map(_.toString, obj).toString() + "]";
-        } else if (((obj != null ? obj.toString : void 0) != null) && obj.toString !== Object.prototype.toString) {
-          return obj.toString();
-        } else if (typeof obj === "object") {
-          if (recursionDepth > 5) {
-            return "{..}";
-          }
-          internals = (function() {
-            var _results;
-            _results = [];
-            for (key in obj) {
-              if (!__hasProp.call(obj, key)) continue;
-              value = (function() {
-                try {
-                  return obj[key];
-                } catch (_error) {
-                  ex = _error;
-                  return ex;
-                }
-              })();
-              _results.push(_.toString(key) + ":" + _.toString(value));
-            }
-            return _results;
-          })();
-          return "{" + internals + "}";
-        } else {
-          return obj;
-        }
-      } finally {
-        recursionDepth--;
-      }
-    }
-  };
-
-  recursionDepth = 0;
-
-  Bacon._ = _;
-
-  Bacon.scheduler = {
-    setTimeout: function(f, d) {
-      return setTimeout(f, d);
-    },
-    setInterval: function(f, i) {
-      return setInterval(f, i);
-    },
-    clearInterval: function(id) {
-      return clearInterval(id);
-    },
-    now: function() {
-      return new Date().getTime();
-    }
-  };
-
-  if ((typeof define !== "undefined" && define !== null) && (define.amd != null)) {
-    define([], function() {
-      return Bacon;
-    });
-    this.Bacon = Bacon;
-  } else if ((typeof module !== "undefined" && module !== null) && (module.exports != null)) {
-    module.exports = Bacon;
-    Bacon.Bacon = Bacon;
   } else {
-    this.Bacon = Bacon;
+    return Bacon.never();
+  }
+};
+
+Bacon.repeatedly = function (delay, values) {
+  var index = 0;
+  return withDesc(new Bacon.Desc(Bacon, "repeatedly", [delay, values]), Bacon.fromPoll(delay, function () {
+    return values[index++ % values.length];
+  }));
+};
+
+Bacon.repeat = function (generator) {
+  var index = 0;
+  return Bacon.fromBinder(function (sink) {
+    var flag = false;
+    var reply = Bacon.more;
+    var unsub = function () {};
+    function handleEvent(event) {
+      if (event.isEnd()) {
+        if (!flag) {
+          return flag = true;
+        } else {
+          return subscribeNext();
+        }
+      } else {
+        return reply = sink(event);
+      }
+    };
+    function subscribeNext() {
+      var next;
+      flag = true;
+      while (flag && reply !== Bacon.noMore) {
+        next = generator(index++);
+        flag = false;
+        if (next) {
+          unsub = next.subscribeInternal(handleEvent);
+        } else {
+          sink(endEvent());
+        }
+      }
+      return flag = true;
+    };
+    subscribeNext();
+    return function () {
+      return unsub();
+    };
+  });
+};
+
+Bacon.retry = function (options) {
+  if (!_.isFunction(options.source)) {
+    throw new Exception("'source' option has to be a function");
+  }
+  var source = options.source;
+  var retries = options.retries || 0;
+  var maxRetries = options.maxRetries || retries;
+  var delay = options.delay || function () {
+    return 0;
+  };
+  var isRetryable = options.isRetryable || function () {
+    return true;
+  };
+  var finished = false;
+  var error = null;
+
+  return withDesc(new Bacon.Desc(Bacon, "retry", [options]), Bacon.repeat(function () {
+    function valueStream() {
+      return source().endOnError().withHandler(function (event) {
+        if (event.isError()) {
+          error = event;
+          if (!(isRetryable(error.error) && retries > 0)) {
+            finished = true;
+            return this.push(event);
+          }
+        } else {
+          if (event.hasValue()) {
+            error = null;
+            finished = true;
+          }
+          return this.push(event);
+        }
+      });
+    }
+
+    if (finished) {
+      return null;
+    } else if (error) {
+      var context = {
+        error: error.error,
+        retriesDone: maxRetries - retries
+      };
+      var pause = Bacon.later(delay(context)).filter(false);
+      retries = retries - 1;
+      return pause.concat(Bacon.once().flatMap(valueStream));
+    } else {
+      return valueStream();
+    }
+  }));
+};
+
+Bacon.sequentially = function (delay, values) {
+  var index = 0;
+  return withDesc(new Bacon.Desc(Bacon, "sequentially", [delay, values]), Bacon.fromPoll(delay, function () {
+    var value = values[index++];
+    if (index < values.length) {
+      return value;
+    } else if (index === values.length) {
+      return [value, endEvent()];
+    } else {
+      return endEvent();
+    }
+  }));
+};
+
+Bacon.Observable.prototype.skip = function (count) {
+  return withDesc(new Bacon.Desc(this, "skip", [count]), this.withHandler(function (event) {
+    if (!event.hasValue()) {
+      return this.push(event);
+    } else if (count > 0) {
+      count--;
+      return Bacon.more;
+    } else {
+      return this.push(event);
+    }
+  }));
+};
+
+Bacon.EventStream.prototype.skipUntil = function (starter) {
+  var started = starter.take(1).map(true).toProperty(false);
+  return withDesc(new Bacon.Desc(this, "skipUntil", [starter]), this.filter(started));
+};
+
+Bacon.EventStream.prototype.skipWhile = function (f) {
+  assertObservableIsProperty(f);
+  var ok = false;
+
+  for (var _len20 = arguments.length, args = Array(_len20 > 1 ? _len20 - 1 : 0), _key20 = 1; _key20 < _len20; _key20++) {
+    args[_key20 - 1] = arguments[_key20];
   }
 
+  return convertArgsToFunction(this, f, args, function (f) {
+    return withDesc(new Bacon.Desc(this, "skipWhile", [f]), this.withHandler(function (event) {
+      if (ok || !event.hasValue() || !f(event.value())) {
+        if (event.hasValue()) {
+          ok = true;
+        }
+        return this.push(event);
+      } else {
+        return Bacon.more;
+      }
+    }));
+  });
+};
+
+Bacon.Observable.prototype.slidingWindow = function (n) {
+  var minValues = arguments.length <= 1 || arguments[1] === undefined ? 0 : arguments[1];
+
+  return withDesc(new Bacon.Desc(this, "slidingWindow", [n, minValues]), this.scan([], function (window, value) {
+    return window.concat([value]).slice(-n);
+  }).filter(function (values) {
+    return values.length >= minValues;
+  }));
+};
+
+var spies = [];
+var registerObs = function (obs) {
+  if (spies.length) {
+    if (!registerObs.running) {
+      try {
+        registerObs.running = true;
+        spies.forEach(function (spy) {
+          spy(obs);
+        });
+      } finally {
+        delete registerObs.running;
+      }
+    }
+  }
+};
+
+Bacon.spy = function (spy) {
+  return spies.push(spy);
+};
+
+Bacon.Property.prototype.startWith = function (seed) {
+  return withDesc(new Bacon.Desc(this, "startWith", [seed]), this.scan(seed, function (prev, next) {
+    return next;
+  }));
+};
+
+Bacon.EventStream.prototype.startWith = function (seed) {
+  return withDesc(new Bacon.Desc(this, "startWith", [seed]), Bacon.once(seed).concat(this));
+};
+
+Bacon.Observable.prototype.takeWhile = function (f) {
+  assertObservableIsProperty(f);
+
+  for (var _len21 = arguments.length, args = Array(_len21 > 1 ? _len21 - 1 : 0), _key21 = 1; _key21 < _len21; _key21++) {
+    args[_key21 - 1] = arguments[_key21];
+  }
+
+  return convertArgsToFunction(this, f, args, function (f) {
+    return withDesc(new Bacon.Desc(this, "takeWhile", [f]), this.withHandler(function (event) {
+      if (event.filter(f)) {
+        return this.push(event);
+      } else {
+        this.push(endEvent());
+        return Bacon.noMore;
+      }
+    }));
+  });
+};
+
+Bacon.EventStream.prototype.throttle = function (delay) {
+  return withDesc(new Bacon.Desc(this, "throttle", [delay]), this.bufferWithTime(delay).map(function (values) {
+    return values[values.length - 1];
+  }));
+};
+
+Bacon.Property.prototype.throttle = function (delay) {
+  return this.delayChanges(new Bacon.Desc(this, "throttle", [delay]), function (changes) {
+    return changes.throttle(delay);
+  });
+};
+
+Observable.prototype.firstToPromise = function (PromiseCtr) {
+  var _this12 = this;
+
+  if (typeof PromiseCtr !== "function") {
+    if (typeof Promise === "function") {
+      PromiseCtr = Promise;
+    } else {
+      throw new Exception("There isn't default Promise, use shim or parameter");
+    }
+  }
+
+  return new PromiseCtr(function (resolve, reject) {
+    return _this12.subscribe(function (event) {
+      if (event.hasValue()) {
+        resolve(event.value());
+      }
+      if (event.isError()) {
+        reject(event.error);
+      }
+
+      return Bacon.noMore;
+    });
+  });
+};
+
+Observable.prototype.toPromise = function (PromiseCtr) {
+  return this.last().firstToPromise(PromiseCtr);
+};
+
+Bacon["try"] = function (f) {
+  return function (value) {
+    try {
+      return Bacon.once(f(value));
+    } catch (e) {
+      return new Bacon.Error(e);
+    }
+  };
+};
+
+Bacon.update = function (initial) {
+  function lateBindFirst(f) {
+    return function () {
+      for (var _len23 = arguments.length, args = Array(_len23), _key23 = 0; _key23 < _len23; _key23++) {
+        args[_key23] = arguments[_key23];
+      }
+
+      return function (i) {
+        return f.apply(undefined, [i].concat(args));
+      };
+    };
+  }
+
+  for (var _len22 = arguments.length, patterns = Array(_len22 > 1 ? _len22 - 1 : 0), _key22 = 1; _key22 < _len22; _key22++) {
+    patterns[_key22 - 1] = arguments[_key22];
+  }
+
+  var i = patterns.length - 1;
+  while (i > 0) {
+    if (!(patterns[i] instanceof Function)) {
+      patterns[i] = _.always(patterns[i]);
+    }
+    patterns[i] = lateBindFirst(patterns[i]);
+    i = i - 2;
+  }
+  return withDesc(new Bacon.Desc(Bacon, "update", [initial].concat(patterns)), Bacon.when.apply(Bacon, patterns).scan(initial, function (x, f) {
+    return f(x);
+  }));
+};
+
+Bacon.zipAsArray = function () {
+  for (var _len24 = arguments.length, args = Array(_len24), _key24 = 0; _key24 < _len24; _key24++) {
+    args[_key24] = arguments[_key24];
+  }
+
+  var streams = argumentsToObservables(args);
+  return withDesc(new Bacon.Desc(Bacon, "zipAsArray", streams), Bacon.zipWith(streams, function () {
+    for (var _len25 = arguments.length, xs = Array(_len25), _key25 = 0; _key25 < _len25; _key25++) {
+      xs[_key25] = arguments[_key25];
+    }
+
+    return xs;
+  }));
+};
+
+Bacon.zipWith = function () {
+  for (var _len26 = arguments.length, args = Array(_len26), _key26 = 0; _key26 < _len26; _key26++) {
+    args[_key26] = arguments[_key26];
+  }
+
+  var observablesAndFunction = argumentsToObservablesAndFunction(args);
+  var streams = observablesAndFunction[0];
+  var f = observablesAndFunction[1];
+
+  streams = _.map(function (s) {
+    return s.toEventStream();
+  }, streams);
+  return withDesc(new Bacon.Desc(Bacon, "zipWith", [f].concat(streams)), Bacon.when(streams, f));
+};
+
+Bacon.Observable.prototype.zip = function (other, f) {
+  return withDesc(new Bacon.Desc(this, "zip", [other]), Bacon.zipWith([this, other], f || Array));
+};
+
+if (typeof define !== "undefined" && define !== null && define.amd != null) {
+  define([], function () {
+    return Bacon;
+  });
+  if (typeof this !== "undefined" && this !== null) {
+    this.Bacon = Bacon;
+  }
+} else if (typeof module !== "undefined" && module !== null && module.exports != null) {
+  module.exports = Bacon;
+  Bacon.Bacon = Bacon;
+} else {
+    this.Bacon = Bacon;
+  }
 }).call(this);
 
 }).call(this,typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{}],203:[function(require,module,exports){
+},{}],200:[function(require,module,exports){
 (function (process,global){
 /* @preserve
  * The MIT License (MIT)
@@ -18194,7 +17149,7 @@ module.exports = ret;
 },{"./es5.js":14}]},{},[4])(4)
 });                    ;if (typeof window !== 'undefined' && window !== null) {                               window.P = window.Promise;                                                     } else if (typeof self !== 'undefined' && self !== null) {                             self.P = self.Promise;                                                         }
 }).call(this,require("oMfpAn"),typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{"oMfpAn":216}],204:[function(require,module,exports){
+},{"oMfpAn":213}],201:[function(require,module,exports){
 
 /**
  * This is the web browser implementation of `debug()`.
@@ -18364,7 +17319,7 @@ function localstorage(){
   } catch (e) {}
 }
 
-},{"./debug":205}],205:[function(require,module,exports){
+},{"./debug":202}],202:[function(require,module,exports){
 
 /**
  * This is the common logic for both the Node.js and web browser
@@ -18563,7 +17518,7 @@ function coerce(val) {
   return val;
 }
 
-},{"ms":206}],206:[function(require,module,exports){
+},{"ms":203}],203:[function(require,module,exports){
 /**
  * Helpers.
  */
@@ -18690,7 +17645,7 @@ function plural(ms, n, name) {
   return Math.ceil(ms / n) + ' ' + name + 's';
 }
 
-},{}],207:[function(require,module,exports){
+},{}],204:[function(require,module,exports){
 var pSlice = Array.prototype.slice;
 var objectKeys = require('./lib/keys.js');
 var isArguments = require('./lib/is_arguments.js');
@@ -18786,7 +17741,7 @@ function objEquiv(a, b, opts) {
   return typeof a === typeof b;
 }
 
-},{"./lib/is_arguments.js":208,"./lib/keys.js":209}],208:[function(require,module,exports){
+},{"./lib/is_arguments.js":205,"./lib/keys.js":206}],205:[function(require,module,exports){
 var supportsArgumentsClass = (function(){
   return Object.prototype.toString.call(arguments)
 })() == '[object Arguments]';
@@ -18808,7 +17763,7 @@ function unsupported(object){
     false;
 };
 
-},{}],209:[function(require,module,exports){
+},{}],206:[function(require,module,exports){
 exports = module.exports = typeof Object.keys === 'function'
   ? Object.keys : shim;
 
@@ -18819,7 +17774,7 @@ function shim (obj) {
   return keys;
 }
 
-},{}],210:[function(require,module,exports){
+},{}],207:[function(require,module,exports){
 // http://wiki.commonjs.org/wiki/Unit_Testing/1.0
 //
 // THIS IS NOT TESTED NOR LIKELY TO WORK OUTSIDE V8!
@@ -19181,7 +18136,7 @@ var objectKeys = Object.keys || function (obj) {
   return keys;
 };
 
-},{"util/":226}],211:[function(require,module,exports){
+},{"util/":224}],208:[function(require,module,exports){
 /*!
  * The buffer module from node.js, for the browser.
  *
@@ -20292,7 +19247,7 @@ function assert (test, message) {
   if (!test) throw new Error(message || 'Failed assertion')
 }
 
-},{"base64-js":212,"ieee754":213}],212:[function(require,module,exports){
+},{"base64-js":209,"ieee754":210}],209:[function(require,module,exports){
 var lookup = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/';
 
 ;(function (exports) {
@@ -20418,7 +19373,7 @@ var lookup = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/';
 	exports.fromByteArray = uint8ToBase64
 }(typeof exports === 'undefined' ? (this.base64js = {}) : exports))
 
-},{}],213:[function(require,module,exports){
+},{}],210:[function(require,module,exports){
 exports.read = function (buffer, offset, isLE, mLen, nBytes) {
   var e, m
   var eLen = nBytes * 8 - mLen - 1
@@ -20504,7 +19459,7 @@ exports.write = function (buffer, value, offset, isLE, mLen, nBytes) {
   buffer[offset + i - d] |= s * 128
 }
 
-},{}],214:[function(require,module,exports){
+},{}],211:[function(require,module,exports){
 // Copyright Joyent, Inc. and other Node contributors.
 //
 // Permission is hereby granted, free of charge, to any person obtaining a
@@ -20807,7 +19762,7 @@ function isUndefined(arg) {
   return arg === void 0;
 }
 
-},{}],215:[function(require,module,exports){
+},{}],212:[function(require,module,exports){
 if (typeof Object.create === 'function') {
   // implementation from standard node.js 'util' module
   module.exports = function inherits(ctor, superCtor) {
@@ -20832,7 +19787,7 @@ if (typeof Object.create === 'function') {
   }
 }
 
-},{}],216:[function(require,module,exports){
+},{}],213:[function(require,module,exports){
 // shim for using process in browser
 
 var process = module.exports = {};
@@ -20897,7 +19852,7 @@ process.chdir = function (dir) {
     throw new Error('process.chdir is not supported');
 };
 
-},{}],217:[function(require,module,exports){
+},{}],214:[function(require,module,exports){
 // Copyright Joyent, Inc. and other Node contributors.
 //
 // Permission is hereby granted, free of charge, to any person obtaining a
@@ -20971,7 +19926,7 @@ function onend() {
   });
 }
 
-},{"./readable.js":221,"./writable.js":223,"inherits":215,"process/browser.js":219}],218:[function(require,module,exports){
+},{"./readable.js":218,"./writable.js":220,"inherits":212,"process/browser.js":216}],215:[function(require,module,exports){
 // Copyright Joyent, Inc. and other Node contributors.
 //
 // Permission is hereby granted, free of charge, to any person obtaining a
@@ -21100,7 +20055,7 @@ Stream.prototype.pipe = function(dest, options) {
   return dest;
 };
 
-},{"./duplex.js":217,"./passthrough.js":220,"./readable.js":221,"./transform.js":222,"./writable.js":223,"events":214,"inherits":215}],219:[function(require,module,exports){
+},{"./duplex.js":214,"./passthrough.js":217,"./readable.js":218,"./transform.js":219,"./writable.js":220,"events":211,"inherits":212}],216:[function(require,module,exports){
 // shim for using process in browser
 
 var process = module.exports = {};
@@ -21155,7 +20110,7 @@ process.chdir = function (dir) {
     throw new Error('process.chdir is not supported');
 };
 
-},{}],220:[function(require,module,exports){
+},{}],217:[function(require,module,exports){
 // Copyright Joyent, Inc. and other Node contributors.
 //
 // Permission is hereby granted, free of charge, to any person obtaining a
@@ -21198,7 +20153,7 @@ PassThrough.prototype._transform = function(chunk, encoding, cb) {
   cb(null, chunk);
 };
 
-},{"./transform.js":222,"inherits":215}],221:[function(require,module,exports){
+},{"./transform.js":219,"inherits":212}],218:[function(require,module,exports){
 (function (process){
 // Copyright Joyent, Inc. and other Node contributors.
 //
@@ -22135,7 +21090,7 @@ function indexOf (xs, x) {
 }
 
 }).call(this,require("oMfpAn"))
-},{"./index.js":218,"buffer":211,"events":214,"inherits":215,"oMfpAn":216,"process/browser.js":219,"string_decoder":224}],222:[function(require,module,exports){
+},{"./index.js":215,"buffer":208,"events":211,"inherits":212,"oMfpAn":213,"process/browser.js":216,"string_decoder":221}],219:[function(require,module,exports){
 // Copyright Joyent, Inc. and other Node contributors.
 //
 // Permission is hereby granted, free of charge, to any person obtaining a
@@ -22341,7 +21296,7 @@ function done(stream, er) {
   return stream.push(null);
 }
 
-},{"./duplex.js":217,"inherits":215}],223:[function(require,module,exports){
+},{"./duplex.js":214,"inherits":212}],220:[function(require,module,exports){
 // Copyright Joyent, Inc. and other Node contributors.
 //
 // Permission is hereby granted, free of charge, to any person obtaining a
@@ -22729,7 +21684,7 @@ function endWritable(stream, state, cb) {
   state.ended = true;
 }
 
-},{"./index.js":218,"buffer":211,"inherits":215,"process/browser.js":219}],224:[function(require,module,exports){
+},{"./index.js":215,"buffer":208,"inherits":212,"process/browser.js":216}],221:[function(require,module,exports){
 // Copyright Joyent, Inc. and other Node contributors.
 //
 // Permission is hereby granted, free of charge, to any person obtaining a
@@ -22922,14 +21877,16 @@ function base64DetectIncompleteChar(buffer) {
   return incomplete;
 }
 
-},{"buffer":211}],225:[function(require,module,exports){
+},{"buffer":208}],222:[function(require,module,exports){
+module.exports=require(212)
+},{}],223:[function(require,module,exports){
 module.exports = function isBuffer(arg) {
   return arg && typeof arg === 'object'
     && typeof arg.copy === 'function'
     && typeof arg.fill === 'function'
     && typeof arg.readUInt8 === 'function';
 }
-},{}],226:[function(require,module,exports){
+},{}],224:[function(require,module,exports){
 (function (process,global){
 // Copyright Joyent, Inc. and other Node contributors.
 //
@@ -23519,7 +22476,7 @@ function hasOwnProperty(obj, prop) {
 }
 
 }).call(this,require("oMfpAn"),typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{"./support/isBuffer":225,"inherits":215,"oMfpAn":216}],227:[function(require,module,exports){
+},{"./support/isBuffer":223,"inherits":222,"oMfpAn":213}],225:[function(require,module,exports){
 'use strict';
 
 var asap = require('asap')
@@ -23626,7 +22583,7 @@ function doResolve(fn, onFulfilled, onRejected) {
   }
 }
 
-},{"asap":229}],228:[function(require,module,exports){
+},{"asap":227}],226:[function(require,module,exports){
 'use strict';
 
 //This file contains then/promise specific extensions to the core promise API
@@ -23808,7 +22765,7 @@ Promise.prototype['catch'] = function (onRejected) {
   return this.then(null, onRejected);
 }
 
-},{"./core.js":227,"asap":229}],229:[function(require,module,exports){
+},{"./core.js":225,"asap":227}],227:[function(require,module,exports){
 (function (process){
 
 // Use the fastest possible means to execute a task in a future turn
@@ -23925,7 +22882,7 @@ module.exports = asap;
 
 
 }).call(this,require("oMfpAn"))
-},{"oMfpAn":216}],230:[function(require,module,exports){
+},{"oMfpAn":213}],228:[function(require,module,exports){
 // Some code originally from async_storage.js in
 // [Gaia](https://github.com/mozilla-b2g/gaia).
 (function() {
@@ -24339,7 +23296,7 @@ module.exports = asap;
     }
 }).call(window);
 
-},{"promise":228}],231:[function(require,module,exports){
+},{"promise":226}],229:[function(require,module,exports){
 // If IndexedDB isn't available, we'll fall back to localStorage.
 // Note that this will have considerable performance and storage
 // side-effects (all data will be serialized on save and only data that
@@ -24834,7 +23791,7 @@ module.exports = asap;
     }
 }).call(window);
 
-},{"promise":228}],232:[function(require,module,exports){
+},{"promise":226}],230:[function(require,module,exports){
 /*
  * Includes code from:
  *
@@ -25422,7 +24379,7 @@ module.exports = asap;
     }
 }).call(window);
 
-},{"promise":228}],233:[function(require,module,exports){
+},{"promise":226}],231:[function(require,module,exports){
 (function() {
     'use strict';
 
@@ -25844,9 +24801,9 @@ module.exports = asap;
     }
 }).call(window);
 
-},{"./drivers/indexeddb":230,"./drivers/localstorage":231,"./drivers/websql":232,"promise":228}],234:[function(require,module,exports){
-module.exports=require(42)
-},{}],235:[function(require,module,exports){
+},{"./drivers/indexeddb":228,"./drivers/localstorage":229,"./drivers/websql":230,"promise":226}],232:[function(require,module,exports){
+module.exports=require(39)
+},{}],233:[function(require,module,exports){
 var LazyWrapper = require('../internal/LazyWrapper'),
     LodashWrapper = require('../internal/LodashWrapper'),
     baseLodash = require('../internal/baseLodash'),
@@ -25973,10 +24930,10 @@ lodash.prototype = baseLodash.prototype;
 
 module.exports = lodash;
 
-},{"../internal/LazyWrapper":239,"../internal/LodashWrapper":240,"../internal/baseLodash":248,"../internal/isObjectLike":268,"../internal/wrapperClone":274,"../lang/isArray":276}],236:[function(require,module,exports){
+},{"../internal/LazyWrapper":237,"../internal/LodashWrapper":238,"../internal/baseLodash":246,"../internal/isObjectLike":266,"../internal/wrapperClone":272,"../lang/isArray":274}],234:[function(require,module,exports){
 module.exports = require('./flowRight');
 
-},{"./flowRight":237}],237:[function(require,module,exports){
+},{"./flowRight":235}],235:[function(require,module,exports){
 var createFlow = require('../internal/createFlow');
 
 /**
@@ -26003,7 +24960,7 @@ var flowRight = createFlow(true);
 
 module.exports = flowRight;
 
-},{"../internal/createFlow":257}],238:[function(require,module,exports){
+},{"../internal/createFlow":255}],236:[function(require,module,exports){
 /** Used as the `TypeError` message for "Functions" methods. */
 var FUNC_ERROR_TEXT = 'Expected a function';
 
@@ -26063,7 +25020,7 @@ function restParam(func, start) {
 
 module.exports = restParam;
 
-},{}],239:[function(require,module,exports){
+},{}],237:[function(require,module,exports){
 var baseCreate = require('./baseCreate'),
     baseLodash = require('./baseLodash');
 
@@ -26091,15 +25048,15 @@ LazyWrapper.prototype.constructor = LazyWrapper;
 
 module.exports = LazyWrapper;
 
-},{"./baseCreate":244,"./baseLodash":248}],240:[function(require,module,exports){
-arguments[4][48][0].apply(exports,arguments)
-},{"./baseCreate":244,"./baseLodash":248}],241:[function(require,module,exports){
-module.exports=require(49)
+},{"./baseCreate":242,"./baseLodash":246}],238:[function(require,module,exports){
+arguments[4][45][0].apply(exports,arguments)
+},{"./baseCreate":242,"./baseLodash":246}],239:[function(require,module,exports){
+module.exports=require(46)
+},{}],240:[function(require,module,exports){
+module.exports=require(47)
+},{}],241:[function(require,module,exports){
+module.exports=require(54)
 },{}],242:[function(require,module,exports){
-module.exports=require(50)
-},{}],243:[function(require,module,exports){
-module.exports=require(57)
-},{}],244:[function(require,module,exports){
 var isObject = require('../lang/isObject');
 
 /**
@@ -26124,15 +25081,15 @@ var baseCreate = (function() {
 
 module.exports = baseCreate;
 
-},{"../lang/isObject":279}],245:[function(require,module,exports){
+},{"../lang/isObject":277}],243:[function(require,module,exports){
+module.exports=require(56)
+},{"./createBaseFor":254}],244:[function(require,module,exports){
+arguments[4][57][0].apply(exports,arguments)
+},{"../object/keysIn":284,"./baseFor":243}],245:[function(require,module,exports){
 module.exports=require(59)
-},{"./createBaseFor":256}],246:[function(require,module,exports){
-arguments[4][60][0].apply(exports,arguments)
-},{"../object/keysIn":286,"./baseFor":245}],247:[function(require,module,exports){
-module.exports=require(62)
-},{"./toObject":272}],248:[function(require,module,exports){
-module.exports=require(66)
-},{}],249:[function(require,module,exports){
+},{"./toObject":270}],246:[function(require,module,exports){
+module.exports=require(63)
+},{}],247:[function(require,module,exports){
 var arrayEach = require('./arrayEach'),
     baseMergeDeep = require('./baseMergeDeep'),
     isArray = require('../lang/isArray'),
@@ -26190,7 +25147,7 @@ function baseMerge(object, source, customizer, stackA, stackB) {
 
 module.exports = baseMerge;
 
-},{"../lang/isArray":276,"../lang/isObject":279,"../lang/isTypedArray":281,"../object/keys":285,"./arrayEach":242,"./baseMergeDeep":250,"./isArrayLike":262,"./isObjectLike":268}],250:[function(require,module,exports){
+},{"../lang/isArray":274,"../lang/isObject":277,"../lang/isTypedArray":279,"../object/keys":283,"./arrayEach":240,"./baseMergeDeep":248,"./isArrayLike":260,"./isObjectLike":266}],248:[function(require,module,exports){
 var arrayCopy = require('./arrayCopy'),
     isArguments = require('../lang/isArguments'),
     isArray = require('../lang/isArray'),
@@ -26259,11 +25216,11 @@ function baseMergeDeep(object, source, key, mergeFunc, customizer, stackA, stack
 
 module.exports = baseMergeDeep;
 
-},{"../lang/isArguments":275,"../lang/isArray":276,"../lang/isPlainObject":280,"../lang/isTypedArray":281,"../lang/toPlainObject":282,"./arrayCopy":241,"./isArrayLike":262}],251:[function(require,module,exports){
+},{"../lang/isArguments":273,"../lang/isArray":274,"../lang/isPlainObject":278,"../lang/isTypedArray":279,"../lang/toPlainObject":280,"./arrayCopy":239,"./isArrayLike":260}],249:[function(require,module,exports){
+module.exports=require(68)
+},{}],250:[function(require,module,exports){
 module.exports=require(71)
-},{}],252:[function(require,module,exports){
-module.exports=require(74)
-},{}],253:[function(require,module,exports){
+},{}],251:[function(require,module,exports){
 /**
  * Converts `value` to a string if it's not one. An empty string is returned
  * for `null` or `undefined` values.
@@ -26278,9 +25235,9 @@ function baseToString(value) {
 
 module.exports = baseToString;
 
-},{}],254:[function(require,module,exports){
-module.exports=require(76)
-},{"../utility/identity":289}],255:[function(require,module,exports){
+},{}],252:[function(require,module,exports){
+module.exports=require(73)
+},{"../utility/identity":287}],253:[function(require,module,exports){
 var bindCallback = require('./bindCallback'),
     isIterateeCall = require('./isIterateeCall'),
     restParam = require('../function/restParam');
@@ -26323,9 +25280,9 @@ function createAssigner(assigner) {
 
 module.exports = createAssigner;
 
-},{"../function/restParam":238,"./bindCallback":254,"./isIterateeCall":264}],256:[function(require,module,exports){
-module.exports=require(81)
-},{"./toObject":272}],257:[function(require,module,exports){
+},{"../function/restParam":236,"./bindCallback":252,"./isIterateeCall":262}],254:[function(require,module,exports){
+module.exports=require(78)
+},{"./toObject":270}],255:[function(require,module,exports){
 var LodashWrapper = require('./LodashWrapper'),
     getData = require('./getData'),
     getFuncName = require('./getFuncName'),
@@ -26401,9 +25358,9 @@ function createFlow(fromRight) {
 
 module.exports = createFlow;
 
-},{"../lang/isArray":276,"./LodashWrapper":240,"./getData":258,"./getFuncName":259,"./isLaziable":266}],258:[function(require,module,exports){
-module.exports=require(92)
-},{"../utility/noop":290,"./metaMap":269}],259:[function(require,module,exports){
+},{"../lang/isArray":274,"./LodashWrapper":238,"./getData":256,"./getFuncName":257,"./isLaziable":264}],256:[function(require,module,exports){
+module.exports=require(89)
+},{"../utility/noop":288,"./metaMap":267}],257:[function(require,module,exports){
 var realNames = require('./realNames');
 
 /**
@@ -26430,13 +25387,13 @@ function getFuncName(func) {
 
 module.exports = getFuncName;
 
-},{"./realNames":270}],260:[function(require,module,exports){
-module.exports=require(94)
-},{"./baseProperty":251}],261:[function(require,module,exports){
-arguments[4][96][0].apply(exports,arguments)
-},{"../lang/isNative":278}],262:[function(require,module,exports){
-arguments[4][100][0].apply(exports,arguments)
-},{"./getLength":260,"./isLength":267}],263:[function(require,module,exports){
+},{"./realNames":268}],258:[function(require,module,exports){
+module.exports=require(91)
+},{"./baseProperty":249}],259:[function(require,module,exports){
+arguments[4][93][0].apply(exports,arguments)
+},{"../lang/isNative":276}],260:[function(require,module,exports){
+arguments[4][97][0].apply(exports,arguments)
+},{"./getLength":258,"./isLength":265}],261:[function(require,module,exports){
 /** Used to detect unsigned integer values. */
 var reIsUint = /^\d+$/;
 
@@ -26462,11 +25419,11 @@ function isIndex(value, length) {
 
 module.exports = isIndex;
 
-},{}],264:[function(require,module,exports){
-arguments[4][102][0].apply(exports,arguments)
-},{"../lang/isObject":279,"./isArrayLike":262,"./isIndex":263}],265:[function(require,module,exports){
-arguments[4][103][0].apply(exports,arguments)
-},{"../lang/isArray":276,"./toObject":272}],266:[function(require,module,exports){
+},{}],262:[function(require,module,exports){
+arguments[4][99][0].apply(exports,arguments)
+},{"../lang/isObject":277,"./isArrayLike":260,"./isIndex":261}],263:[function(require,module,exports){
+arguments[4][100][0].apply(exports,arguments)
+},{"../lang/isArray":274,"./toObject":270}],264:[function(require,module,exports){
 var LazyWrapper = require('./LazyWrapper'),
     getData = require('./getData'),
     getFuncName = require('./getFuncName'),
@@ -26495,7 +25452,7 @@ function isLaziable(func) {
 
 module.exports = isLaziable;
 
-},{"../chain/lodash":235,"./LazyWrapper":239,"./getData":258,"./getFuncName":259}],267:[function(require,module,exports){
+},{"../chain/lodash":233,"./LazyWrapper":237,"./getData":256,"./getFuncName":257}],265:[function(require,module,exports){
 /**
  * Used as the [maximum length](http://ecma-international.org/ecma-262/6.0/#sec-number.max_safe_integer)
  * of an array-like value.
@@ -26517,21 +25474,21 @@ function isLength(value) {
 
 module.exports = isLength;
 
-},{}],268:[function(require,module,exports){
-module.exports=require(106)
+},{}],266:[function(require,module,exports){
+module.exports=require(103)
+},{}],267:[function(require,module,exports){
+arguments[4][106][0].apply(exports,arguments)
+},{"./getNative":259}],268:[function(require,module,exports){
+module.exports=require(107)
 },{}],269:[function(require,module,exports){
-arguments[4][109][0].apply(exports,arguments)
-},{"./getNative":261}],270:[function(require,module,exports){
-module.exports=require(110)
-},{}],271:[function(require,module,exports){
+arguments[4][112][0].apply(exports,arguments)
+},{"../lang/isArguments":273,"../lang/isArray":274,"../object/keysIn":284,"./isIndex":261,"./isLength":265}],270:[function(require,module,exports){
+module.exports=require(113)
+},{"../lang/isObject":277}],271:[function(require,module,exports){
+arguments[4][114][0].apply(exports,arguments)
+},{"../lang/isArray":274,"./baseToString":251}],272:[function(require,module,exports){
 arguments[4][115][0].apply(exports,arguments)
-},{"../lang/isArguments":275,"../lang/isArray":276,"../object/keysIn":286,"./isIndex":263,"./isLength":267}],272:[function(require,module,exports){
-module.exports=require(116)
-},{"../lang/isObject":279}],273:[function(require,module,exports){
-arguments[4][117][0].apply(exports,arguments)
-},{"../lang/isArray":276,"./baseToString":253}],274:[function(require,module,exports){
-arguments[4][118][0].apply(exports,arguments)
-},{"./LazyWrapper":239,"./LodashWrapper":240,"./arrayCopy":241}],275:[function(require,module,exports){
+},{"./LazyWrapper":237,"./LodashWrapper":238,"./arrayCopy":239}],273:[function(require,module,exports){
 var isArrayLike = require('../internal/isArrayLike'),
     isObjectLike = require('../internal/isObjectLike');
 
@@ -26567,7 +25524,7 @@ function isArguments(value) {
 
 module.exports = isArguments;
 
-},{"../internal/isArrayLike":262,"../internal/isObjectLike":268}],276:[function(require,module,exports){
+},{"../internal/isArrayLike":260,"../internal/isObjectLike":266}],274:[function(require,module,exports){
 var getNative = require('../internal/getNative'),
     isLength = require('../internal/isLength'),
     isObjectLike = require('../internal/isObjectLike');
@@ -26609,7 +25566,7 @@ var isArray = nativeIsArray || function(value) {
 
 module.exports = isArray;
 
-},{"../internal/getNative":261,"../internal/isLength":267,"../internal/isObjectLike":268}],277:[function(require,module,exports){
+},{"../internal/getNative":259,"../internal/isLength":265,"../internal/isObjectLike":266}],275:[function(require,module,exports){
 var isObject = require('./isObject');
 
 /** `Object#toString` result references. */
@@ -26649,7 +25606,7 @@ function isFunction(value) {
 
 module.exports = isFunction;
 
-},{"./isObject":279}],278:[function(require,module,exports){
+},{"./isObject":277}],276:[function(require,module,exports){
 var isFunction = require('./isFunction'),
     isObjectLike = require('../internal/isObjectLike');
 
@@ -26699,9 +25656,9 @@ function isNative(value) {
 
 module.exports = isNative;
 
-},{"../internal/isObjectLike":268,"./isFunction":277}],279:[function(require,module,exports){
-module.exports=require(124)
-},{}],280:[function(require,module,exports){
+},{"../internal/isObjectLike":266,"./isFunction":275}],277:[function(require,module,exports){
+module.exports=require(121)
+},{}],278:[function(require,module,exports){
 var baseForIn = require('../internal/baseForIn'),
     isArguments = require('./isArguments'),
     isObjectLike = require('../internal/isObjectLike');
@@ -26774,7 +25731,7 @@ function isPlainObject(value) {
 
 module.exports = isPlainObject;
 
-},{"../internal/baseForIn":246,"../internal/isObjectLike":268,"./isArguments":275}],281:[function(require,module,exports){
+},{"../internal/baseForIn":244,"../internal/isObjectLike":266,"./isArguments":273}],279:[function(require,module,exports){
 var isLength = require('../internal/isLength'),
     isObjectLike = require('../internal/isObjectLike');
 
@@ -26850,9 +25807,9 @@ function isTypedArray(value) {
 
 module.exports = isTypedArray;
 
-},{"../internal/isLength":267,"../internal/isObjectLike":268}],282:[function(require,module,exports){
-arguments[4][127][0].apply(exports,arguments)
-},{"../internal/baseCopy":243,"../object/keysIn":286}],283:[function(require,module,exports){
+},{"../internal/isLength":265,"../internal/isObjectLike":266}],280:[function(require,module,exports){
+arguments[4][124][0].apply(exports,arguments)
+},{"../internal/baseCopy":241,"../object/keysIn":284}],281:[function(require,module,exports){
 var baseGet = require('../internal/baseGet'),
     toPath = require('../internal/toPath');
 
@@ -26887,7 +25844,7 @@ function get(object, path, defaultValue) {
 
 module.exports = get;
 
-},{"../internal/baseGet":247,"../internal/toPath":273}],284:[function(require,module,exports){
+},{"../internal/baseGet":245,"../internal/toPath":271}],282:[function(require,module,exports){
 var baseGet = require('../internal/baseGet'),
     baseSlice = require('../internal/baseSlice'),
     isArguments = require('../lang/isArguments'),
@@ -26946,7 +25903,7 @@ function has(object, path) {
 
 module.exports = has;
 
-},{"../array/last":234,"../internal/baseGet":247,"../internal/baseSlice":252,"../internal/isIndex":263,"../internal/isKey":265,"../internal/isLength":267,"../internal/toPath":273,"../lang/isArguments":275,"../lang/isArray":276}],285:[function(require,module,exports){
+},{"../array/last":232,"../internal/baseGet":245,"../internal/baseSlice":250,"../internal/isIndex":261,"../internal/isKey":263,"../internal/isLength":265,"../internal/toPath":271,"../lang/isArguments":273,"../lang/isArray":274}],283:[function(require,module,exports){
 var getNative = require('../internal/getNative'),
     isArrayLike = require('../internal/isArrayLike'),
     isObject = require('../lang/isObject'),
@@ -26993,9 +25950,9 @@ var keys = !nativeKeys ? shimKeys : function(object) {
 
 module.exports = keys;
 
-},{"../internal/getNative":261,"../internal/isArrayLike":262,"../internal/shimKeys":271,"../lang/isObject":279}],286:[function(require,module,exports){
-arguments[4][131][0].apply(exports,arguments)
-},{"../internal/isIndex":263,"../internal/isLength":267,"../lang/isArguments":275,"../lang/isArray":276,"../lang/isObject":279}],287:[function(require,module,exports){
+},{"../internal/getNative":259,"../internal/isArrayLike":260,"../internal/shimKeys":269,"../lang/isObject":277}],284:[function(require,module,exports){
+arguments[4][128][0].apply(exports,arguments)
+},{"../internal/isIndex":261,"../internal/isLength":265,"../lang/isArguments":273,"../lang/isArray":274,"../lang/isObject":277}],285:[function(require,module,exports){
 var baseMerge = require('../internal/baseMerge'),
     createAssigner = require('../internal/createAssigner');
 
@@ -27051,7 +26008,7 @@ var merge = createAssigner(baseMerge);
 
 module.exports = merge;
 
-},{"../internal/baseMerge":249,"../internal/createAssigner":255}],288:[function(require,module,exports){
+},{"../internal/baseMerge":247,"../internal/createAssigner":253}],286:[function(require,module,exports){
 var isIndex = require('../internal/isIndex'),
     isKey = require('../internal/isKey'),
     isObject = require('../lang/isObject'),
@@ -27108,14 +26065,14 @@ function set(object, path, value) {
 
 module.exports = set;
 
-},{"../internal/isIndex":263,"../internal/isKey":265,"../internal/toPath":273,"../lang/isObject":279}],289:[function(require,module,exports){
-module.exports=require(137)
-},{}],290:[function(require,module,exports){
-module.exports=require(138)
-},{}],291:[function(require,module,exports){
+},{"../internal/isIndex":261,"../internal/isKey":263,"../internal/toPath":271,"../lang/isObject":277}],287:[function(require,module,exports){
+module.exports=require(134)
+},{}],288:[function(require,module,exports){
+module.exports=require(135)
+},{}],289:[function(require,module,exports){
 module.exports = require('./lib/');
 
-},{"./lib/":292}],292:[function(require,module,exports){
+},{"./lib/":290}],290:[function(require,module,exports){
 // Load modules
 
 var Stringify = require('./stringify');
@@ -27132,7 +26089,7 @@ module.exports = {
     parse: Parse
 };
 
-},{"./parse":293,"./stringify":294}],293:[function(require,module,exports){
+},{"./parse":291,"./stringify":292}],291:[function(require,module,exports){
 // Load modules
 
 var Utils = require('./utils');
@@ -27300,7 +26257,7 @@ module.exports = function (str, options) {
     return Utils.compact(obj);
 };
 
-},{"./utils":295}],294:[function(require,module,exports){
+},{"./utils":293}],292:[function(require,module,exports){
 // Load modules
 
 var Utils = require('./utils');
@@ -27423,7 +26380,7 @@ module.exports = function (obj, options) {
     return keys.join(delimiter);
 };
 
-},{"./utils":295}],295:[function(require,module,exports){
+},{"./utils":293}],293:[function(require,module,exports){
 // Load modules
 
 
@@ -27615,8 +26572,1395 @@ exports.isBuffer = function (obj) {
               obj.constructor.isBuffer(obj));
 };
 
+},{}],294:[function(require,module,exports){
+/**
+ * Module dependencies.
+ */
+
+var Emitter = require('emitter');
+var reduce = require('reduce');
+
+/**
+ * Root reference for iframes.
+ */
+
+var root;
+if (typeof window !== 'undefined') { // Browser window
+  root = window;
+} else if (typeof self !== 'undefined') { // Web Worker
+  root = self;
+} else { // Other environments
+  root = this;
+}
+
+/**
+ * Noop.
+ */
+
+function noop(){};
+
+/**
+ * Check if `obj` is a host object,
+ * we don't want to serialize these :)
+ *
+ * TODO: future proof, move to compoent land
+ *
+ * @param {Object} obj
+ * @return {Boolean}
+ * @api private
+ */
+
+function isHost(obj) {
+  var str = {}.toString.call(obj);
+
+  switch (str) {
+    case '[object File]':
+    case '[object Blob]':
+    case '[object FormData]':
+      return true;
+    default:
+      return false;
+  }
+}
+
+/**
+ * Determine XHR.
+ */
+
+request.getXHR = function () {
+  if (root.XMLHttpRequest
+      && (!root.location || 'file:' != root.location.protocol
+          || !root.ActiveXObject)) {
+    return new XMLHttpRequest;
+  } else {
+    try { return new ActiveXObject('Microsoft.XMLHTTP'); } catch(e) {}
+    try { return new ActiveXObject('Msxml2.XMLHTTP.6.0'); } catch(e) {}
+    try { return new ActiveXObject('Msxml2.XMLHTTP.3.0'); } catch(e) {}
+    try { return new ActiveXObject('Msxml2.XMLHTTP'); } catch(e) {}
+  }
+  return false;
+};
+
+/**
+ * Removes leading and trailing whitespace, added to support IE.
+ *
+ * @param {String} s
+ * @return {String}
+ * @api private
+ */
+
+var trim = ''.trim
+  ? function(s) { return s.trim(); }
+  : function(s) { return s.replace(/(^\s*|\s*$)/g, ''); };
+
+/**
+ * Check if `obj` is an object.
+ *
+ * @param {Object} obj
+ * @return {Boolean}
+ * @api private
+ */
+
+function isObject(obj) {
+  return obj === Object(obj);
+}
+
+/**
+ * Serialize the given `obj`.
+ *
+ * @param {Object} obj
+ * @return {String}
+ * @api private
+ */
+
+function serialize(obj) {
+  if (!isObject(obj)) return obj;
+  var pairs = [];
+  for (var key in obj) {
+    if (null != obj[key]) {
+      pushEncodedKeyValuePair(pairs, key, obj[key]);
+        }
+      }
+  return pairs.join('&');
+}
+
+/**
+ * Helps 'serialize' with serializing arrays.
+ * Mutates the pairs array.
+ *
+ * @param {Array} pairs
+ * @param {String} key
+ * @param {Mixed} val
+ */
+
+function pushEncodedKeyValuePair(pairs, key, val) {
+  if (Array.isArray(val)) {
+    return val.forEach(function(v) {
+      pushEncodedKeyValuePair(pairs, key, v);
+    });
+  }
+  pairs.push(encodeURIComponent(key)
+    + '=' + encodeURIComponent(val));
+}
+
+/**
+ * Expose serialization method.
+ */
+
+ request.serializeObject = serialize;
+
+ /**
+  * Parse the given x-www-form-urlencoded `str`.
+  *
+  * @param {String} str
+  * @return {Object}
+  * @api private
+  */
+
+function parseString(str) {
+  var obj = {};
+  var pairs = str.split('&');
+  var parts;
+  var pair;
+
+  for (var i = 0, len = pairs.length; i < len; ++i) {
+    pair = pairs[i];
+    parts = pair.split('=');
+    obj[decodeURIComponent(parts[0])] = decodeURIComponent(parts[1]);
+  }
+
+  return obj;
+}
+
+/**
+ * Expose parser.
+ */
+
+request.parseString = parseString;
+
+/**
+ * Default MIME type map.
+ *
+ *     superagent.types.xml = 'application/xml';
+ *
+ */
+
+request.types = {
+  html: 'text/html',
+  json: 'application/json',
+  xml: 'application/xml',
+  urlencoded: 'application/x-www-form-urlencoded',
+  'form': 'application/x-www-form-urlencoded',
+  'form-data': 'application/x-www-form-urlencoded'
+};
+
+/**
+ * Default serialization map.
+ *
+ *     superagent.serialize['application/xml'] = function(obj){
+ *       return 'generated xml here';
+ *     };
+ *
+ */
+
+ request.serialize = {
+   'application/x-www-form-urlencoded': serialize,
+   'application/json': JSON.stringify
+ };
+
+ /**
+  * Default parsers.
+  *
+  *     superagent.parse['application/xml'] = function(str){
+  *       return { object parsed from str };
+  *     };
+  *
+  */
+
+request.parse = {
+  'application/x-www-form-urlencoded': parseString,
+  'application/json': JSON.parse
+};
+
+/**
+ * Parse the given header `str` into
+ * an object containing the mapped fields.
+ *
+ * @param {String} str
+ * @return {Object}
+ * @api private
+ */
+
+function parseHeader(str) {
+  var lines = str.split(/\r?\n/);
+  var fields = {};
+  var index;
+  var line;
+  var field;
+  var val;
+
+  lines.pop(); // trailing CRLF
+
+  for (var i = 0, len = lines.length; i < len; ++i) {
+    line = lines[i];
+    index = line.indexOf(':');
+    field = line.slice(0, index).toLowerCase();
+    val = trim(line.slice(index + 1));
+    fields[field] = val;
+  }
+
+  return fields;
+}
+
+/**
+ * Check if `mime` is json or has +json structured syntax suffix.
+ *
+ * @param {String} mime
+ * @return {Boolean}
+ * @api private
+ */
+
+function isJSON(mime) {
+  return /[\/+]json\b/.test(mime);
+}
+
+/**
+ * Return the mime type for the given `str`.
+ *
+ * @param {String} str
+ * @return {String}
+ * @api private
+ */
+
+function type(str){
+  return str.split(/ *; */).shift();
+};
+
+/**
+ * Return header field parameters.
+ *
+ * @param {String} str
+ * @return {Object}
+ * @api private
+ */
+
+function params(str){
+  return reduce(str.split(/ *; */), function(obj, str){
+    var parts = str.split(/ *= */)
+      , key = parts.shift()
+      , val = parts.shift();
+
+    if (key && val) obj[key] = val;
+    return obj;
+  }, {});
+};
+
+/**
+ * Initialize a new `Response` with the given `xhr`.
+ *
+ *  - set flags (.ok, .error, etc)
+ *  - parse header
+ *
+ * Examples:
+ *
+ *  Aliasing `superagent` as `request` is nice:
+ *
+ *      request = superagent;
+ *
+ *  We can use the promise-like API, or pass callbacks:
+ *
+ *      request.get('/').end(function(res){});
+ *      request.get('/', function(res){});
+ *
+ *  Sending data can be chained:
+ *
+ *      request
+ *        .post('/user')
+ *        .send({ name: 'tj' })
+ *        .end(function(res){});
+ *
+ *  Or passed to `.send()`:
+ *
+ *      request
+ *        .post('/user')
+ *        .send({ name: 'tj' }, function(res){});
+ *
+ *  Or passed to `.post()`:
+ *
+ *      request
+ *        .post('/user', { name: 'tj' })
+ *        .end(function(res){});
+ *
+ * Or further reduced to a single call for simple cases:
+ *
+ *      request
+ *        .post('/user', { name: 'tj' }, function(res){});
+ *
+ * @param {XMLHTTPRequest} xhr
+ * @param {Object} options
+ * @api private
+ */
+
+function Response(req, options) {
+  options = options || {};
+  this.req = req;
+  this.xhr = this.req.xhr;
+  // responseText is accessible only if responseType is '' or 'text' and on older browsers
+  this.text = ((this.req.method !='HEAD' && (this.xhr.responseType === '' || this.xhr.responseType === 'text')) || typeof this.xhr.responseType === 'undefined')
+     ? this.xhr.responseText
+     : null;
+  this.statusText = this.req.xhr.statusText;
+  this.setStatusProperties(this.xhr.status);
+  this.header = this.headers = parseHeader(this.xhr.getAllResponseHeaders());
+  // getAllResponseHeaders sometimes falsely returns "" for CORS requests, but
+  // getResponseHeader still works. so we get content-type even if getting
+  // other headers fails.
+  this.header['content-type'] = this.xhr.getResponseHeader('content-type');
+  this.setHeaderProperties(this.header);
+  this.body = this.req.method != 'HEAD'
+    ? this.parseBody(this.text ? this.text : this.xhr.response)
+    : null;
+}
+
+/**
+ * Get case-insensitive `field` value.
+ *
+ * @param {String} field
+ * @return {String}
+ * @api public
+ */
+
+Response.prototype.get = function(field){
+  return this.header[field.toLowerCase()];
+};
+
+/**
+ * Set header related properties:
+ *
+ *   - `.type` the content type without params
+ *
+ * A response of "Content-Type: text/plain; charset=utf-8"
+ * will provide you with a `.type` of "text/plain".
+ *
+ * @param {Object} header
+ * @api private
+ */
+
+Response.prototype.setHeaderProperties = function(header){
+  // content-type
+  var ct = this.header['content-type'] || '';
+  this.type = type(ct);
+
+  // params
+  var obj = params(ct);
+  for (var key in obj) this[key] = obj[key];
+};
+
+/**
+ * Parse the given body `str`.
+ *
+ * Used for auto-parsing of bodies. Parsers
+ * are defined on the `superagent.parse` object.
+ *
+ * @param {String} str
+ * @return {Mixed}
+ * @api private
+ */
+
+Response.prototype.parseBody = function(str){
+  var parse = request.parse[this.type];
+  return parse && str && (str.length || str instanceof Object)
+    ? parse(str)
+    : null;
+};
+
+/**
+ * Set flags such as `.ok` based on `status`.
+ *
+ * For example a 2xx response will give you a `.ok` of __true__
+ * whereas 5xx will be __false__ and `.error` will be __true__. The
+ * `.clientError` and `.serverError` are also available to be more
+ * specific, and `.statusType` is the class of error ranging from 1..5
+ * sometimes useful for mapping respond colors etc.
+ *
+ * "sugar" properties are also defined for common cases. Currently providing:
+ *
+ *   - .noContent
+ *   - .badRequest
+ *   - .unauthorized
+ *   - .notAcceptable
+ *   - .notFound
+ *
+ * @param {Number} status
+ * @api private
+ */
+
+Response.prototype.setStatusProperties = function(status){
+  // handle IE9 bug: http://stackoverflow.com/questions/10046972/msie-returns-status-code-of-1223-for-ajax-request
+  if (status === 1223) {
+    status = 204;
+  }
+
+  var type = status / 100 | 0;
+
+  // status / class
+  this.status = this.statusCode = status;
+  this.statusType = type;
+
+  // basics
+  this.info = 1 == type;
+  this.ok = 2 == type;
+  this.clientError = 4 == type;
+  this.serverError = 5 == type;
+  this.error = (4 == type || 5 == type)
+    ? this.toError()
+    : false;
+
+  // sugar
+  this.accepted = 202 == status;
+  this.noContent = 204 == status;
+  this.badRequest = 400 == status;
+  this.unauthorized = 401 == status;
+  this.notAcceptable = 406 == status;
+  this.notFound = 404 == status;
+  this.forbidden = 403 == status;
+};
+
+/**
+ * Return an `Error` representative of this response.
+ *
+ * @return {Error}
+ * @api public
+ */
+
+Response.prototype.toError = function(){
+  var req = this.req;
+  var method = req.method;
+  var url = req.url;
+
+  var msg = 'cannot ' + method + ' ' + url + ' (' + this.status + ')';
+  var err = new Error(msg);
+  err.status = this.status;
+  err.method = method;
+  err.url = url;
+
+  return err;
+};
+
+/**
+ * Expose `Response`.
+ */
+
+request.Response = Response;
+
+/**
+ * Initialize a new `Request` with the given `method` and `url`.
+ *
+ * @param {String} method
+ * @param {String} url
+ * @api public
+ */
+
+function Request(method, url) {
+  var self = this;
+  Emitter.call(this);
+  this._query = this._query || [];
+  this.method = method;
+  this.url = url;
+  this.header = {};
+  this._header = {};
+  this.on('end', function(){
+    var err = null;
+    var res = null;
+
+    try {
+      res = new Response(self);
+    } catch(e) {
+      err = new Error('Parser is unable to parse the response');
+      err.parse = true;
+      err.original = e;
+      // issue #675: return the raw response if the response parsing fails
+      err.rawResponse = self.xhr && self.xhr.responseText ? self.xhr.responseText : null;
+      return self.callback(err);
+    }
+
+    self.emit('response', res);
+
+    if (err) {
+      return self.callback(err, res);
+    }
+
+    if (res.status >= 200 && res.status < 300) {
+      return self.callback(err, res);
+    }
+
+    var new_err = new Error(res.statusText || 'Unsuccessful HTTP response');
+    new_err.original = err;
+    new_err.response = res;
+    new_err.status = res.status;
+
+    self.callback(new_err, res);
+  });
+}
+
+/**
+ * Mixin `Emitter`.
+ */
+
+Emitter(Request.prototype);
+
+/**
+ * Allow for extension
+ */
+
+Request.prototype.use = function(fn) {
+  fn(this);
+  return this;
+}
+
+/**
+ * Set timeout to `ms`.
+ *
+ * @param {Number} ms
+ * @return {Request} for chaining
+ * @api public
+ */
+
+Request.prototype.timeout = function(ms){
+  this._timeout = ms;
+  return this;
+};
+
+/**
+ * Clear previous timeout.
+ *
+ * @return {Request} for chaining
+ * @api public
+ */
+
+Request.prototype.clearTimeout = function(){
+  this._timeout = 0;
+  clearTimeout(this._timer);
+  return this;
+};
+
+/**
+ * Abort the request, and clear potential timeout.
+ *
+ * @return {Request}
+ * @api public
+ */
+
+Request.prototype.abort = function(){
+  if (this.aborted) return;
+  this.aborted = true;
+  this.xhr.abort();
+  this.clearTimeout();
+  this.emit('abort');
+  return this;
+};
+
+/**
+ * Set header `field` to `val`, or multiple fields with one object.
+ *
+ * Examples:
+ *
+ *      req.get('/')
+ *        .set('Accept', 'application/json')
+ *        .set('X-API-Key', 'foobar')
+ *        .end(callback);
+ *
+ *      req.get('/')
+ *        .set({ Accept: 'application/json', 'X-API-Key': 'foobar' })
+ *        .end(callback);
+ *
+ * @param {String|Object} field
+ * @param {String} val
+ * @return {Request} for chaining
+ * @api public
+ */
+
+Request.prototype.set = function(field, val){
+  if (isObject(field)) {
+    for (var key in field) {
+      this.set(key, field[key]);
+    }
+    return this;
+  }
+  this._header[field.toLowerCase()] = val;
+  this.header[field] = val;
+  return this;
+};
+
+/**
+ * Remove header `field`.
+ *
+ * Example:
+ *
+ *      req.get('/')
+ *        .unset('User-Agent')
+ *        .end(callback);
+ *
+ * @param {String} field
+ * @return {Request} for chaining
+ * @api public
+ */
+
+Request.prototype.unset = function(field){
+  delete this._header[field.toLowerCase()];
+  delete this.header[field];
+  return this;
+};
+
+/**
+ * Get case-insensitive header `field` value.
+ *
+ * @param {String} field
+ * @return {String}
+ * @api private
+ */
+
+Request.prototype.getHeader = function(field){
+  return this._header[field.toLowerCase()];
+};
+
+/**
+ * Set Content-Type to `type`, mapping values from `request.types`.
+ *
+ * Examples:
+ *
+ *      superagent.types.xml = 'application/xml';
+ *
+ *      request.post('/')
+ *        .type('xml')
+ *        .send(xmlstring)
+ *        .end(callback);
+ *
+ *      request.post('/')
+ *        .type('application/xml')
+ *        .send(xmlstring)
+ *        .end(callback);
+ *
+ * @param {String} type
+ * @return {Request} for chaining
+ * @api public
+ */
+
+Request.prototype.type = function(type){
+  this.set('Content-Type', request.types[type] || type);
+  return this;
+};
+
+/**
+ * Force given parser
+ *
+ * Sets the body parser no matter type.
+ *
+ * @param {Function}
+ * @api public
+ */
+
+Request.prototype.parse = function(fn){
+  this._parser = fn;
+  return this;
+};
+
+/**
+ * Set Accept to `type`, mapping values from `request.types`.
+ *
+ * Examples:
+ *
+ *      superagent.types.json = 'application/json';
+ *
+ *      request.get('/agent')
+ *        .accept('json')
+ *        .end(callback);
+ *
+ *      request.get('/agent')
+ *        .accept('application/json')
+ *        .end(callback);
+ *
+ * @param {String} accept
+ * @return {Request} for chaining
+ * @api public
+ */
+
+Request.prototype.accept = function(type){
+  this.set('Accept', request.types[type] || type);
+  return this;
+};
+
+/**
+ * Set Authorization field value with `user` and `pass`.
+ *
+ * @param {String} user
+ * @param {String} pass
+ * @return {Request} for chaining
+ * @api public
+ */
+
+Request.prototype.auth = function(user, pass){
+  var str = btoa(user + ':' + pass);
+  this.set('Authorization', 'Basic ' + str);
+  return this;
+};
+
+/**
+* Add query-string `val`.
+*
+* Examples:
+*
+*   request.get('/shoes')
+*     .query('size=10')
+*     .query({ color: 'blue' })
+*
+* @param {Object|String} val
+* @return {Request} for chaining
+* @api public
+*/
+
+Request.prototype.query = function(val){
+  if ('string' != typeof val) val = serialize(val);
+  if (val) this._query.push(val);
+  return this;
+};
+
+/**
+ * Write the field `name` and `val` for "multipart/form-data"
+ * request bodies.
+ *
+ * ``` js
+ * request.post('/upload')
+ *   .field('foo', 'bar')
+ *   .end(callback);
+ * ```
+ *
+ * @param {String} name
+ * @param {String|Blob|File} val
+ * @return {Request} for chaining
+ * @api public
+ */
+
+Request.prototype.field = function(name, val){
+  if (!this._formData) this._formData = new root.FormData();
+  this._formData.append(name, val);
+  return this;
+};
+
+/**
+ * Queue the given `file` as an attachment to the specified `field`,
+ * with optional `filename`.
+ *
+ * ``` js
+ * request.post('/upload')
+ *   .attach(new Blob(['<a id="a"><b id="b">hey!</b></a>'], { type: "text/html"}))
+ *   .end(callback);
+ * ```
+ *
+ * @param {String} field
+ * @param {Blob|File} file
+ * @param {String} filename
+ * @return {Request} for chaining
+ * @api public
+ */
+
+Request.prototype.attach = function(field, file, filename){
+  if (!this._formData) this._formData = new root.FormData();
+  this._formData.append(field, file, filename || file.name);
+  return this;
+};
+
+/**
+ * Send `data` as the request body, defaulting the `.type()` to "json" when
+ * an object is given.
+ *
+ * Examples:
+ *
+ *       // manual json
+ *       request.post('/user')
+ *         .type('json')
+ *         .send('{"name":"tj"}')
+ *         .end(callback)
+ *
+ *       // auto json
+ *       request.post('/user')
+ *         .send({ name: 'tj' })
+ *         .end(callback)
+ *
+ *       // manual x-www-form-urlencoded
+ *       request.post('/user')
+ *         .type('form')
+ *         .send('name=tj')
+ *         .end(callback)
+ *
+ *       // auto x-www-form-urlencoded
+ *       request.post('/user')
+ *         .type('form')
+ *         .send({ name: 'tj' })
+ *         .end(callback)
+ *
+ *       // defaults to x-www-form-urlencoded
+  *      request.post('/user')
+  *        .send('name=tobi')
+  *        .send('species=ferret')
+  *        .end(callback)
+ *
+ * @param {String|Object} data
+ * @return {Request} for chaining
+ * @api public
+ */
+
+Request.prototype.send = function(data){
+  var obj = isObject(data);
+  var type = this.getHeader('Content-Type');
+
+  // merge
+  if (obj && isObject(this._data)) {
+    for (var key in data) {
+      this._data[key] = data[key];
+    }
+  } else if ('string' == typeof data) {
+    if (!type) this.type('form');
+    type = this.getHeader('Content-Type');
+    if ('application/x-www-form-urlencoded' == type) {
+      this._data = this._data
+        ? this._data + '&' + data
+        : data;
+    } else {
+      this._data = (this._data || '') + data;
+    }
+  } else {
+    this._data = data;
+  }
+
+  if (!obj || isHost(data)) return this;
+  if (!type) this.type('json');
+  return this;
+};
+
+/**
+ * Invoke the callback with `err` and `res`
+ * and handle arity check.
+ *
+ * @param {Error} err
+ * @param {Response} res
+ * @api private
+ */
+
+Request.prototype.callback = function(err, res){
+  var fn = this._callback;
+  this.clearTimeout();
+  fn(err, res);
+};
+
+/**
+ * Invoke callback with x-domain error.
+ *
+ * @api private
+ */
+
+Request.prototype.crossDomainError = function(){
+  var err = new Error('Request has been terminated\nPossible causes: the network is offline, Origin is not allowed by Access-Control-Allow-Origin, the page is being unloaded, etc.');
+  err.crossDomain = true;
+
+  err.status = this.status;
+  err.method = this.method;
+  err.url = this.url;
+
+  this.callback(err);
+};
+
+/**
+ * Invoke callback with timeout error.
+ *
+ * @api private
+ */
+
+Request.prototype.timeoutError = function(){
+  var timeout = this._timeout;
+  var err = new Error('timeout of ' + timeout + 'ms exceeded');
+  err.timeout = timeout;
+  this.callback(err);
+};
+
+/**
+ * Enable transmission of cookies with x-domain requests.
+ *
+ * Note that for this to work the origin must not be
+ * using "Access-Control-Allow-Origin" with a wildcard,
+ * and also must set "Access-Control-Allow-Credentials"
+ * to "true".
+ *
+ * @api public
+ */
+
+Request.prototype.withCredentials = function(){
+  this._withCredentials = true;
+  return this;
+};
+
+/**
+ * Initiate request, invoking callback `fn(res)`
+ * with an instanceof `Response`.
+ *
+ * @param {Function} fn
+ * @return {Request} for chaining
+ * @api public
+ */
+
+Request.prototype.end = function(fn){
+  var self = this;
+  var xhr = this.xhr = request.getXHR();
+  var query = this._query.join('&');
+  var timeout = this._timeout;
+  var data = this._formData || this._data;
+
+  // store callback
+  this._callback = fn || noop;
+
+  // state change
+  xhr.onreadystatechange = function(){
+    if (4 != xhr.readyState) return;
+
+    // In IE9, reads to any property (e.g. status) off of an aborted XHR will
+    // result in the error "Could not complete the operation due to error c00c023f"
+    var status;
+    try { status = xhr.status } catch(e) { status = 0; }
+
+    if (0 == status) {
+      if (self.timedout) return self.timeoutError();
+      if (self.aborted) return;
+      return self.crossDomainError();
+    }
+    self.emit('end');
+  };
+
+  // progress
+  var handleProgress = function(e){
+    if (e.total > 0) {
+      e.percent = e.loaded / e.total * 100;
+    }
+    e.direction = 'download';
+    self.emit('progress', e);
+  };
+  if (this.hasListeners('progress')) {
+    xhr.onprogress = handleProgress;
+  }
+  try {
+    if (xhr.upload && this.hasListeners('progress')) {
+      xhr.upload.onprogress = handleProgress;
+    }
+  } catch(e) {
+    // Accessing xhr.upload fails in IE from a web worker, so just pretend it doesn't exist.
+    // Reported here:
+    // https://connect.microsoft.com/IE/feedback/details/837245/xmlhttprequest-upload-throws-invalid-argument-when-used-from-web-worker-context
+  }
+
+  // timeout
+  if (timeout && !this._timer) {
+    this._timer = setTimeout(function(){
+      self.timedout = true;
+      self.abort();
+    }, timeout);
+  }
+
+  // querystring
+  if (query) {
+    query = request.serializeObject(query);
+    this.url += ~this.url.indexOf('?')
+      ? '&' + query
+      : '?' + query;
+  }
+
+  // initiate request
+  xhr.open(this.method, this.url, true);
+
+  // CORS
+  if (this._withCredentials) xhr.withCredentials = true;
+
+  // body
+  if ('GET' != this.method && 'HEAD' != this.method && 'string' != typeof data && !isHost(data)) {
+    // serialize stuff
+    var contentType = this.getHeader('Content-Type');
+    var serialize = this._parser || request.serialize[contentType ? contentType.split(';')[0] : ''];
+    if (!serialize && isJSON(contentType)) serialize = request.serialize['application/json'];
+    if (serialize) data = serialize(data);
+  }
+
+  // set header fields
+  for (var field in this.header) {
+    if (null == this.header[field]) continue;
+    xhr.setRequestHeader(field, this.header[field]);
+  }
+
+  // send stuff
+  this.emit('request', this);
+
+  // IE11 xhr.send(undefined) sends 'undefined' string as POST payload (instead of nothing)
+  // We need null here if data is undefined
+  xhr.send(typeof data !== 'undefined' ? data : null);
+  return this;
+};
+
+/**
+ * Faux promise support
+ *
+ * @param {Function} fulfill
+ * @param {Function} reject
+ * @return {Request}
+ */
+
+Request.prototype.then = function (fulfill, reject) {
+  return this.end(function(err, res) {
+    err ? reject(err) : fulfill(res);
+  });
+}
+
+/**
+ * Expose `Request`.
+ */
+
+request.Request = Request;
+
+/**
+ * Issue a request:
+ *
+ * Examples:
+ *
+ *    request('GET', '/users').end(callback)
+ *    request('/users').end(callback)
+ *    request('/users', callback)
+ *
+ * @param {String} method
+ * @param {String|Function} url or callback
+ * @return {Request}
+ * @api public
+ */
+
+function request(method, url) {
+  // callback
+  if ('function' == typeof url) {
+    return new Request('GET', method).end(url);
+  }
+
+  // url first
+  if (1 == arguments.length) {
+    return new Request('GET', method);
+  }
+
+  return new Request(method, url);
+}
+
+/**
+ * GET `url` with optional callback `fn(res)`.
+ *
+ * @param {String} url
+ * @param {Mixed|Function} data or fn
+ * @param {Function} fn
+ * @return {Request}
+ * @api public
+ */
+
+request.get = function(url, data, fn){
+  var req = request('GET', url);
+  if ('function' == typeof data) fn = data, data = null;
+  if (data) req.query(data);
+  if (fn) req.end(fn);
+  return req;
+};
+
+/**
+ * HEAD `url` with optional callback `fn(res)`.
+ *
+ * @param {String} url
+ * @param {Mixed|Function} data or fn
+ * @param {Function} fn
+ * @return {Request}
+ * @api public
+ */
+
+request.head = function(url, data, fn){
+  var req = request('HEAD', url);
+  if ('function' == typeof data) fn = data, data = null;
+  if (data) req.send(data);
+  if (fn) req.end(fn);
+  return req;
+};
+
+/**
+ * DELETE `url` with optional callback `fn(res)`.
+ *
+ * @param {String} url
+ * @param {Function} fn
+ * @return {Request}
+ * @api public
+ */
+
+function del(url, fn){
+  var req = request('DELETE', url);
+  if (fn) req.end(fn);
+  return req;
+};
+
+request['del'] = del;
+request['delete'] = del;
+
+/**
+ * PATCH `url` with optional `data` and callback `fn(res)`.
+ *
+ * @param {String} url
+ * @param {Mixed} data
+ * @param {Function} fn
+ * @return {Request}
+ * @api public
+ */
+
+request.patch = function(url, data, fn){
+  var req = request('PATCH', url);
+  if ('function' == typeof data) fn = data, data = null;
+  if (data) req.send(data);
+  if (fn) req.end(fn);
+  return req;
+};
+
+/**
+ * POST `url` with optional `data` and callback `fn(res)`.
+ *
+ * @param {String} url
+ * @param {Mixed} data
+ * @param {Function} fn
+ * @return {Request}
+ * @api public
+ */
+
+request.post = function(url, data, fn){
+  var req = request('POST', url);
+  if ('function' == typeof data) fn = data, data = null;
+  if (data) req.send(data);
+  if (fn) req.end(fn);
+  return req;
+};
+
+/**
+ * PUT `url` with optional `data` and callback `fn(res)`.
+ *
+ * @param {String} url
+ * @param {Mixed|Function} data or fn
+ * @param {Function} fn
+ * @return {Request}
+ * @api public
+ */
+
+request.put = function(url, data, fn){
+  var req = request('PUT', url);
+  if ('function' == typeof data) fn = data, data = null;
+  if (data) req.send(data);
+  if (fn) req.end(fn);
+  return req;
+};
+
+/**
+ * Expose `request`.
+ */
+
+module.exports = request;
+
+},{"emitter":295,"reduce":296}],295:[function(require,module,exports){
+
+/**
+ * Expose `Emitter`.
+ */
+
+if (typeof module !== 'undefined') {
+  module.exports = Emitter;
+}
+
+/**
+ * Initialize a new `Emitter`.
+ *
+ * @api public
+ */
+
+function Emitter(obj) {
+  if (obj) return mixin(obj);
+};
+
+/**
+ * Mixin the emitter properties.
+ *
+ * @param {Object} obj
+ * @return {Object}
+ * @api private
+ */
+
+function mixin(obj) {
+  for (var key in Emitter.prototype) {
+    obj[key] = Emitter.prototype[key];
+  }
+  return obj;
+}
+
+/**
+ * Listen on the given `event` with `fn`.
+ *
+ * @param {String} event
+ * @param {Function} fn
+ * @return {Emitter}
+ * @api public
+ */
+
+Emitter.prototype.on =
+Emitter.prototype.addEventListener = function(event, fn){
+  this._callbacks = this._callbacks || {};
+  (this._callbacks['$' + event] = this._callbacks['$' + event] || [])
+    .push(fn);
+  return this;
+};
+
+/**
+ * Adds an `event` listener that will be invoked a single
+ * time then automatically removed.
+ *
+ * @param {String} event
+ * @param {Function} fn
+ * @return {Emitter}
+ * @api public
+ */
+
+Emitter.prototype.once = function(event, fn){
+  function on() {
+    this.off(event, on);
+    fn.apply(this, arguments);
+  }
+
+  on.fn = fn;
+  this.on(event, on);
+  return this;
+};
+
+/**
+ * Remove the given callback for `event` or all
+ * registered callbacks.
+ *
+ * @param {String} event
+ * @param {Function} fn
+ * @return {Emitter}
+ * @api public
+ */
+
+Emitter.prototype.off =
+Emitter.prototype.removeListener =
+Emitter.prototype.removeAllListeners =
+Emitter.prototype.removeEventListener = function(event, fn){
+  this._callbacks = this._callbacks || {};
+
+  // all
+  if (0 == arguments.length) {
+    this._callbacks = {};
+    return this;
+  }
+
+  // specific event
+  var callbacks = this._callbacks['$' + event];
+  if (!callbacks) return this;
+
+  // remove all handlers
+  if (1 == arguments.length) {
+    delete this._callbacks['$' + event];
+    return this;
+  }
+
+  // remove specific handler
+  var cb;
+  for (var i = 0; i < callbacks.length; i++) {
+    cb = callbacks[i];
+    if (cb === fn || cb.fn === fn) {
+      callbacks.splice(i, 1);
+      break;
+    }
+  }
+  return this;
+};
+
+/**
+ * Emit `event` with the given args.
+ *
+ * @param {String} event
+ * @param {Mixed} ...
+ * @return {Emitter}
+ */
+
+Emitter.prototype.emit = function(event){
+  this._callbacks = this._callbacks || {};
+  var args = [].slice.call(arguments, 1)
+    , callbacks = this._callbacks['$' + event];
+
+  if (callbacks) {
+    callbacks = callbacks.slice(0);
+    for (var i = 0, len = callbacks.length; i < len; ++i) {
+      callbacks[i].apply(this, args);
+    }
+  }
+
+  return this;
+};
+
+/**
+ * Return array of callbacks for `event`.
+ *
+ * @param {String} event
+ * @return {Array}
+ * @api public
+ */
+
+Emitter.prototype.listeners = function(event){
+  this._callbacks = this._callbacks || {};
+  return this._callbacks['$' + event] || [];
+};
+
+/**
+ * Check if this emitter has `event` handlers.
+ *
+ * @param {String} event
+ * @return {Boolean}
+ * @api public
+ */
+
+Emitter.prototype.hasListeners = function(event){
+  return !! this.listeners(event).length;
+};
+
 },{}],296:[function(require,module,exports){
-var Window, auth, data, env, global, logger, steroids, superglobal, ui;
+
+/**
+ * Reduce `arr` with `fn`.
+ *
+ * @param {Array} arr
+ * @param {Function} fn
+ * @param {Mixed} initial
+ *
+ * TODO: combatible error handling?
+ */
+
+module.exports = function(arr, fn, initial){  
+  var idx = 0;
+  var len = arr.length;
+  var curr = arguments.length == 3
+    ? initial
+    : arr[idx++];
+
+  while (idx < len) {
+    curr = fn.call(null, curr, arr[idx], ++idx, arr);
+  }
+  
+  return curr;
+};
+},{}],297:[function(require,module,exports){
+var Window, data, env, global, logger, pick, steroids, superglobal, ui, without;
+
+without = require('./util/without');
+
+pick = require('./util/pick');
 
 global = typeof window !== "undefined" && window !== null ? window : (Window = require('./mock/window'), new Window());
 
@@ -27652,20 +27996,18 @@ env = require('./core/env')(logger, superglobal);
 
 data = require('./core/data')(logger, superglobal, env);
 
-auth = require('./core/auth')(logger, global, data, env);
-
 ui = require('./core/ui')(steroids, logger, global, superglobal, data);
 
 module.exports = {
   logger: logger,
-  data: data,
   env: env,
   ui: ui,
-  auth: auth,
+  data: without(['users', 'groups', 'session'], data),
+  auth: pick(['users', 'groups', 'session'], data),
   debug: require('./core/debug')(steroids, logger),
   app: require('./core/app')(steroids, logger),
   media: require('./core/media')(steroids, logger),
-  module: require('./core/module')(steroids, logger, superglobal, ui, env, global, data, auth),
+  module: require('./core/module')(steroids, logger, superglobal, ui, env, global, data),
   device: require('./core/device')(steroids, logger),
   internal: {
     Promise: require('bluebird'),
@@ -27680,7 +28022,7 @@ if ((typeof window !== "undefined" && window !== null)) {
 
 
 
-},{"./core/app":298,"./core/auth":303,"./core/data":306,"./core/debug":314,"./core/device":321,"./core/env":327,"./core/logger":328,"./core/media":330,"./core/module":336,"./core/ui":355,"./mock/steroids":367,"./mock/window":368,"baconjs":202,"bluebird":203}],297:[function(require,module,exports){
+},{"./core/app":299,"./core/data":306,"./core/debug":316,"./core/device":323,"./core/env":329,"./core/logger":330,"./core/media":332,"./core/module":339,"./core/ui":358,"./mock/steroids":370,"./mock/window":371,"./util/pick":374,"./util/without":375,"baconjs":199,"bluebird":200}],298:[function(require,module,exports){
 var Promise;
 
 Promise = require('bluebird');
@@ -27752,7 +28094,7 @@ module.exports = function(steroids) {
 
 
 
-},{"bluebird":203}],298:[function(require,module,exports){
+},{"bluebird":200}],299:[function(require,module,exports){
 var Promise, events;
 
 Promise = require('bluebird');
@@ -27781,7 +28123,7 @@ module.exports = function(steroids, log) {
 
 
 
-},{"../../util/document-events":369,"./getLaunchURL":297,"./openURL":299,"./sleep":300,"./splashscreen":301,"./statusBar":302,"bluebird":203}],299:[function(require,module,exports){
+},{"../../util/document-events":372,"./getLaunchURL":298,"./openURL":300,"./sleep":301,"./splashscreen":302,"./statusBar":303,"bluebird":200}],300:[function(require,module,exports){
 var Promise, superify;
 
 Promise = require('bluebird');
@@ -27849,7 +28191,7 @@ module.exports = function(steroids, log) {
 
 
 
-},{"../superify":343,"bluebird":203}],300:[function(require,module,exports){
+},{"../superify":346,"bluebird":200}],301:[function(require,module,exports){
 var Promise, superify;
 
 Promise = require('bluebird');
@@ -27929,7 +28271,7 @@ module.exports = function(steroids, log) {
 
 
 
-},{"../superify":343,"bluebird":203}],301:[function(require,module,exports){
+},{"../superify":346,"bluebird":200}],302:[function(require,module,exports){
 var Promise, superify;
 
 Promise = require('bluebird');
@@ -28015,7 +28357,7 @@ module.exports = function(steroids, log) {
 
 
 
-},{"../superify":343,"bluebird":203}],302:[function(require,module,exports){
+},{"../superify":346,"bluebird":200}],303:[function(require,module,exports){
 var Promise, superify;
 
 Promise = require('bluebird');
@@ -28113,82 +28455,7 @@ module.exports = function(steroids, log) {
 
 
 
-},{"../superify":343,"bluebird":203}],303:[function(require,module,exports){
-module.exports = function(logger, window, data, env) {
-  var users;
-  users = require("./users")(logger, window, data.session, env);
-  return {
-    session: data.session,
-    users: users
-  };
-};
-
-
-
-},{"./users":304}],304:[function(require,module,exports){
-var Promise, data;
-
-data = require('ag-data');
-
-Promise = require('bluebird');
-
-module.exports = function(logger, window, session, env) {
-  var resourceBundle, userModel, usersResourceBundle, _ref;
-  usersResourceBundle = {
-    options: {
-      baseUrl: (env != null ? (_ref = env.auth) != null ? _ref.endpoint : void 0 : void 0) || "",
-      headers: {
-        Authorization: session.getAccessToken() || ""
-      }
-    },
-    resources: {
-      users: {
-        schema: {
-          identifier: "id",
-          fields: {
-            id: {
-              type: "string",
-              identity: true
-            },
-            username: {
-              type: "string"
-            },
-            metadata: {
-              type: "object"
-            },
-            groups: {
-              type: "array"
-            },
-            collection_permissions: {
-              type: "array"
-            },
-            deleted: {
-              type: "boolean"
-            },
-            password: {
-              type: "string"
-            }
-          }
-        }
-      }
-    }
-  };
-  resourceBundle = data.loadResourceBundle(usersResourceBundle);
-  userModel = resourceBundle.createModel("users");
-  userModel.getCurrentUser = function() {
-    var userId;
-    if (userId = session.getUserId()) {
-      return userModel.find(userId);
-    } else {
-      return Promise.reject(new Error("Cannot access current user without a valid session"));
-    }
-  };
-  return userModel;
-};
-
-
-
-},{"ag-data":3,"bluebird":203}],305:[function(require,module,exports){
+},{"../superify":346,"bluebird":200}],304:[function(require,module,exports){
 var Bacon, deepEqual, generateUUID,
   __bind = function(fn, me){ return function(){ return fn.apply(me, arguments); }; };
 
@@ -28199,7 +28466,16 @@ deepEqual = require('deep-equal');
 generateUUID = require('../../util/generate-uuid');
 
 module.exports = function(window) {
-  var PubSubChannel, createChannel, inboundStream, outboundBus;
+  var PubSubChannel, createChannel, getPostMessageStream, inboundStream, outboundBus;
+  getPostMessageStream = function() {
+    var e;
+    try {
+      return Bacon.fromEventTarget(window, "message");
+    } catch (_error) {
+      e = _error;
+      return Bacon.never();
+    }
+  };
   outboundBus = function(channelName, sender) {
     var bus;
     bus = new Bacon.Bus;
@@ -28215,7 +28491,7 @@ module.exports = function(window) {
     return bus;
   };
   inboundStream = function(channelName, receiver) {
-    return Bacon.fromEventTarget(window, "message").filter(function(event) {
+    return getPostMessageStream().filter(function(event) {
       return (event.data.channel === channelName) && !deepEqual(event.data.sender, receiver);
     }).map(function(event) {
       return event.data.message;
@@ -28281,7 +28557,50 @@ module.exports = function(window) {
 
 
 
-},{"../../util/generate-uuid":370,"baconjs":202,"deep-equal":207}],306:[function(require,module,exports){
+},{"../../util/generate-uuid":373,"baconjs":199,"deep-equal":204}],305:[function(require,module,exports){
+var Promise;
+
+Promise = require('bluebird');
+
+module.exports = function(env, session, loadResourceBundle) {
+  var GroupModel, groupsResourceBundle, _ref;
+  groupsResourceBundle = {
+    options: {
+      baseUrl: (env != null ? (_ref = env.auth) != null ? _ref.endpoint : void 0 : void 0) || ""
+    },
+    resources: {
+      groups: {
+        schema: {
+          identifier: "id",
+          fields: {
+            id: {
+              type: "string",
+              identity: true
+            },
+            name: {
+              type: "string"
+            },
+            description: {
+              type: "string"
+            },
+            users: {
+              type: "array"
+            },
+            collection_permissions: {
+              type: "array"
+            }
+          }
+        }
+      }
+    }
+  };
+  GroupModel = loadResourceBundle(groupsResourceBundle).createModel("groups");
+  return GroupModel;
+};
+
+
+
+},{"bluebird":200}],306:[function(require,module,exports){
 var Promise, data;
 
 Promise = require('bluebird');
@@ -28289,44 +28608,41 @@ Promise = require('bluebird');
 data = require('ag-data');
 
 module.exports = function(logger, superglobal, env) {
-  var adapters, channel, defaultAsyncStorageAdapter, model, property, requests, session, storage, syncLocalStorage;
+  var adapters, channel, defaultAsyncStorageAdapter, groups, loadResourceBundle, model, property, session, syncLocalStorage, users;
   channel = require('./channel')(superglobal);
   property = require('./storage/property')(logger, superglobal, channel);
   adapters = require('./storage/adapters')(superglobal);
   syncLocalStorage = require('./storage/adapters/sync-local-storage')(superglobal);
   session = require('./session')(syncLocalStorage);
   defaultAsyncStorageAdapter = adapters.localStorage;
-  model = require('./model')(logger, superglobal, defaultAsyncStorageAdapter, session, env);
-  storage = {
-    adapters: adapters,
-    property: property
-  };
-  requests = data.requests;
+  loadResourceBundle = require('./model/load-resource-bundle')(logger, session, defaultAsyncStorageAdapter);
+  model = require('./model')(logger, superglobal, env, loadResourceBundle);
+  users = require('./users')(env, session, loadResourceBundle);
+  groups = require('./groups')(env, session, loadResourceBundle);
   return {
     channel: channel,
     model: model,
-    storage: storage,
     session: session,
-    requests: requests
+    users: users,
+    groups: groups,
+    storage: {
+      adapters: adapters,
+      property: property
+    },
+    requests: data.requests
   };
 };
 
 
 
-},{"./channel":305,"./model":307,"./session":309,"./storage/adapters":310,"./storage/adapters/sync-local-storage":312,"./storage/property":313,"ag-data":3,"bluebird":203}],307:[function(require,module,exports){
-var Bacon, DEFAULT_BACKEND_POLL_INTERVAL_MILLISECONDS, DEFAULT_CACHE_POLL_INTERVAL_MILLISECONDS, data, defaultPollBehavior;
+},{"./channel":304,"./groups":305,"./model":307,"./model/load-resource-bundle":309,"./session":310,"./storage/adapters":311,"./storage/adapters/sync-local-storage":313,"./storage/property":314,"./users":315,"ag-data":3,"bluebird":200}],307:[function(require,module,exports){
+var Bacon, data;
 
 data = require('ag-data');
 
 Bacon = require('baconjs');
 
-defaultPollBehavior = require('./model/default-poll-behavior');
-
-DEFAULT_BACKEND_POLL_INTERVAL_MILLISECONDS = 10000;
-
-DEFAULT_CACHE_POLL_INTERVAL_MILLISECONDS = 1000;
-
-module.exports = function(logger, superglobal, getDefaultCacheStorage, session, env) {
+module.exports = function(logger, superglobal, env, loadResourceBundle) {
 
   /*
     * @namespace supersonic.data
@@ -28375,43 +28691,9 @@ module.exports = function(logger, superglobal, getDefaultCacheStorage, session, 
     * // Persist our new Task instance to the cloud
     * takeOutTheTrash.save();
    */
-  var createModel, withDefaults;
-  withDefaults = function(name, options) {
-    var _ref, _ref1;
-    if (((_ref = options.cache) != null ? _ref.enabled : void 0) !== false) {
-      if (options.cache == null) {
-        options.cache = {};
-      }
-      options.cache.enabled = true;
-    }
-    if (options.cache.enabled) {
-      if (options.cache.storage == null) {
-        options.cache.storage = getDefaultCacheStorage();
-      }
-    }
-    if (((_ref1 = options.headers) != null ? _ref1.Authorization : void 0) == null) {
-      if (options.headers == null) {
-        options.headers = {};
-      }
-      options.headers.Authorization = session.getAccessToken();
-    }
-    if (options.followable == null) {
-      options.followable = {
-        poll: defaultPollBehavior(name),
-        interval: (function() {
-          switch (options.cache.enabled) {
-            case true:
-              return DEFAULT_CACHE_POLL_INTERVAL_MILLISECONDS;
-            default:
-              return DEFAULT_BACKEND_POLL_INTERVAL_MILLISECONDS;
-          }
-        })()
-      };
-    }
-    return options;
-  };
+  var createModel;
   return createModel = (function() {
-    var bundle, bundleDefinition, err;
+    var bundleDefinition, err;
     bundleDefinition = (function() {
       var _ref, _ref1;
       switch (false) {
@@ -28428,21 +28710,7 @@ module.exports = function(logger, superglobal, getDefaultCacheStorage, session, 
       };
     }
     try {
-      bundle = data.loadResourceBundle(bundleDefinition);
-      return function(name, options) {
-        var err;
-        if (options == null) {
-          options = {};
-        }
-        options = withDefaults(name, options);
-        try {
-          return bundle.createModel(name, options);
-        } catch (_error) {
-          err = _error;
-          logger.error("Tried to access cloud resource '" + name + "', but it is not a configured resource");
-          throw new Error("Could not load model " + name + ": " + err);
-        }
-      };
+      return loadResourceBundle(bundleDefinition).createModel;
     } catch (_error) {
       err = _error;
       logger.error("Tried to access a cloud resource, but the configured cloud resource bundle could not be loaded");
@@ -28781,7 +29049,7 @@ module.exports = function(logger, superglobal, getDefaultCacheStorage, session, 
 
 
 
-},{"./model/default-poll-behavior":308,"ag-data":3,"baconjs":202}],308:[function(require,module,exports){
+},{"ag-data":3,"baconjs":199}],308:[function(require,module,exports){
 var Bacon, debug, visibility;
 
 Bacon = require('baconjs');
@@ -28812,11 +29080,84 @@ module.exports = function(name) {
 
 
 
-},{"../../../util/document-events":369,"baconjs":202,"debug":204}],309:[function(require,module,exports){
-var SessionValidationError, isValidRawSession, validateSession,
+},{"../../../util/document-events":372,"baconjs":199,"debug":201}],309:[function(require,module,exports){
+var DEFAULT_BACKEND_POLL_INTERVAL_MILLISECONDS, DEFAULT_CACHE_POLL_INTERVAL_MILLISECONDS, data, defaultPollBehavior;
+
+data = require('ag-data');
+
+defaultPollBehavior = require('./default-poll-behavior');
+
+DEFAULT_BACKEND_POLL_INTERVAL_MILLISECONDS = 10000;
+
+DEFAULT_CACHE_POLL_INTERVAL_MILLISECONDS = 1000;
+
+module.exports = function(logger, session, getDefaultCacheStorage) {
+  var loadResourceBundle, withDefaults;
+  withDefaults = function(name, options) {
+    var _ref, _ref1;
+    if (((_ref = options.cache) != null ? _ref.enabled : void 0) !== false) {
+      if (options.cache == null) {
+        options.cache = {};
+      }
+      options.cache.enabled = true;
+    }
+    if (options.cache.enabled) {
+      if (options.cache.storage == null) {
+        options.cache.storage = getDefaultCacheStorage();
+      }
+    }
+    if (((_ref1 = options.headers) != null ? _ref1.Authorization : void 0) == null) {
+      if (options.headers == null) {
+        options.headers = {};
+      }
+      options.headers.Authorization = session.getAccessToken();
+    }
+    if (options.followable == null) {
+      options.followable = {
+        poll: defaultPollBehavior(name),
+        interval: (function() {
+          switch (options.cache.enabled) {
+            case true:
+              return DEFAULT_CACHE_POLL_INTERVAL_MILLISECONDS;
+            default:
+              return DEFAULT_BACKEND_POLL_INTERVAL_MILLISECONDS;
+          }
+        })()
+      };
+    }
+    return options;
+  };
+  return loadResourceBundle = function(bundleDefinition) {
+    var bundle;
+    bundle = data.loadResourceBundle(bundleDefinition);
+    return {
+      createModel: function(name, options) {
+        var err;
+        if (options == null) {
+          options = {};
+        }
+        options = withDefaults(name, options);
+        try {
+          return bundle.createModel(name, options);
+        } catch (_error) {
+          err = _error;
+          logger.error("Tried to access cloud resource '" + name + "', but it is not a configured resource");
+          throw new Error("Could not load model " + name + ": " + err);
+        }
+      }
+    };
+  };
+};
+
+
+
+},{"./default-poll-behavior":308,"ag-data":3}],310:[function(require,module,exports){
+var SessionValidationError, debug, isValidRawSession, validateSession,
   __bind = function(fn, me){ return function(){ return fn.apply(me, arguments); }; },
   __hasProp = {}.hasOwnProperty,
   __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; };
+
+debug = require('debug')('supersonic:auth:session');
 
 module.exports = function(localStorage) {
   var Session;
@@ -28835,6 +29176,7 @@ module.exports = function(localStorage) {
 
     Session.prototype.set = function(rawSession) {
       validateSession(rawSession);
+      debug("Setting session data", rawSession);
       return this.storage.setItem(this.RAW_SESSION_KEY, rawSession);
     };
 
@@ -28843,6 +29185,7 @@ module.exports = function(localStorage) {
     };
 
     Session.prototype.clear = function() {
+      debug("Clearing session data");
       return this.storage.removeItem(this.RAW_SESSION_KEY);
     };
 
@@ -28895,7 +29238,7 @@ SessionValidationError = (function(_super) {
 
 
 
-},{}],310:[function(require,module,exports){
+},{"debug":201}],311:[function(require,module,exports){
 var Promise, data, localforage;
 
 Promise = require('bluebird');
@@ -28931,7 +29274,7 @@ module.exports = function(window) {
 
 
 
-},{"./adapters/async-local-storage":311,"ag-data":3,"bluebird":203,"localforage":233}],311:[function(require,module,exports){
+},{"./adapters/async-local-storage":312,"ag-data":3,"bluebird":200,"localforage":231}],312:[function(require,module,exports){
 var Promise;
 
 Promise = require('bluebird');
@@ -28957,7 +29300,7 @@ module.exports = function(window) {
 
 
 
-},{"./sync-local-storage":312,"bluebird":203}],312:[function(require,module,exports){
+},{"./sync-local-storage":313,"bluebird":200}],313:[function(require,module,exports){
 module.exports = function(window) {
   return {
     getItem: function(key) {
@@ -28987,7 +29330,7 @@ module.exports = function(window) {
 
 
 
-},{}],313:[function(require,module,exports){
+},{}],314:[function(require,module,exports){
 var Bacon,
   __bind = function(fn, me){ return function(){ return fn.apply(me, arguments); }; };
 
@@ -29045,7 +29388,64 @@ module.exports = function(logger, window, channel) {
 
 
 
-},{"baconjs":202}],314:[function(require,module,exports){
+},{"baconjs":199}],315:[function(require,module,exports){
+var Promise;
+
+Promise = require('bluebird');
+
+module.exports = function(env, session, loadResourceBundle) {
+  var UserModel, usersResourceBundle, _ref;
+  usersResourceBundle = {
+    options: {
+      baseUrl: (env != null ? (_ref = env.auth) != null ? _ref.endpoint : void 0 : void 0) || ""
+    },
+    resources: {
+      users: {
+        schema: {
+          identifier: "id",
+          fields: {
+            id: {
+              type: "string",
+              identity: true
+            },
+            username: {
+              type: "string"
+            },
+            metadata: {
+              type: "object"
+            },
+            groups: {
+              type: "array"
+            },
+            collection_permissions: {
+              type: "array"
+            },
+            deleted: {
+              type: "boolean"
+            },
+            password: {
+              type: "string"
+            }
+          }
+        }
+      }
+    }
+  };
+  UserModel = loadResourceBundle(usersResourceBundle).createModel("users");
+  UserModel.getCurrentUser = function() {
+    var userId;
+    if (userId = session.getUserId()) {
+      return UserModel.find(userId);
+    } else {
+      return Promise.reject(new Error("Cannot access current user without a valid session"));
+    }
+  };
+  return UserModel;
+};
+
+
+
+},{"bluebird":200}],316:[function(require,module,exports){
 module.exports = function(steroids, log) {
   return {
     ping: require("./ping")(steroids, log)
@@ -29054,7 +29454,7 @@ module.exports = function(steroids, log) {
 
 
 
-},{"./ping":315}],315:[function(require,module,exports){
+},{"./ping":317}],317:[function(require,module,exports){
 var Promise, superify;
 
 Promise = require('bluebird');
@@ -29104,7 +29504,7 @@ module.exports = function(steroids, log) {
 
 
 
-},{"../superify":343,"bluebird":203}],316:[function(require,module,exports){
+},{"../superify":346,"bluebird":200}],318:[function(require,module,exports){
 var Bacon, Promise, deviceready, superify;
 
 Promise = require('bluebird');
@@ -29262,7 +29662,7 @@ module.exports = function(steroids, log) {
 
 
 
-},{"../../util/document-events":369,"../superify":343,"baconjs":202,"bluebird":203}],317:[function(require,module,exports){
+},{"../../util/document-events":372,"../superify":346,"baconjs":199,"bluebird":200}],319:[function(require,module,exports){
 module.exports = function(steroids, log) {
   var bug, callbacks, override, whenPressed, _addCallback, _handler, _removeCallback;
   bug = log.debuggable("supersonic.device.buttons.back");
@@ -29349,7 +29749,7 @@ module.exports = function(steroids, log) {
 
 
 
-},{}],318:[function(require,module,exports){
+},{}],320:[function(require,module,exports){
 
 /*
   * @namespace supersonic.device
@@ -29365,7 +29765,7 @@ module.exports = function(steroids, log) {
 
 
 
-},{"./back":317}],319:[function(require,module,exports){
+},{"./back":319}],321:[function(require,module,exports){
 var Bacon, Promise, deviceready, superify;
 
 Promise = require('bluebird');
@@ -29519,7 +29919,7 @@ module.exports = function(steroids, log) {
 
 
 
-},{"../../util/document-events":369,"../superify":343,"baconjs":202,"bluebird":203}],320:[function(require,module,exports){
+},{"../../util/document-events":372,"../superify":346,"baconjs":199,"bluebird":200}],322:[function(require,module,exports){
 var Bacon, Promise, deviceready, superify;
 
 Promise = require('bluebird');
@@ -29673,7 +30073,7 @@ module.exports = function(steroids, log) {
 
 
 
-},{"../../util/document-events":369,"../superify":343,"baconjs":202,"bluebird":203}],321:[function(require,module,exports){
+},{"../../util/document-events":372,"../superify":346,"baconjs":199,"bluebird":200}],323:[function(require,module,exports){
 var Promise;
 
 Promise = require('bluebird');
@@ -29694,7 +30094,7 @@ module.exports = function(steroids, log) {
 
 
 
-},{"./accelerometer":316,"./buttons":318,"./compass":319,"./geolocation":320,"./network":322,"./platform":323,"./push":324,"./ready":325,"./vibrate":326,"bluebird":203}],322:[function(require,module,exports){
+},{"./accelerometer":318,"./buttons":320,"./compass":321,"./geolocation":322,"./network":324,"./platform":325,"./push":326,"./ready":327,"./vibrate":328,"bluebird":200}],324:[function(require,module,exports){
 var Promise, deviceready;
 
 Promise = require('bluebird');
@@ -29788,7 +30188,7 @@ module.exports = function(steroids, log) {
 
 
 
-},{"../../util/document-events":369,"bluebird":203}],323:[function(require,module,exports){
+},{"../../util/document-events":372,"bluebird":200}],325:[function(require,module,exports){
 var Promise, deviceready;
 
 Promise = require('bluebird');
@@ -29850,7 +30250,7 @@ module.exports = function(steroids, log) {
 
 
 
-},{"../../util/document-events":369,"bluebird":203}],324:[function(require,module,exports){
+},{"../../util/document-events":372,"bluebird":200}],326:[function(require,module,exports){
 var Bacon, Promise, deviceready, superify;
 
 Promise = require('bluebird');
@@ -29998,7 +30398,7 @@ module.exports = function(steroids, log) {
 
 
 
-},{"../../util/document-events":369,"../superify":343,"baconjs":202,"bluebird":203}],325:[function(require,module,exports){
+},{"../../util/document-events":372,"../superify":346,"baconjs":199,"bluebird":200}],327:[function(require,module,exports){
 var Promise, deviceready;
 
 Promise = require('bluebird');
@@ -30032,7 +30432,7 @@ module.exports = function(steroids, log) {
 
 
 
-},{"../../util/document-events":369,"bluebird":203}],326:[function(require,module,exports){
+},{"../../util/document-events":372,"bluebird":200}],328:[function(require,module,exports){
 var Promise, deviceready;
 
 Promise = require('bluebird');
@@ -30070,7 +30470,7 @@ module.exports = function(steroids, log) {
 
 
 
-},{"../../util/document-events":369,"bluebird":203}],327:[function(require,module,exports){
+},{"../../util/document-events":372,"bluebird":200}],329:[function(require,module,exports){
 module.exports = function(logger, superglobal) {
   var _ref;
   return ((_ref = superglobal.appgyver) != null ? _ref.environment : void 0) || {
@@ -30080,7 +30480,7 @@ module.exports = function(logger, superglobal) {
 
 
 
-},{}],328:[function(require,module,exports){
+},{}],330:[function(require,module,exports){
 var Bacon, Promise, logMessageEnvelope, logMessageStream, startFlushing,
   __slice = [].slice;
 
@@ -30303,7 +30703,7 @@ module.exports = function(steroids, window) {
 
 
 
-},{"baconjs":202,"bluebird":203}],329:[function(require,module,exports){
+},{"baconjs":199,"bluebird":200}],331:[function(require,module,exports){
 var Promise, deviceready, superify;
 
 Promise = require('bluebird');
@@ -30600,7 +31000,7 @@ module.exports = function(steroids, log) {
 
 
 
-},{"../../util/document-events":369,"../superify":343,"bluebird":203}],330:[function(require,module,exports){
+},{"../../util/document-events":372,"../superify":346,"bluebird":200}],332:[function(require,module,exports){
 var Promise;
 
 Promise = require('bluebird');
@@ -30613,13 +31013,55 @@ module.exports = function(steroids, log) {
 
 
 
-},{"./camera":329,"bluebird":203}],331:[function(require,module,exports){
-var discoverSuperglobalAttributeScope, isIsolatedIframe, querystring;
+},{"./camera":331,"bluebird":200}],333:[function(require,module,exports){
+var Attach;
+
+Attach = (function() {
+  function Attach(element, namespace) {
+    var k, v, _ref;
+    this.element = element;
+    this.namespace = namespace;
+    _ref = this.element.dataset;
+    for (k in _ref) {
+      v = _ref[k];
+      this.namespace.attributes.set(k.replace(/[A-Z]/g, function(letter) {
+        return "-" + (letter.toLowerCase());
+      }), v);
+    }
+  }
+
+  Attach.prototype.namespace = function() {
+    return this.namespace;
+  };
+
+  return Attach;
+
+})();
+
+module.exports = function(attributesFactory) {
+  return function(element) {
+    return function() {
+      var attributes, instance;
+      attributes = attributesFactory();
+      instance = new Attach(element, {
+        attributes: attributes
+      });
+      return instance.namespace;
+    };
+  };
+};
+
+
+
+},{}],334:[function(require,module,exports){
+var debug, discoverSuperglobalAttributeScope, getModuleSrc, isIsolatedIframe, makeQueryParamAttributeGetter, querystring;
+
+debug = require('debug')('supersonic:module:attributes');
 
 querystring = require('qs');
 
 module.exports = function(logger, global) {
-  var forcedAttributes, getAttribute, getForcedAttribute, getGlobalUrlParamAttribute, getModuleFrameAttribute, getSuperglobalUrlParamAttribute, getters, hasAttribute, makeUrlParamAttributeGetter, setForcedAttribute, superglobal;
+  var forcedAttributes, getAttribute, getForcedAttribute, getModuleFrameAttribute, getters, globalQueryParamAttributes, hasAttribute, setForcedAttribute, superglobal, superglobalQueryParamAttribute, _ref;
   superglobal = discoverSuperglobalAttributeScope(global);
   forcedAttributes = {};
   getForcedAttribute = function(name) {
@@ -30636,27 +31078,18 @@ module.exports = function(logger, global) {
     var _ref;
     return global != null ? (_ref = global.frameElement) != null ? typeof _ref.getAttribute === "function" ? _ref.getAttribute("data-" + name) : void 0 : void 0 : void 0;
   };
-  makeUrlParamAttributeGetter = function(context) {
-    var getHrefParamsString, getLocationHrefParams, params;
-    getHrefParamsString = function() {
-      var href;
-      href = (context != null ? context.location.href : void 0) || "";
-      return href.slice(href.indexOf('?') + 1);
-    };
-    getLocationHrefParams = function() {
-      return querystring.parse(getHrefParamsString());
-    };
-    params = null;
-    return function(name) {
-      if (params == null) {
-        params = getLocationHrefParams();
-      }
-      return params[name];
-    };
-  };
-  getGlobalUrlParamAttribute = makeUrlParamAttributeGetter(global);
-  getSuperglobalUrlParamAttribute = makeUrlParamAttributeGetter(superglobal);
-  getters = [getForcedAttribute, getModuleFrameAttribute, getGlobalUrlParamAttribute, getSuperglobalUrlParamAttribute];
+  globalQueryParamAttributes = makeQueryParamAttributeGetter(getModuleSrc(global) || global.location.href);
+  superglobalQueryParamAttribute = makeQueryParamAttributeGetter(getModuleSrc(superglobal) || superglobal.location.href);
+  debug("Picked module attribute discovery locations:", {
+    context: {
+      global: global,
+      superglobal: superglobal
+    },
+    moduleFrameAttributes: global != null ? (_ref = global.frameElement) != null ? _ref.attributes : void 0 : void 0,
+    globalQueryParams: globalQueryParamAttributes.src,
+    superglobalQueryParams: superglobalQueryParamAttribute.src
+  });
+  getters = [getForcedAttribute, getModuleFrameAttribute, globalQueryParamAttributes.get, superglobalQueryParamAttribute.get];
   getAttribute = function(name, defaultValue) {
     var get, value, _i, _len;
     if (defaultValue == null) {
@@ -30710,14 +31143,39 @@ discoverSuperglobalAttributeScope = function(global) {
 };
 
 isIsolatedIframe = function(candidate) {
-  var frameSrc, _ref, _ref1, _ref2;
-  frameSrc = ((_ref = candidate.frameElement) != null ? (_ref1 = _ref.attributes) != null ? (_ref2 = _ref1.getNamedItem('src')) != null ? _ref2.textContent : void 0 : void 0 : void 0) || '';
+  var frameSrc;
+  frameSrc = getModuleSrc(candidate) || '';
   return frameSrc.indexOf('ag-isolate-scope') !== -1;
+};
+
+getModuleSrc = function(global) {
+  var _ref, _ref1, _ref2;
+  return (_ref = global.frameElement) != null ? (_ref1 = _ref.attributes) != null ? (_ref2 = _ref1.getNamedItem('src')) != null ? _ref2.textContent : void 0 : void 0 : void 0;
+};
+
+makeQueryParamAttributeGetter = function(src) {
+  var params, parseQueryStringParams;
+  src || (src = "");
+  parseQueryStringParams = function() {
+    var queryParamString;
+    queryParamString = src.slice(src.indexOf('?') + 1) || "";
+    return querystring.parse(queryParamString);
+  };
+  params = null;
+  return {
+    src: src,
+    get: function(name) {
+      if (params == null) {
+        params = parseQueryStringParams();
+      }
+      return params[name];
+    }
+  };
 };
 
 
 
-},{"qs":291}],332:[function(require,module,exports){
+},{"debug":201,"qs":289}],335:[function(require,module,exports){
 var compose, get, has, isFunction, merge, set;
 
 isFunction = require('lodash/lang/isFunction');
@@ -30846,7 +31304,7 @@ module.exports = function(superglobal, global) {
 
 
 
-},{"lodash/function/compose":236,"lodash/lang/isFunction":277,"lodash/object/get":283,"lodash/object/has":284,"lodash/object/merge":287,"lodash/object/set":288}],333:[function(require,module,exports){
+},{"lodash/function/compose":234,"lodash/lang/isFunction":275,"lodash/object/get":281,"lodash/object/has":282,"lodash/object/merge":285,"lodash/object/set":286}],336:[function(require,module,exports){
 module.exports = function(steroids, superglobal, global) {
   var getCurrentDriver, setCurrentDriver, _base, _base1;
   if (superglobal.ag == null) {
@@ -30880,7 +31338,7 @@ module.exports = function(steroids, superglobal, global) {
 
 
 
-},{"./drivers/mpa":334}],334:[function(require,module,exports){
+},{"./drivers/mpa":337}],337:[function(require,module,exports){
 var Promise;
 
 Promise = require('bluebird');
@@ -31012,7 +31470,7 @@ module.exports = function(steroids) {
 
 
 
-},{"bluebird":203}],335:[function(require,module,exports){
+},{"bluebird":200}],338:[function(require,module,exports){
 var Bacon, Promise, debug;
 
 Promise = require('bluebird');
@@ -31265,10 +31723,11 @@ module.exports = function(window, superglobal) {
   Public API functionalities
    */
   findAll = function(selector) {
+    var _ref, _ref1;
     if (selector == null) {
       selector = IFRAME_SELECTOR;
     }
-    return Array.prototype.slice.call(window.document.body.querySelectorAll(selector));
+    return Array.prototype.slice.call(((_ref = window.document) != null ? (_ref1 = _ref.body) != null ? typeof _ref1.querySelectorAll === "function" ? _ref1.querySelectorAll(selector) : void 0 : void 0 : void 0) || []);
   };
   register = function(element) {
     if (!isValidFrame(element)) {
@@ -31354,10 +31813,13 @@ module.exports = function(window, superglobal) {
 
 
 
-},{"baconjs":202,"bluebird":203,"debug":204}],336:[function(require,module,exports){
-module.exports = function(steroids, logger, superglobal, ui, env, global, data, auth) {
-  var attributes, cordovaSupport, drivers, router;
-  attributes = require('./attributes')(logger, global);
+},{"baconjs":199,"bluebird":200,"debug":201}],339:[function(require,module,exports){
+module.exports = function(steroids, logger, superglobal, ui, env, global, data) {
+  var attributes, attributesFactory, cordovaSupport, drivers, router;
+  attributes = require('./attributes');
+  attributesFactory = function() {
+    return attributes(logger, global);
+  };
   router = require('./router')(logger, env, global);
   drivers = require('./drivers')(steroids, superglobal, global);
   cordovaSupport = require('./cordova-support')(superglobal, global);
@@ -31369,19 +31831,20 @@ module.exports = function(steroids, logger, superglobal, ui, env, global, data, 
     router: router,
     drivers: drivers,
     cordovaSupport: cordovaSupport,
-    attributes: attributes,
+    attributes: attributes(logger, global),
+    attach: require('./attach')(attributesFactory),
     tabset: require('./tabset')(global),
     iframes: require('./iframes')(global, superglobal),
     layers: require('./layers')(logger, router, drivers.current.get, global),
     modal: require('./modal')(logger, router, drivers.current.get, global),
-    notifications: require('./notifications')(data, attributes, auth),
+    notifications: require('./notifications')(data, attributesFactory(), data.session),
     transitions: require('./transitions')(steroids, ui, logger)
   };
 };
 
 
 
-},{"./attributes":331,"./cordova-support":332,"./drivers":333,"./iframes":335,"./layers":337,"./modal":338,"./notifications":339,"./router":340,"./tabset":341,"./transitions":342}],337:[function(require,module,exports){
+},{"./attach":333,"./attributes":334,"./cordova-support":335,"./drivers":336,"./iframes":338,"./layers":340,"./modal":341,"./notifications":342,"./router":343,"./tabset":344,"./transitions":345}],340:[function(require,module,exports){
 var Promise, superify;
 
 Promise = require('bluebird');
@@ -31435,7 +31898,7 @@ module.exports = function(logger, router, getDriver, global) {
 
 
 
-},{"../superify":343,"bluebird":203}],338:[function(require,module,exports){
+},{"../superify":346,"bluebird":200}],341:[function(require,module,exports){
 var Promise, superify;
 
 Promise = require('bluebird');
@@ -31493,7 +31956,7 @@ module.exports = function(logger, router, getDriver, global) {
 
 
 
-},{"../superify":343,"bluebird":203}],339:[function(require,module,exports){
+},{"../superify":346,"bluebird":200}],342:[function(require,module,exports){
 var APPGYVER_NOTIFICATION_RESOURCE_NAME, Promise, merge;
 
 Promise = require('bluebird');
@@ -31502,7 +31965,7 @@ merge = require('lodash/object/merge');
 
 APPGYVER_NOTIFICATION_RESOURCE_NAME = 'AppGyverNotification';
 
-module.exports = function(data, attributes, auth) {
+module.exports = function(data, attributes, session) {
   var createAnnouncer, eventAnnouncer, getRelatedRecordProperties, getRouteProperties, guessContext, makeDefaults;
   createAnnouncer = function(namespace, events, defaults, resourceName) {
     var announcer, e, eventName, eventType, maybeModel, _i, _len;
@@ -31654,7 +32117,7 @@ module.exports = function(data, attributes, auth) {
         throw new Error("A list of event names is required");
       }
       context = guessContext(attributes);
-      defaults = makeDefaults(namespace, context, auth.session);
+      defaults = makeDefaults(namespace, context, session);
       resourceName = (_ref1 = options.resourceName) != null ? _ref1 : APPGYVER_NOTIFICATION_RESOURCE_NAME;
       return createAnnouncer(namespace, events, defaults, resourceName);
     }
@@ -31663,7 +32126,7 @@ module.exports = function(data, attributes, auth) {
 
 
 
-},{"bluebird":203,"lodash/object/merge":287}],340:[function(require,module,exports){
+},{"bluebird":200,"lodash/object/merge":285}],343:[function(require,module,exports){
 var DEFAULT_VIEW_NAME, ROOT_PATH, ROUTE_PATTERN, appendQueryParams, formatPath, merge, qs,
   __indexOf = [].indexOf || function(item) { for (var i = 0, l = this.length; i < l; i++) { if (i in this && this[i] === item) return i; } return -1; };
 
@@ -31826,7 +32289,7 @@ merge = function(left, right) {
 
 
 
-},{"qs":291}],341:[function(require,module,exports){
+},{"qs":289}],344:[function(require,module,exports){
 var debug;
 
 debug = require('debug')('supersonic:module:iframes');
@@ -31968,7 +32431,7 @@ module.exports = function(window) {
 
 
 
-},{"debug":204}],342:[function(require,module,exports){
+},{"debug":201}],345:[function(require,module,exports){
 var Promise, superify;
 
 Promise = require('bluebird');
@@ -32001,7 +32464,7 @@ module.exports = function(steroids, ui, logger) {
 
 
 
-},{"../superify":343,"bluebird":203}],343:[function(require,module,exports){
+},{"../superify":346,"bluebird":200}],346:[function(require,module,exports){
 var Bacon, Promise,
   __slice = [].slice;
 
@@ -32058,7 +32521,7 @@ module.exports = function(namespace, logger) {
         logger.debug("" + namespace + "." + name + " called");
         stream = f.apply(null, args).mapError(function(error) {
           logger.error("" + namespace + "." + name + " produced an error: " + error);
-          return new Bacon.Error(err);
+          return new Bacon.Error(error);
         });
         if ((callbacks != null ? callbacks.onSuccess : void 0) != null) {
           stream.onValue(callbacks.onSuccess);
@@ -32074,7 +32537,7 @@ module.exports = function(namespace, logger) {
 
 
 
-},{"baconjs":202,"bluebird":203}],344:[function(require,module,exports){
+},{"baconjs":199,"bluebird":200}],347:[function(require,module,exports){
 var Promise,
   __bind = function(fn, me){ return function(){ return fn.apply(me, arguments); }; };
 
@@ -32144,7 +32607,7 @@ module.exports = function(steroids, log) {
 
 
 
-},{"bluebird":203}],345:[function(require,module,exports){
+},{"bluebird":200}],348:[function(require,module,exports){
 var Promise;
 
 Promise = require('bluebird');
@@ -32209,7 +32672,7 @@ module.exports = function(steroids, log) {
 
 
 
-},{"bluebird":203}],346:[function(require,module,exports){
+},{"bluebird":200}],349:[function(require,module,exports){
 var Promise,
   __bind = function(fn, me){ return function(){ return fn.apply(me, arguments); }; };
 
@@ -32273,7 +32736,7 @@ module.exports = function(steroids, log) {
 
 
 
-},{"bluebird":203}],347:[function(require,module,exports){
+},{"bluebird":200}],350:[function(require,module,exports){
 var Promise, parseRoute,
   __indexOf = [].indexOf || function(item) { for (var i = 0, l = this.length; i < l; i++) { if (i in this && this[i] === item) return i; } return -1; };
 
@@ -32540,7 +33003,7 @@ module.exports = function(steroids, log) {
 
 
 
-},{"./views/parseRoute":365,"bluebird":203}],348:[function(require,module,exports){
+},{"./views/parseRoute":368,"bluebird":200}],351:[function(require,module,exports){
 var Promise,
   __indexOf = [].indexOf || function(item) { for (var i = 0, l = this.length; i < l; i++) { if (i in this && this[i] === item) return i; } return -1; };
 
@@ -32688,7 +33151,7 @@ module.exports = function(steroids, log) {
 
 
 
-},{"bluebird":203}],349:[function(require,module,exports){
+},{"bluebird":200}],352:[function(require,module,exports){
 var Promise, deviceready, superify;
 
 Promise = require('bluebird');
@@ -32759,7 +33222,7 @@ module.exports = function(steroids, log) {
 
 
 
-},{"../../../util/document-events":369,"../../superify":343,"bluebird":203}],350:[function(require,module,exports){
+},{"../../../util/document-events":372,"../../superify":346,"bluebird":200}],353:[function(require,module,exports){
 var Promise, deviceready, superify;
 
 Promise = require('bluebird');
@@ -32840,7 +33303,7 @@ module.exports = function(steroids, log) {
 
 
 
-},{"../../../util/document-events":369,"../../superify":343,"bluebird":203}],351:[function(require,module,exports){
+},{"../../../util/document-events":372,"../../superify":346,"bluebird":200}],354:[function(require,module,exports){
 
 /*
   * @namespace supersonic.ui
@@ -32859,7 +33322,7 @@ module.exports = function(steroids, log) {
 
 
 
-},{"./alert":349,"./confirm":350,"./prompt":352,"./spinner":353}],352:[function(require,module,exports){
+},{"./alert":352,"./confirm":353,"./prompt":355,"./spinner":356}],355:[function(require,module,exports){
 var Promise, deviceready, superify;
 
 Promise = require('bluebird');
@@ -32943,7 +33406,7 @@ module.exports = function(steroids, log) {
 
 
 
-},{"../../../util/document-events":369,"../../superify":343,"bluebird":203}],353:[function(require,module,exports){
+},{"../../../util/document-events":372,"../../superify":346,"bluebird":200}],356:[function(require,module,exports){
 var Promise, superify;
 
 Promise = require('bluebird');
@@ -33068,7 +33531,7 @@ module.exports = function(steroids, log) {
 
 
 
-},{"../../superify":343,"bluebird":203}],354:[function(require,module,exports){
+},{"../../superify":346,"bluebird":200}],357:[function(require,module,exports){
 var Promise, superify;
 
 Promise = require('bluebird');
@@ -33522,7 +33985,7 @@ module.exports = function(steroids, log) {
 
 
 
-},{"../superify":343,"bluebird":203}],355:[function(require,module,exports){
+},{"../superify":346,"bluebird":200}],358:[function(require,module,exports){
 module.exports = function(steroids, log, global, superglobal, data) {
   var dialog, layers, modal, views;
   dialog = require("./dialog")(steroids, log);
@@ -33550,7 +34013,7 @@ module.exports = function(steroids, log, global, superglobal, data) {
 
 
 
-},{"./MediaGallery":344,"./NavigationBarButton":345,"./PDFView":346,"./View":347,"./animate":348,"./dialog":351,"./drawers":354,"./initialView":356,"./isDisposable":357,"./layers":358,"./modal":359,"./navigationBar":360,"./screen":361,"./tabs":362,"./views":363}],356:[function(require,module,exports){
+},{"./MediaGallery":347,"./NavigationBarButton":348,"./PDFView":349,"./View":350,"./animate":351,"./dialog":354,"./drawers":357,"./initialView":359,"./isDisposable":360,"./layers":361,"./modal":362,"./navigationBar":363,"./screen":364,"./tabs":365,"./views":366}],359:[function(require,module,exports){
 var Promise, superify;
 
 Promise = require("bluebird");
@@ -33644,7 +34107,7 @@ module.exports = function(steroids, log) {
 
 
 
-},{"../superify":343,"bluebird":203}],357:[function(require,module,exports){
+},{"../superify":346,"bluebird":200}],360:[function(require,module,exports){
 var Bacon, blockingRequests, countOngoing, generateUuid;
 
 Bacon = require('baconjs');
@@ -33730,7 +34193,7 @@ module.exports = function(global, superglobal, data, dialog, views, layers, moda
 
 
 
-},{"../../util/generate-uuid":370,"baconjs":202}],358:[function(require,module,exports){
+},{"../../util/generate-uuid":373,"baconjs":199}],361:[function(require,module,exports){
 var Promise, superify;
 
 Promise = require('bluebird');
@@ -33932,7 +34395,7 @@ module.exports = function(steroids, log) {
 
 
 
-},{"../superify":343,"bluebird":203}],359:[function(require,module,exports){
+},{"../superify":346,"bluebird":200}],362:[function(require,module,exports){
 var Promise, superify;
 
 Promise = require('bluebird');
@@ -34139,7 +34602,7 @@ module.exports = function(steroids, log) {
 
 
 
-},{"../superify":343,"bluebird":203}],360:[function(require,module,exports){
+},{"../superify":346,"bluebird":200}],363:[function(require,module,exports){
 var Promise, superify;
 
 Promise = require('bluebird');
@@ -34429,7 +34892,7 @@ module.exports = function(steroids, log) {
 
 
 
-},{"../superify":343,"bluebird":203}],361:[function(require,module,exports){
+},{"../superify":346,"bluebird":200}],364:[function(require,module,exports){
 var Promise, superify;
 
 Promise = require('bluebird');
@@ -34532,7 +34995,7 @@ module.exports = function(steroids, log) {
 
 
 
-},{"../superify":343,"bluebird":203}],362:[function(require,module,exports){
+},{"../superify":346,"bluebird":200}],365:[function(require,module,exports){
 var Promise, parseRoute, superify;
 
 Promise = require('bluebird');
@@ -34889,7 +35352,7 @@ module.exports = function(steroids, log) {
 
 
 
-},{"../superify":343,"./views/parseRoute":365,"bluebird":203}],363:[function(require,module,exports){
+},{"../superify":346,"./views/parseRoute":368,"bluebird":200}],366:[function(require,module,exports){
 var Promise, superify;
 
 Promise = require('bluebird');
@@ -35066,7 +35529,7 @@ module.exports = function(steroids, log, global) {
 
 
 
-},{"../superify":343,"./View":347,"./views/current":364,"bluebird":203}],364:[function(require,module,exports){
+},{"../superify":346,"./View":350,"./views/current":367,"bluebird":200}],367:[function(require,module,exports){
 var Bacon, Promise, channel, events;
 
 Bacon = require('baconjs');
@@ -35081,6 +35544,7 @@ module.exports = function(steroids, log, global) {
   var isStarted, parameterBus, viewObject, _ref;
   parameterBus = new Bacon.Bus;
   viewObject = {
+    paramsBus: parameterBus,
     params: parameterBus.toProperty(steroids != null ? (_ref = steroids.view) != null ? _ref.params : void 0 : void 0),
     id: null
   };
@@ -35273,7 +35737,7 @@ module.exports = function(steroids, log, global) {
 
 
 
-},{"../../../util/document-events":369,"../../data/channel":305,"baconjs":202,"bluebird":203}],365:[function(require,module,exports){
+},{"../../../util/document-events":372,"../../data/channel":304,"baconjs":199,"bluebird":200}],368:[function(require,module,exports){
 module.exports = function(location, options) {
   var module, parts, path, query, routePattern, view, whole;
   if (options == null) {
@@ -35295,7 +35759,7 @@ module.exports = function(location, options) {
 
 
 
-},{}],366:[function(require,module,exports){
+},{}],369:[function(require,module,exports){
 var createLocalStorage;
 
 module.exports = createLocalStorage = function() {
@@ -35316,7 +35780,7 @@ module.exports = createLocalStorage = function() {
 
 
 
-},{}],367:[function(require,module,exports){
+},{}],370:[function(require,module,exports){
 var __slice = [].slice;
 
 module.exports = (function() {
@@ -35402,6 +35866,7 @@ module.exports = (function() {
       off: removeEvent("steroids.drawers.on")
     },
     view: {
+      params: {},
       on: fakeEvent("steroids.view.on"),
       off: removeEvent("steroids.view.on")
     },
@@ -35413,7 +35878,7 @@ module.exports = (function() {
 
 
 
-},{}],368:[function(require,module,exports){
+},{}],371:[function(require,module,exports){
 var Window, localStorage;
 
 localStorage = require('./localStorage');
@@ -35443,6 +35908,8 @@ Window = (function() {
     }
   };
 
+  Window.prototype.postMessage = function() {};
+
   return Window;
 
 })();
@@ -35451,7 +35918,7 @@ module.exports = Window;
 
 
 
-},{"./localStorage":366}],369:[function(require,module,exports){
+},{"./localStorage":369}],372:[function(require,module,exports){
 var Bacon, Promise;
 
 Promise = require('bluebird');
@@ -35493,7 +35960,7 @@ module.exports = {
           visibilitystate: 'visible'
         }
       }),
-      defaultState: 'hidden'
+      defaultState: 'visible'
     };
     return visibilityState.changes.map(function(event) {
       var _ref, _ref1;
@@ -35517,7 +35984,7 @@ module.exports = {
 
 
 
-},{"baconjs":202,"bluebird":203}],370:[function(require,module,exports){
+},{"baconjs":199,"bluebird":200}],373:[function(require,module,exports){
 module.exports = function() {
   var d, uuid;
   d = new Date().getTime();
@@ -35532,4 +35999,40 @@ module.exports = function() {
 
 
 
-},{}]},{},[296])
+},{}],374:[function(require,module,exports){
+var pick,
+  __indexOf = [].indexOf || function(item) { for (var i = 0, l = this.length; i < l; i++) { if (i in this && this[i] === item) return i; } return -1; };
+
+module.exports = pick = function(keys, object) {
+  var key, result, value;
+  result = {};
+  for (key in object) {
+    value = object[key];
+    if ((__indexOf.call(keys, key) >= 0)) {
+      result[key] = value;
+    }
+  }
+  return result;
+};
+
+
+
+},{}],375:[function(require,module,exports){
+var without,
+  __indexOf = [].indexOf || function(item) { for (var i = 0, l = this.length; i < l; i++) { if (i in this && this[i] === item) return i; } return -1; };
+
+module.exports = without = function(keys, object) {
+  var key, result, value;
+  result = {};
+  for (key in object) {
+    value = object[key];
+    if (!(__indexOf.call(keys, key) >= 0)) {
+      result[key] = value;
+    }
+  }
+  return result;
+};
+
+
+
+},{}]},{},[297])

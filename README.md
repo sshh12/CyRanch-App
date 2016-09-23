@@ -7,4 +7,4 @@ This is an app I created for [Cy-Ranch High School](http://cyranch.cfisd.net/).
 
 #### Releases
 + [Android](https://play.google.com/apps/testing/com.sshh12.cyranch)
-+ Apple (Pending)
++ [Apple](https://itunes.apple.com/WebObjects/MZStore.woa/wa/viewSoftware?id=1082927247&mt=8)

@@ -1,6 +1,6 @@
 {
   "name": "supersonic",
-  "version": "1.9.2",
+  "version": "1.13.2",
   "homepage": "https://github.com/AppGyver/supersonic",
   "authors": [
     "Eevert Saukkokoski <eevert.saukkokoski@appgyver.com>",
@@ -20,7 +20,7 @@
   "ignore": [
   ],
   "dependencies": {
-    "webcomponentsjs": "0.7.12",
-    "steroids-js": "^3.5.15"
+    "webcomponentsjs": "0.7.22",
+    "steroids-js": "^3.5.20"
   }
 }
