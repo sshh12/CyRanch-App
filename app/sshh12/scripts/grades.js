@@ -4,6 +4,7 @@ var ErrorMessageConnection = '<div class="card"><div class="item item-text-wrap"
 function resetLocalData(){
 	localStorage.setItem('username', "");
 	localStorage.setItem('password', "");
+	localStorage.setItem('grades', "");
 }
 
 function toggle_visibility(name) {
@@ -11,15 +12,14 @@ function toggle_visibility(name) {
 	for(var i in elements){
 		if(elements[i].style.display == 'block'){
 			elements[i].style.display = 'none';
-		}
-		else {
+		} else {
 			elements[i].style.display = 'block';
 		}
 	}
 }
 
 function getListItemHTML(name, per, lettr, c){
-	var s = "<a class=\"item\" onClick=\"toggle_visibility('"+ c +"');\"><b>" + name;
+	var s = "<a class=\"item\" ontouchstart=\"toggle_visibility('"+ c +"');\"><b>" + name;
 	if(isUndefined(per)){
 		per = "None";
 		lettr = 'U';
@@ -83,24 +83,23 @@ function updateGrades(){
 	var username = localStorage.getItem("username");
 	var password = localStorage.getItem("password");
 
-	if(isUndefined(username) || isUndefined(password) || username == null || password == null){
+	if(isUndefined(username) || isUndefined(password) || username === null || password === null){
 		resetLocalData();
 		document.getElementById("main").innerHTML = ErrorMessage;
 	} else {
 		username = username.toLowerCase();
-		if(password.length > 4 && username.substring(0,1) == 's' && username.length == 7 && username.substring(1, 7).match(/^[0-9]+$/) != null){
+		if(password.length > 4 && username.substring(0,1) == 's' && username.length === 7 && username.substring(1, 7).match(/^[0-9]+$/) !== null){
 			var data = localStorage.getItem('grades');
-			if(true || isUndefined(data) || data == null || data.length < 20){ //Need to Update Data
+			if(isUndefined(data) || data === null || data.length < 20){ //Need to Update Data
 
 				document.getElementById("main").style.display = 'none';
 				document.getElementById("loading_box").style.display = 'block';
 
-        timeout(15000, getFromAPI("grades/" + username + "/" + encodeToURL(password))).then(
+        timeout(16000, getFromAPI("grades/" + username + "/" + encodeToURL(password))).then(
           function(responce){
             responce.json().then(
               function(json){
-                localStorage.setItem('grades', JSON.stringify(data));
-
+                localStorage.setItem('grades', JSON.stringify(json));
                 var i = 0;
           			var showhtml = "<div class=\"list\">";
           			showhtml += "<div class=\"item item-divider\">This 6 Weeks</div>";
@@ -116,11 +115,11 @@ function updateGrades(){
                 document.getElementById("main").style.display = 'block';
                 document.getElementById("loading_box").style.display = 'none';
               }
-            )
+            );
           }
         ).catch(function(error){
 					clearInterval(interval);
-          AppAlert("Error", "Unable to Connect to Server 😞");
+          AppAlert("Error", "Unable to Download Grades 😞");
           document.getElementById("main").innerHTML = ErrorMessageConnection;
           document.getElementById("main").style.display = 'block';
           document.getElementById("loading_box").style.display = 'none';
@@ -129,9 +128,10 @@ function updateGrades(){
 				counter = 0;
 				interval = setInterval(
 					function() {
-				    counter += 5000.0 / 16000;
+				    counter += 0.5;
 				    if(counter >= 100) {
 				        clearInterval(interval);
+								document.getElementById('status').innerHTML = "Something Went Wrong...";
 				    } else {
 				        document.getElementById('status').innerHTML = counter.toFixed(2) + "%";
 				    }

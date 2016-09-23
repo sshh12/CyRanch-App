@@ -1,3 +1,4 @@
+<script src="sshh12#general"></script>
 <script src="sshh12#lang"></script>
 
 <style>
@@ -17,7 +18,7 @@
 		<div class="list">
   		<label class="item item-input">
     		<i class="icon super-search placeholder-icon"></i>
-    		<input type="text" placeholder="Search" id="search_bar" onChange="loadTeachers();" onkeypress="loadTeachers();" onkeyup="loadTeachers();">
+    		<input type="text" placeholder="Search" id="search_bar" onChange="setTeachers();" onkeypress="setTeachers();" onkeyup="setTeachers();">
   		</label>
 
 			<div id="content">
@@ -39,35 +40,26 @@ function makeDivider(letter){
 }
 
 function makeTeacher(name, website, email){
-	website = website.replace("https://", "");
-	website = website.replace("http://www.", "");
-	website = website.replace("/a/cfisd.net/", "/../");
-	return "<a class=\"item item-button-right\"><b><h3>" + name + "</h3></b><button onClick=\"supersonic.app.openURL('mailto:" + email + "')\" class=\"button icon super-email button-positive\"></button><p onClick=\"supersonic.app.openURL('" + website + "')\">" + website + "</p></a>";
+	var site = website.replace("https://", "")
+										.replace("http://www.", "")
+										.replace("/a/cfisd.net/", "/../");
+	return "<a class=\"item item-button-right\"><b><h3>" + name + "</h3></b><button onClick=\"supersonic.app.openURL('mailto:" + email + "')\" class=\"button icon super-email button-positive\"></button><p onClick=\"supersonic.app.openURL('" + website + "')\">" + site + "</p></a>";
 }
 
-function loadTeachers(){
-	var json_page = localStorage.getItem("faculty_json");
-	if(isUndefined(json_page) || json_page == null || json_page.length < 20){
-		json_page = getFromSite('faculty');
-		localStorage.setItem("faculty_json", json_page);
-	}
-
-	var json = JSON.parse(json_page);
+function setTeachers(json){
+	json = json || JSON.parse(localStorage.getItem("faculty_json"));
 
 	var search = reduceString(document.getElementById("search_bar").value);
 
 	var html = "";
-
 	var letters = ['A', 'B', 'C', 'D', 'E', 'F',
 	 							 'G', 'H', 'I', 'J', 'K', 'L',
 								 'M', 'N', 'O', 'P', 'Q', 'R',
 								 'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z'];
 
 	for(var div_letter in letters){
-
 		var groupOfTeachers = "";
 		if(json[letters[div_letter]]){
-
 			for(var i = 0; i < json[letters[div_letter]].length; i++){
 				var teacher = makeTeacher(json[ letters[div_letter] ][i].name, json[ letters[div_letter] ][i].website, json[ letters[div_letter] ][i].email);
 				if(reduceString(teacher).indexOf(search) >= 0 || search.length < 1){
@@ -78,16 +70,34 @@ function loadTeachers(){
 			if(groupOfTeachers.length > 0){
 				groupOfTeachers = makeDivider(letters[div_letter]) + groupOfTeachers;
 			}
-
 			html += groupOfTeachers;
 
 		}
 	}
-
 	document.getElementById("content").innerHTML = html;
 }
 
-loadTeachers();
+function getTeachers(){
+	var original_json = localStorage.getItem("faculty_json");
+	if(isUndefined(original_json) || original_json == null || original_json.length < 50){
+		timeout(6000, getFromAPI("faculty")).then(
+			function(responce){
+				responce.json().then(
+					function(json){
+						localStorage.setItem('faculty_json', JSON.stringify(json));
+						setTeachers(json);
+					}
+				);
+			}
+		).catch(function(error){
+			AppAlert("Error", "Unable to Get Teachers 😞");
+		});
 
+	} else {
+			setTeachers(JSON.parse(original_json));
+	}
+}
+
+getTeachers();
 supersonic.app.splashscreen.hide();
 </script>

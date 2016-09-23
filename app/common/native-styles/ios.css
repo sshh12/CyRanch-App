@@ -49,3 +49,7 @@ tab-bar-item#teachers {
 tab-bar-item#settings {
   background-image: url(icons/tab_settings.svg);
 }
+
+tab-bar-item#classes {
+	background-image: url(icons/tab_school.svg);
+}
