@@ -33,7 +33,13 @@ function NoImageCardBox(header, date, iconURL, onclick, text){
 	};
 }
 
-var settings = [localStorage.getItem("ViewCyRanchNews"), localStorage.getItem("ViewAppNews"), localStorage.getItem("ViewCFISDNews")];
+var settings = [localStorage.getItem("ViewCyRanchNews"),
+								localStorage.getItem("ViewCyRanchNewsSports"),
+								localStorage.getItem("ViewCyRanchNewsEntertainment"),
+								localStorage.getItem("ViewCyRanchNewsStudentLife"),
+								localStorage.getItem("ViewCyRanchNewsOpinion"),
+								localStorage.getItem("ViewAppNews"),
+							  localStorage.getItem("ViewCFISDNews")];
 var current_cards = [];
 
 function addCards(cards){
@@ -115,15 +121,35 @@ function fetchNews(apimethod, parser, source, icon){
 function setNews(){
 
   if(settings[0] == 'true'){
-		fetchNews('cyranchnews1', parserCyRanchNews, "CyRanchNews.com", "/icons/CyRanchMustangs.png");
-		fetchNews('cyranchnews2', parserCyRanchNews, "CyRanchNews.com", "/icons/CyRanchMustangs.png");
+		fetchNews('cyranchnews/news/1', parserCyRanchNews, "Mustang News", "/icons/CyRanchMustangs.png");
+		fetchNews('cyranchnews/news/2', parserCyRanchNews, "Mustang News", "/icons/CyRanchMustangs.png");
   }
 
-  if(settings[1] == 'true'){
+	if(settings[1] == 'true'){
+		fetchNews('cyranchnews/sports/1', parserCyRanchNews, "Mustang Sports", "/icons/CyRanchMustangs.png");
+		fetchNews('cyranchnews/sports/2', parserCyRanchNews, "Mustang Sports", "/icons/CyRanchMustangs.png");
+  }
+
+	if(settings[2] == 'true'){
+		fetchNews('cyranchnews/entertainment/1', parserCyRanchNews, "Mustang Arts", "/icons/CyRanchMustangs.png");
+		fetchNews('cyranchnews/entertainment/2', parserCyRanchNews, "Mustang Arts", "/icons/CyRanchMustangs.png");
+  }
+
+	if(settings[3] == 'true'){
+		fetchNews('cyranchnews/studentlife/1', parserCyRanchNews, "Mustang Arts", "/icons/CyRanchMustangs.png");
+		fetchNews('cyranchnews/studentlife/2', parserCyRanchNews, "Mustang Arts", "/icons/CyRanchMustangs.png");
+	}
+
+	if(settings[4] == 'true'){
+		fetchNews('cyranchnews/opinion/1', parserCyRanchNews, "Mustang Opinion", "/icons/CyRanchMustangs.png");
+		fetchNews('cyranchnews/opinion/2', parserCyRanchNews, "Mustang Opinion", "/icons/CyRanchMustangs.png");
+  }
+
+  if(settings[5] == 'true'){
 		fetchNews('appnews', parserJSON, "The Cy-Ranch App", "/icons/Developer.png");
   }
 
-  if(settings[2] == 'true'){
+  if(settings[6] == 'true'){
 		fetchNews('cfisdnews', parserCFISDNews, "CFISD.net", "/icons/CFISD.png");
 	}
 
@@ -131,7 +157,13 @@ function setNews(){
 
 function onVisibilityChangeIndex() {
     if(document.visibilityState == 'visible'){
-		var newSettings = [localStorage.getItem("ViewCyRanchNews"), localStorage.getItem("ViewAppNews"), localStorage.getItem("ViewCFISDNews")];
+		var newSettings = [localStorage.getItem("ViewCyRanchNews"),
+										localStorage.getItem("ViewCyRanchNewsSports"),
+										localStorage.getItem("ViewCyRanchNewsEntertainment"),
+										localStorage.getItem("ViewCyRanchNewsStudentLife"),
+										localStorage.getItem("ViewCyRanchNewsOpinion"),
+										localStorage.getItem("ViewAppNews"),
+									  localStorage.getItem("ViewCFISDNews")];
 		for(var s in settings){
 			if(settings[s] != newSettings[s]){
 				settings = newSettings;

@@ -11,13 +11,13 @@
 	<ul class="list">
 
 		<li class='item item-divider head'>News</li>
-		<li class="item item-toggle" >
+		<!--<li class="item item-toggle" >
 			Notifications
 			<label class="toggle toggle-calm">
 				<input type="checkbox" disabled="true">
 				<div class="track"><div class="handle"></div></div>
 			</label>
-		</li>
+		</li>-->
 		<li class="item item-toggle">
 			Cfisd.net
 			<label class="toggle toggle-royal">
@@ -26,9 +26,37 @@
 			</label>
 		</li>
 		<li class="item item-toggle">
-			CyRanchNews.com
+			Mustang Messenger News
 			<label class="toggle toggle-balanced">
 				<input type="checkbox" id="ViewCyRanchNews" onClick="updateStorage('ViewCyRanchNews')">
+				<div class="track"><div class="handle"></div></div>
+			</label>
+		</li>
+		<li class="item item-toggle">
+			Mustang Messenger Sports
+			<label class="toggle toggle-balanced">
+				<input type="checkbox" id="ViewCyRanchNewsSports" onClick="updateStorage('ViewCyRanchNewsSports')">
+				<div class="track"><div class="handle"></div></div>
+			</label>
+		</li>
+		<li class="item item-toggle">
+			Mustang Messenger Arts
+			<label class="toggle toggle-balanced">
+				<input type="checkbox" id="ViewCyRanchNewsEntertainment" onClick="updateStorage('ViewCyRanchNewsEntertainment')">
+				<div class="track"><div class="handle"></div></div>
+			</label>
+		</li>
+		<li class="item item-toggle">
+			Mustang Messenger Students
+			<label class="toggle toggle-balanced">
+				<input type="checkbox" id="ViewCyRanchNewsStudentLife" onClick="updateStorage('ViewCyRanchNewsStudentLife')">
+				<div class="track"><div class="handle"></div></div>
+			</label>
+		</li>
+		<li class="item item-toggle">
+			Mustang Messenger Opinion
+			<label class="toggle toggle-balanced">
+				<input type="checkbox" id="ViewCyRanchNewsOpinion" onClick="updateStorage('ViewCyRanchNewsOpinion')">
 				<div class="track"><div class="handle"></div></div>
 			</label>
 		</li>
@@ -111,6 +139,14 @@ function resetStorage(){
 
 	localStorage.setItem('ViewCyRanchNews', 'true');
 	document.getElementById("ViewCyRanchNews").checked = true;
+	localStorage.setItem('ViewCyRanchNewsSports', 'false');
+	document.getElementById("ViewCyRanchNewsSports").checked = false;
+	localStorage.setItem('ViewCyRanchNewsEntertainment', 'false');
+	document.getElementById("ViewCyRanchNewsEntertainment").checked = false;
+	localStorage.setItem('ViewCyRanchNewsStudentLife', 'false');
+	document.getElementById("ViewCyRanchNewsStudentLife").checked = false;
+	localStorage.setItem('ViewCyRanchNewsOpinion', 'false');
+	document.getElementById("ViewCyRanchNewsOpinion").checked = false;
 	localStorage.setItem('ViewAppNews', 'true');
 	document.getElementById("ViewAppNews").checked = true;
 	localStorage.setItem('ViewCFISDNews', 'false');
@@ -133,8 +169,13 @@ function updateChecks(key){
 	}
 }
 
-updateChecks("ViewAppNews");
 updateChecks("ViewCyRanchNews");
+updateChecks("ViewCyRanchNewsSports");
+updateChecks("ViewCyRanchNewsEntertainment");
+updateChecks("ViewCyRanchNewsStudentLife");
+updateChecks("ViewCyRanchNewsOpinion");
+
+updateChecks("ViewAppNews");
 updateChecks("ViewCFISDNews");
 
 document.getElementById("username").value = localStorage.getItem("username");

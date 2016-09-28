@@ -6,6 +6,11 @@ function setDefault(key, initial){
 }
 
 setDefault("ViewCyRanchNews", "true");
+setDefault("ViewCyRanchNewsSports", "false");
+setDefault("ViewCyRanchNewsEntertainment", "false");
+setDefault("ViewCyRanchNewsStudentLife", "false");
+setDefault("ViewCyRanchNewsOpinion", "false");
+
 setDefault("ViewAppNews", "true");
 setDefault("ViewCFISDNews", "false");
 
