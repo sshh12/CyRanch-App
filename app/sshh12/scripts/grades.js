@@ -95,7 +95,7 @@ function updateGrades(){
 				document.getElementById("main").style.display = 'none';
 				document.getElementById("loading_box").style.display = 'block';
 
-        timeout(16000, getFromAPI("grades/" + username + "/" + encodeToURL(password))).then(
+        timeout(20000, getFromAPI("grades/" + username + "/" + encodeToURL(password))).then(
           function(responce){
             responce.json().then(
               function(json){
@@ -128,7 +128,7 @@ function updateGrades(){
 				counter = 0;
 				interval = setInterval(
 					function() {
-				    counter += 0.5;
+				    counter += 0.3;
 				    if(counter >= 100) {
 				        clearInterval(interval);
 								document.getElementById('status').innerHTML = "Something Went Wrong...";
