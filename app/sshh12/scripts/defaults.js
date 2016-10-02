@@ -14,5 +14,7 @@ setDefault("ViewCyRanchNewsOpinion", "false");
 setDefault("ViewAppNews", "true");
 setDefault("ViewCFISDNews", "false");
 
+setDefault("lunch", "none");
+
 setDefault("username", "");
 setDefault("password", "");

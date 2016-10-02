@@ -106,10 +106,28 @@ function updateGrades(){
                 var i = 0;
           			var showhtml = "<div class=\"list\">";
           			showhtml += "<div class=\"item item-divider\">This 6 Weeks</div>";
-          			for(var c in json.CGrades){
-          				showhtml += getListItemHTML(json.CGrades[c].Name, json.CGrades[c].OverallAverage, json.CGrades[c].OverallLetterAverage, "GROUP_" + i);
-          				for(var s in json.CGrades[c].Assignments){
-          					showhtml += getListMiniHTML(s, json.CGrades[c].Assignments[s].Percent, json.CGrades[c].Assignments[s].Letter, "GROUP_" + i);
+
+								var cgradesKeys = Object.keys(json.CGrades);
+								cgradesKeys.sort(
+									function(a,b){
+										return json.CGrades[a]["Name"].toLowerCase() > json.CGrades[b]["Name"].toLowerCase() ? 1:-1;
+									}
+								)
+
+          			for(var c in cgradesKeys){
+									var subject = json.CGrades[cgradesKeys[c]];
+          				showhtml += getListItemHTML(subject.Name, subject.OverallAverage, subject.OverallLetterAverage, "GROUP_" + i);
+
+									var assignmentKeys = Object.keys(subject.Assignments);
+									assignmentKeys.sort(
+										function(a,b){
+											return new Date(subject.Assignments[b].DateDue).getTime() - new Date(subject.Assignments[a].DateDue).getTime();
+										}
+									)
+
+          				for(var s in assignmentKeys){
+										var assignment = subject.Assignments[assignmentKeys[s]];
+          					showhtml += getListMiniHTML(assignmentKeys[s], assignment.Percent, assignment.Letter, "GROUP_" + i);
           				}
           				i++;
           			}
