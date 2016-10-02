@@ -7,9 +7,12 @@ function resetLocalData() {
     localStorage.setItem('grades', "");
 }
 
+function showStats(subject, name, grade) {
+    getFromAPI("homeaccess/stats/" + encodeToURL(subject) + "/" + encodeToURL(name) + "/" + grade).then(
         function(responce) {
             responce.json().then(
                 function(json) {
+                    AppAlert(name, "Average: " + Math.round(json.Average, -2) + "\n%Tile: " + Math.round(json.PercentBelow, -2));
                 }
             )
         }
@@ -34,6 +37,7 @@ function getListItemHTML(subject, per, lettr, c) {
     }
 
     var s = "<a class=\"item\"><i style='text-align: left' ontouchstart=\"toggle_visibility('" + c + "');\" class='icon super-chevron-down'></i>&nbsp<b>" + subject +
+        "</b><span ontouchstart=\"showStats('" + subject + "','" + subject + " AVG" + "', '" + per.replace("%","") + "')\" ";
 
     if (isUndefined(per)) {
         per = "None";
@@ -65,6 +69,7 @@ function getListMiniHTML(subject, name, per, lettr, c) {
 
 
     var k = "<a style=\"display: none; font-size: 14px; color: #9c9c9c;\" class=\"item " + c + "\">&nbsp;" + name +
+        "<span style=\"font-size: 15px;\" ontouchstart=\"showStats('" + subject + "','" + name + "', '" + per.replace("%","") + "')\" ";
 
     if (lettr == 'A') {
         k += "class=\"badge badge-balanced\">";
