@@ -31,18 +31,18 @@ function toggle_visibility(name) {
 }
 
 function getListItemHTML(subject, per, lettr, c) {
-    if (per.includes("opped as of")) {
+
+    if (isUndefined(per)) {
+        per = "None";
+        lettr = 'U';
+    } else if (per.includes("opped as of")) {
         per = "Dropped";
         lettr = 'U';
     }
 
     var s = "<a class=\"item\"><i style='text-align: left' ontouchstart=\"toggle_visibility('" + c + "');\" class='icon super-chevron-down'></i>&nbsp<b>" + subject +
-        "</b><span ontouchstart=\"showStats('" + subject + "','" + subject + " AVG" + "', '" + per.replace("%","") + "')\" ";
+        "</b><span ontouchstart=\"showStats('" + subject + "','" + subject + " AVG" + "', '" + per.replace("%", "") + "')\" ";
 
-    if (isUndefined(per)) {
-        per = "None";
-        lettr = 'U';
-    }
     if (lettr == 'A') {
         s += "class=\"badge badge-balanced\">";
     } else if (lettr == 'B') {
@@ -57,6 +57,7 @@ function getListItemHTML(subject, per, lettr, c) {
         s += "class=\"badge badge-dark\">";
     }
     s += per + "</span></a>";
+
     return s;
 }
 
@@ -65,11 +66,13 @@ function getListMiniHTML(subject, name, per, lettr, c) {
     if (isUndefined(per)) {
         per = "None";
         lettr = 'U';
+    } else if (per.includes("opped as of")) {
+        per = "Dropped";
+        lettr = 'U';
     }
 
-
     var k = "<a style=\"display: none; font-size: 14px; color: #9c9c9c;\" class=\"item " + c + "\">&nbsp;" + name +
-        "<span style=\"font-size: 15px;\" ontouchstart=\"showStats('" + subject + "','" + name + "', '" + per.replace("%","") + "')\" ";
+        "<span style=\"font-size: 15px;\" ontouchstart=\"showStats('" + subject + "','" + name + "', '" + per.replace("%", "") + "')\" ";
 
     if (lettr == 'A') {
         k += "class=\"badge badge-balanced\">";
@@ -115,6 +118,7 @@ function updateGrades() {
                     function(responce) {
                         responce.json().then(
                             function(json) {
+
                                 localStorage.setItem('grades', JSON.stringify(json));
                                 var i = 0;
                                 var showhtml = "<div class=\"list\">";
@@ -128,24 +132,29 @@ function updateGrades() {
                                 )
 
                                 for (var c in cgradesKeys) {
+
                                     var subject = json.CGrades[cgradesKeys[c]];
 
                                     showhtml += getListItemHTML(subject.Name, subject.OverallAverage, subject.OverallLetterAverage, "GROUP_" + i);
 
+                                    if (Object.keys(subject.Assignments).length >= 1) {
 
-                                    var assignmentKeys = Object.keys(subject.Assignments);
-                                    assignmentKeys.sort(
-                                        function(a, b) {
-                                            return new Date(subject.Assignments[b].DateDue).getTime() - new Date(subject.Assignments[a].DateDue).getTime();
+                                        var assignmentKeys = Object.keys(subject.Assignments);
+                                        assignmentKeys.sort(
+                                            function(a, b) {
+                                                return new Date(subject.Assignments[b].DateDue).getTime() - new Date(subject.Assignments[a].DateDue).getTime();
+                                            }
+                                        )
+
+                                        for (var s in assignmentKeys) {
+                                            var assignment = subject.Assignments[assignmentKeys[s]];
+                                            showhtml += getListMiniHTML(subject.Name, assignmentKeys[s], assignment.Percent, assignment.Letter, "GROUP_" + i);
                                         }
-                                    )
 
-                                    for (var s in assignmentKeys) {
-                                        var assignment = subject.Assignments[assignmentKeys[s]];
-                                        showhtml += getListMiniHTML(subject.Name, assignmentKeys[s], assignment.Percent, assignment.Letter, "GROUP_" + i);
                                     }
                                     i++;
                                 }
+
                                 clearInterval(interval);
                                 document.getElementById("main").innerHTML = showhtml;
                                 document.getElementById("main").style.display = 'block';
@@ -164,7 +173,7 @@ function updateGrades() {
                 counter = 0;
                 interval = setInterval(
                     function() {
-                        counter += 0.3;
+                        counter += 0.25;
                         if (counter >= 100) {
                             clearInterval(interval);
                             document.getElementById('status').innerHTML = "Something Went Wrong...";
