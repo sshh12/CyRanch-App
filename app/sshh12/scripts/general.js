@@ -46,6 +46,10 @@ function timeout(ms, promise) {
   })
 }
 
+function postFromAPI(method, data){
+	return fetch(SVR_ADDRESS + "/" + method, { method:"POST", body:data });
+}
+
 function getFromAPI(method){
 	return fetch(SVR_ADDRESS + "/" + method);
 }

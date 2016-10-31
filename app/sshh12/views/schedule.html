@@ -11,7 +11,7 @@
    <div class="list list-inset">
       <label class="item item-input item-select">
          <div class="input-label">Lunch</div>
-         <select id="lunch" style="width: 100%;" onChange="updateList();">
+         <select id="lunch" style="width: 100%;" onChange="localStorage.setItem('lunch', document.getElementById('lunch').value), updateList();">
             <option value="none">A, B, C</option>
             <option value="a">A</option>
             <option value="b">B</option>
@@ -30,6 +30,7 @@
    <ul class="list" id="items"></ul>
 </div>
 <script>
+    document.getElementById('lunch').value = localStorage.getItem('lunch');
     var currentSchedule = 'a';
 
     function updateList() {

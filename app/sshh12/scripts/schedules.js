@@ -63,7 +63,9 @@ function timeslot(timestring, name){
 
     this.toStringFormat = function(c_date){
       if(this.contains(c_date)){
-        return "<div class=\"item\"><b>" + this.rawname + "</b> - " + this.getNameString() + ", <b>" + this.getTimeLeft(c_date) + " mins</b> left</div>";
+        var left = this.getTimeLeft(c_date);
+        var mins = left > 1 ? left + " mins": left + " min";
+        return "<div class=\"item\"><b>" + this.rawname + "</b> - " + this.getNameString() + ", <b>" + mins + "</b> left</div>";
       } else {
         return "<div class=\"item\"><b>" + this.rawname + "</b> - " + this.getNameString() + "</div>";
       }
