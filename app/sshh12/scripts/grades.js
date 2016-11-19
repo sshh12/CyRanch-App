@@ -30,65 +30,77 @@ function toggle_visibility(name) {
     }
 }
 
-function getListItemHTML(subject, per, lettr, c) {
+function ClassGradeItem(subject, percent, lettr, ident){
 
-    if (isUndefined(per)) {
-        per = "None";
-        lettr = 'U';
-    } else if (per.includes("opped as of")) {
-        per = "Dropped";
-        lettr = 'U';
-    }
+  if (isUndefined(percent)) {
+      this.percent = "None";
+      this.lettr = 'U';
+  } else if (percent.includes("opped as of")) {
+      this.percent = "Dropped";
+      this.lettr = 'U';
+  } else {
+    this.percent = percent;
+    this.lettr = lettr;
+  }
 
-    var s = "<a class=\"item\"><i style='text-align: left' ontouchstart=\"toggle_visibility('" + c + "');\" class='icon super-chevron-down'></i>&nbsp<b>" + subject +
-        "</b><span ontouchstart=\"showStats('" + subject + "','" + subject + " AVG" + "', '" + per.replace("%", "") + "')\" ";
+  this.ident = ident;
+  this.subject = subject;
 
-    if (lettr == 'A') {
-        s += "class=\"badge badge-balanced\">";
-    } else if (lettr == 'B') {
-        s += "class=\"badge badge-energized\">";
-    } else if (lettr == 'C') {
-        s += "class=\"badge badge-assertive\">";
-    } else if (lettr == 'D') {
-        s += "class=\"badge badge-royal\">";
-    } else if (lettr == 'U') {
-        s += "class=\"badge badge-calm\">";
-    } else {
-        s += "class=\"badge badge-dark\">";
-    }
-    s += per + "</span></a>";
+  if (this.lettr == 'A') {
+      this.badge = "balanced";
+  } else if (this.lettr == 'B') {
+      this.badge = "energized";
+  } else if (this.lettr == 'C') {
+      this.badge = "assertive";
+  } else if (this.lettr == 'D') {
+      this.badge = "royal";
+  } else if (this.lettr == 'U') {
+      this.badge = "calm";
+  } else {
+      this.badge = "dark";
+  }
 
-    return s;
+  this.getHTML = function(){
+    return "<a class=\"item\"><i style='text-align: left' class='icon super-chevron-down'></i>&nbsp<b ontouchstart=\"toggle_visibility('" + this.ident + "');\">" + this.subject +
+           "</b><span ontouchstart=\"showStats('" + this.subject + "','" + this.subject + " AVG" + "', '" + this.percent.replace("%", "") + "')\" class=\"badge badge-" + this.badge +
+           "\">" + this.percent + "</span></a>";
+	};
 }
 
-function getListMiniHTML(subject, name, per, lettr, c) {
+function AssignmentGradeItem(subject, name, percent, lettr, ident){
 
-    if (isUndefined(per)) {
-        per = "None";
-        lettr = 'U';
-    } else if (per.includes("opped as of")) {
-        per = "Dropped";
-        lettr = 'U';
-    }
+  if (isUndefined(percent)) {
+      this.percent = "None";
+      this.lettr = 'U';
+  } else {
+    this.percent = percent;
+    this.lettr = lettr;
+  }
 
-    var k = "<a style=\"display: none; font-size: 14px; color: #9c9c9c;\" class=\"item " + c + "\">&nbsp;" + name +
-        "<span style=\"font-size: 15px;\" ontouchstart=\"showStats('" + subject + "','" + name + "', '" + per.replace("%", "") + "')\" ";
+  this.name = name;
+  this.subject = subject;
+  this.ident = ident;
 
-    if (lettr == 'A') {
-        k += "class=\"badge badge-balanced\">";
-    } else if (lettr == 'B') {
-        k += "class=\"badge badge-energized\">";
-    } else if (lettr == 'C') {
-        k += "class=\"badge badge-assertive\">";
-    } else if (lettr == 'D') {
-        k += "class=\"badge badge-royal\">";
-    } else if (lettr == 'U') {
-        k += "class=\"badge badge-calm\">";
-    } else {
-        k += "class=\"badge badge-dark\">";
-    }
-    k += per + "</span></a>";
-    return k;
+  if (this.lettr == 'A') {
+      this.badge = "balanced";
+  } else if (this.lettr == 'B') {
+      this.badge = "energized";
+  } else if (this.lettr == 'C') {
+      this.badge = "assertive";
+  } else if (this.lettr == 'D') {
+      this.badge = "royal";
+  } else if (this.lettr == 'U') {
+      this.badge = "calm";
+  } else {
+      this.badge = "dark";
+  }
+
+  this.getHTML = function(){
+    return "<a style=\"display: none; font-size: 14px; color: #9c9c9c;\" class=\"item " + this.ident + "\">&nbsp;" + this.name +
+           "<span style=\"font-size: 15px;\" ontouchstart=\"showStats('" + this.subject + "','" + this.name + "', '" + this.percent.replace("%", "") + "')\" class=\"badge badge-" + this.badge +
+           "\">" + this.percent + "</span></a>";
+	};
+
 }
 
 var counter;
@@ -135,7 +147,7 @@ function updateGrades() {
 
                                     var subject = json.CGrades[cgradesKeys[c]];
 
-                                    showhtml += getListItemHTML(subject.Name, subject.OverallAverage, subject.OverallLetterAverage, "GROUP_" + i);
+                                    showhtml += new ClassGradeItem(subject.Name, subject.OverallAverage, subject.OverallLetterAverage, "GROUP_" + i).getHTML();
 
                                     if (Object.keys(subject.Assignments).length >= 1) {
 
@@ -148,7 +160,7 @@ function updateGrades() {
 
                                         for (var s in assignmentKeys) {
                                             var assignment = subject.Assignments[assignmentKeys[s]];
-                                            showhtml += getListMiniHTML(subject.Name, assignmentKeys[s], assignment.Percent, assignment.Letter, "GROUP_" + i);
+                                            showhtml += new AssignmentGradeItem(subject.Name, assignmentKeys[s], assignment.Percent, assignment.Letter, "GROUP_" + i).getHTML();
                                         }
 
                                     }
