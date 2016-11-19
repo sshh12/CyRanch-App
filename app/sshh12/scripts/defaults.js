@@ -18,3 +18,4 @@ setDefault("lunch", "none");
 
 setDefault("username", "");
 setDefault("password", "");
+setDefault("classwork", "");
