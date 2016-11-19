@@ -1,13 +1,13 @@
-function NormalCardBox(header, date, iconURL, imageURL, text, onclick){
+function NormalCardBox(header, date, iconURL, imageURL, text, link){
 	this.header = parseXSS(header);
 	this.date = new Date(date);
 	this.text = parseXSS(text);
-	this.onclick = onclick;
+	this.onclick = 'supersonic.app.openURL("' + link + '")';
 	this.iconURL = iconURL;
 	this.imageURL = imageURL;
 
 	this.getHTML = function(){
-		return '<div class="card" onClick="' +
+		return '<div class="card" ontouchstart="' +
 						this.onclick + '"><div class="item item-avatar headercolor"><img src="' +
 						this.iconURL + '" /><h2>' +
 						this.header + '</h2><p>' +
@@ -25,7 +25,7 @@ function NoImageCardBox(header, date, iconURL, onclick, text){
 	this.iconURL = iconURL;
 
 	this.getHTML = function(){
-		return '<div class="card" onClick=""><div class="item item-avatar headercolor"><img src="' +
+		return '<div class="card" ontouchstart=""><div class="item item-avatar headercolor"><img src="' +
 						this.iconURL + '" /><h2>' +
 						this.header + '</h2><p>' +
 						this.date.toDateString() + '</p></div><div class="item item-body"><p>' +
@@ -104,12 +104,35 @@ function parserCFISDNews(text, source, icon){
 	return cards;
 }
 
-function fetchNews(apimethod, parser, source, icon){
+function fetchNews(apimethod, parser, source, icon){//REMOVE ME
 	timeout(6000, getFromAPI(apimethod)).then(
 		function(responce){
 			responce.text().then(
 				function(text){
 					addCards(parser(text, source, icon));
+				}
+			);
+		}
+	).catch(function(error){
+		AppAlert("Error", "Unable to Connect to Server 😭");
+	});
+}
+
+function JSONToCards(json){
+	var cards = [];
+	for (var i in json) {
+		cards.push(new NormalCardBox(json[i].organization, json[i].date, json[i].icon, json[i].image, json[i].text, json[i].link));
+	}
+	return cards;
+}
+
+function fetchCurrentNews(source){
+	timeout(6000, getFromAPI("news/" + encodeToURL(source))).then(
+		function(responce){
+			responce.json().then(
+				function(json){
+					alert(JSON.stringify(json));
+					addCards(JSONToCards(json));
 				}
 			);
 		}
@@ -146,7 +169,7 @@ function setNews(){
   }
 
   if(settings[5] == 'true'){
-		fetchNews('appnews', parserJSON, "The Cy-Ranch App", "/icons/Developer.png");
+		fetchCurrentNews('The Cy-Ranch App');
   }
 
   if(settings[6] == 'true'){
