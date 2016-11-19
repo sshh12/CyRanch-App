@@ -24,52 +24,60 @@
             <option value="a">A (Normal)</option>
             <option value="b">B (Extended 2nd)</option>
             <option value="c">C (Pep Rally)</option>
+            <option value="z">Z (Special)</option>
          </select>
       </label>
    </div>
    <ul class="list" id="items"></ul>
 </div>
 <script>
-    document.getElementById('lunch').value = localStorage.getItem('lunch');
-    var currentSchedule = 'a';
 
-    function updateList() {
-        var lunch_letter = document.getElementById("lunch").value;
+document.getElementById('lunch').value = localStorage.getItem('lunch');
+var currentSchedule = 'a';
 
-        var date_now = new Date();
+function updateList() {
+var lunch_letter = document.getElementById("lunch").value;
 
-        var lunch_added = false;
-        var lunch_timeslots,
-            MainSchedule,
-            title;
+var date_now = new Date();
 
-        if (currentSchedule == 'b') {
-            lunch_timeslots = BSchedule[2][lunch_letter];
-            MainSchedule    = BSchedule[1];
-            title           = BSchedule[0];
-        } else if (currentSchedule == 'c') {
-            lunch_timeslots = CSchedule[2][lunch_letter];
-            MainSchedule    = CSchedule[1];
-            title           = CSchedule[0];
-        } else {
-            lunch_timeslots = ASchedule[2][lunch_letter];
-            MainSchedule    = ASchedule[1];
-            title           = ASchedule[0];
+var lunch_added = false;
+var lunch_timeslots,
+    MainSchedule,
+    title;
+
+if (currentSchedule == 'b') {
+    lunch_timeslots = BSchedule[2][lunch_letter];
+    MainSchedule = BSchedule[1];
+    title = BSchedule[0];
+} else if (currentSchedule == 'c') {
+    lunch_timeslots = CSchedule[2][lunch_letter];
+    MainSchedule = CSchedule[1];
+    title = CSchedule[0];
+} else if (currentSchedule == 'z' && !isUndefined(SpecialSchedule)) {
+    lunch_timeslots = SpecialSchedule[2][lunch_letter];
+    MainSchedule = SpecialSchedule[1];
+    title = SpecialSchedule[0];
+} else {
+    document.getElementById("schedule").value = 'a';
+    lunch_timeslots = ASchedule[2][lunch_letter];
+    MainSchedule = ASchedule[1];
+    title = ASchedule[0];
+}
+
+html = "<div class=\"item item-divider\">" + title + "</div>";
+
+for (var i = 0; i < MainSchedule.length; i++) {
+    if (!lunch_added && i < MainSchedule.length - 1 && MainSchedule[i].start_date.getTime() > lunch_timeslots[lunch_timeslots.length - 1].end_date.getTime()) {
+        for (var k = 0; k < lunch_timeslots.length; k++) {
+            html += lunch_timeslots[k].toStringFormat(date_now);
         }
-
-        html = "<div class=\"item item-divider\">" + title + "</div>";
-
-        for (var i = 0; i < MainSchedule.length; i++) {
-            if (!lunch_added && i < MainSchedule.length - 1 && MainSchedule[i].start_date.getTime() > lunch_timeslots[lunch_timeslots.length - 1].end_date.getTime()) {
-                for (var k = 0; k < lunch_timeslots.length; k++) {
-                    html += lunch_timeslots[k].toStringFormat(date_now);
-                }
-                lunch_added = true;
-            }
-            html += MainSchedule[i].toStringFormat(date_now);
-        }
-        document.getElementById("items").innerHTML = html;
+        lunch_added = true;
     }
+    html += MainSchedule[i].toStringFormat(date_now);
+}
+document.getElementById("items").innerHTML = html;
+}
 
-    updateList();
+updateList();
+
 </script>

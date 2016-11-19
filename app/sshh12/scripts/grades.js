@@ -157,7 +157,6 @@ function updateGrades() {
 
             var formData = new FormData();
             formData.append("password", encodeToURL(password));
-
             timeout(20000, postFromAPI("homeaccess/classwork/" + username, formData)).then(
                 function(responce) {
                     responce.json().then(
