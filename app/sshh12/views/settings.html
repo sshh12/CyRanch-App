@@ -105,7 +105,7 @@ function setNewsSources(){
 	var news = JSON.parse(localStorage.getItem("newsoptions"));
 	var newsHTML = "";
 	for(var n in news){
-		newsHTML += "<a class=\"item item-avatar item-toggle\" href=\"#\"><img src=\"" + news[n] + "\"><h2>" + n +"</h2><p>Offical</p><label class=\"toggle toggle-assertive\"><input type=\"checkbox\" onClick=\"removeNewsSource('" + n + "')\"><div class=\"track\"><div class=\"handle\"></div></div></label></a>";
+		newsHTML += "<a class=\"item item-avatar item-toggle\" href=\"#\"><img src=\"" + news[n] + "\"><h2>" + n +"</h2><p>Official</p><label class=\"toggle toggle-assertive\"><input type=\"checkbox\" onClick=\"removeNewsSource('" + n + "')\"><div class=\"track\"><div class=\"handle\"></div></div></label></a>";
 	}
 	document.getElementById('news').innerHTML = newsHTML;
 }
