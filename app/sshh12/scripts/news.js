@@ -33,14 +33,8 @@ function NoImageCardBox(header, date, iconURL, onclick, text){
 	};
 }
 
-var settings = [localStorage.getItem("ViewCyRanchNews"),
-								localStorage.getItem("ViewCyRanchNewsSports"),
-								localStorage.getItem("ViewCyRanchNewsEntertainment"),
-								localStorage.getItem("ViewCyRanchNewsStudentLife"),
-								localStorage.getItem("ViewCyRanchNewsOpinion"),
-								localStorage.getItem("ViewAppNews"),
-							  localStorage.getItem("ViewCFISDNews")];
 var current_cards = [];
+var newslength = 0;
 
 function addCards(cards){
   var html = "";
@@ -60,6 +54,7 @@ function addCards(cards){
   document.getElementById("loading_box").style.display = 'none';
 }
 
+
 function refreshAllContent(){
   current_cards = [];
 	addCards([]);
@@ -68,7 +63,7 @@ function refreshAllContent(){
   document.getElementById("loading_box").style.display = 'block';
 }
 
-function parserCyRanchNews(text, source, icon){
+function parserCyRanchNews(text, source, icon){//REMOVE
 	var cards = [];
 	CyRanchNewsPage = createDocElement("CyRanchNewsPage", text);
 	for (var i = 0; i < 12; i++) { // CyRanchNews1
@@ -82,7 +77,7 @@ function parserCyRanchNews(text, source, icon){
 	return cards;
 }
 
-function parserJSON(text, source, icon){
+function parserJSON(text, source, icon){//REMOVE
 	var cards = [];
 	var news = JSON.parse(text);
 	for (var i in news) { //CyRanchApp
@@ -91,7 +86,7 @@ function parserJSON(text, source, icon){
 	return cards;
 }
 
-function parserCFISDNews(text, source, icon){
+function parserCFISDNews(text, source, icon){//REMOVE
 	var cards = [];
 	CFISDNews = createDocElement("CFISDNewsBody", text);
 	for (i = 0; i < CFISDNews.getElementsByClassName("index-item").length; i++) { //CFISDNews
@@ -131,7 +126,6 @@ function fetchCurrentNews(source){
 		function(responce){
 			responce.json().then(
 				function(json){
-					alert(JSON.stringify(json));
 					addCards(JSONToCards(json));
 				}
 			);
@@ -142,57 +136,19 @@ function fetchCurrentNews(source){
 }
 
 function setNews(){
+	newslength = localStorage.getItem("newsoptions").length;
+	var newsSources = JSON.parse(localStorage.getItem("newsoptions"));
 
-  if(settings[0] == 'true'){
-		fetchNews('cyranchnews/news/1', parserCyRanchNews, "Mustang News", "/icons/CyRanchMustangs.png");
-		fetchNews('cyranchnews/news/2', parserCyRanchNews, "Mustang News", "/icons/CyRanchMustangs.png");
-  }
-
-	if(settings[1] == 'true'){
-		fetchNews('cyranchnews/sports/1', parserCyRanchNews, "Mustang Sports", "/icons/CyRanchMustangs.png");
-		fetchNews('cyranchnews/sports/2', parserCyRanchNews, "Mustang Sports", "/icons/CyRanchMustangs.png");
-  }
-
-	if(settings[2] == 'true'){
-		fetchNews('cyranchnews/entertainment/1', parserCyRanchNews, "Mustang Arts", "/icons/CyRanchMustangs.png");
-		fetchNews('cyranchnews/entertainment/2', parserCyRanchNews, "Mustang Arts", "/icons/CyRanchMustangs.png");
-  }
-
-	if(settings[3] == 'true'){
-		fetchNews('cyranchnews/studentlife/1', parserCyRanchNews, "Mustang Arts", "/icons/CyRanchMustangs.png");
-		fetchNews('cyranchnews/studentlife/2', parserCyRanchNews, "Mustang Arts", "/icons/CyRanchMustangs.png");
-	}
-
-	if(settings[4] == 'true'){
-		fetchNews('cyranchnews/opinion/1', parserCyRanchNews, "Mustang Opinion", "/icons/CyRanchMustangs.png");
-		fetchNews('cyranchnews/opinion/2', parserCyRanchNews, "Mustang Opinion", "/icons/CyRanchMustangs.png");
-  }
-
-  if(settings[5] == 'true'){
-		fetchCurrentNews('The Cy-Ranch App');
-  }
-
-  if(settings[6] == 'true'){
-		fetchNews('cfisdnews', parserCFISDNews, "CFISD.net", "/icons/CFISD.png");
+	for(var n in newsSources){
+		fetchCurrentNews(n);
 	}
 
 }
 
 function onVisibilityChangeIndex() {
-    if(document.visibilityState == 'visible'){
-		var newSettings = [localStorage.getItem("ViewCyRanchNews"),
-										localStorage.getItem("ViewCyRanchNewsSports"),
-										localStorage.getItem("ViewCyRanchNewsEntertainment"),
-										localStorage.getItem("ViewCyRanchNewsStudentLife"),
-										localStorage.getItem("ViewCyRanchNewsOpinion"),
-										localStorage.getItem("ViewAppNews"),
-									  localStorage.getItem("ViewCFISDNews")];
-		for(var s in settings){
-			if(settings[s] != newSettings[s]){
-				settings = newSettings;
-				refreshAllContent();
-				break;
-			}
+  if(document.visibilityState == 'visible'){
+		if(localStorage.getItem("newsoptions").length != newslength){
+			refreshAllContent();
 		}
 	}
 }

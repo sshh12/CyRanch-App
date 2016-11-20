@@ -18,55 +18,15 @@
 				<div class="track"><div class="handle"></div></div>
 			</label>
 		</li>-->
-		<li class="item item-toggle">
-			<i>SSHH.IO</i>
-			<label class="toggle toggle-assertive">
-				<input type="checkbox" id="ViewAppNews" onClick="updateStorage('ViewAppNews')">
-				<div class="track"><div class="handle"></div></div>
-			</label>
-		</li>
-		<li class="item item-toggle">
-			Cfisd.net
-			<label class="toggle toggle-royal">
-				<input type="checkbox" id="ViewCFISDNews" onClick="updateStorage('ViewCFISDNews')">
-				<div class="track"><div class="handle"></div></div>
-			</label>
-		</li>
-		<li class="item item-toggle">
-			Mustang Messenger News
-			<label class="toggle toggle-balanced">
-				<input type="checkbox" id="ViewCyRanchNews" onClick="updateStorage('ViewCyRanchNews')">
-				<div class="track"><div class="handle"></div></div>
-			</label>
-		</li>
-		<li class="item item-toggle">
-			Mustang Messenger Sports
-			<label class="toggle toggle-balanced">
-				<input type="checkbox" id="ViewCyRanchNewsSports" onClick="updateStorage('ViewCyRanchNewsSports')">
-				<div class="track"><div class="handle"></div></div>
-			</label>
-		</li>
-		<li class="item item-toggle">
-			Mustang Messenger Arts
-			<label class="toggle toggle-balanced">
-				<input type="checkbox" id="ViewCyRanchNewsEntertainment" onClick="updateStorage('ViewCyRanchNewsEntertainment')">
-				<div class="track"><div class="handle"></div></div>
-			</label>
-		</li>
-		<li class="item item-toggle">
-			Mustang Messenger Students
-			<label class="toggle toggle-balanced">
-				<input type="checkbox" id="ViewCyRanchNewsStudentLife" onClick="updateStorage('ViewCyRanchNewsStudentLife')">
-				<div class="track"><div class="handle"></div></div>
-			</label>
-		</li>
-		<li class="item item-toggle">
-			Mustang Messenger Opinion
-			<label class="toggle toggle-balanced">
-				<input type="checkbox" id="ViewCyRanchNewsOpinion" onClick="updateStorage('ViewCyRanchNewsOpinion')">
-				<div class="track"><div class="handle"></div></div>
-			</label>
-		</li>
+
+		<div id="news">
+		</div>
+
+		<label class="item item-input item-select">
+			 <div class="input-label">More</div>
+			 <select id="newNewsSources" style="width: 100%;" onChange="addNewsSourceFromSelect()">
+			 </select>
+		</label>
 
 		<li class='item item-divider head'>Grades</li>
 		<label class="item item-input">
@@ -136,50 +96,57 @@ function resetStorage(){
 	document.getElementById('username').value = '';
 	localStorage.setItem('password', '');
 	document.getElementById('password').value = '';
-
-	localStorage.setItem('ViewCyRanchNews', 'true');
-	document.getElementById("ViewCyRanchNews").checked = true;
-	localStorage.setItem('ViewCyRanchNewsSports', 'false');
-	document.getElementById("ViewCyRanchNewsSports").checked = false;
-	localStorage.setItem('ViewCyRanchNewsEntertainment', 'false');
-	document.getElementById("ViewCyRanchNewsEntertainment").checked = false;
-	localStorage.setItem('ViewCyRanchNewsStudentLife', 'false');
-	document.getElementById("ViewCyRanchNewsStudentLife").checked = false;
-	localStorage.setItem('ViewCyRanchNewsOpinion', 'false');
-	document.getElementById("ViewCyRanchNewsOpinion").checked = false;
-	localStorage.setItem('ViewAppNews', 'true');
-	document.getElementById("ViewAppNews").checked = true;
-	localStorage.setItem('ViewCFISDNews', 'false');
-	document.getElementById("ViewCFISDNews").checked = false;
 }
-
-function updateStorage(key){
-	if(document.getElementById(key).checked){
-		localStorage.setItem(key, 'true');
-	} else {
-		localStorage.setItem(key, 'false');
-	}
-}
-
-function updateChecks(key){
-	if(localStorage.getItem(key) == 'true'){
-		document.getElementById(key).checked = true;
-	} else {
-		document.getElementById(key).checked = false;
-	}
-}
-
-updateChecks("ViewCyRanchNews");
-updateChecks("ViewCyRanchNewsSports");
-updateChecks("ViewCyRanchNewsEntertainment");
-updateChecks("ViewCyRanchNewsStudentLife");
-updateChecks("ViewCyRanchNewsOpinion");
-
-updateChecks("ViewAppNews");
-updateChecks("ViewCFISDNews");
 
 document.getElementById("username").value = localStorage.getItem("username");
 document.getElementById("password").value = localStorage.getItem("password");
+
+function setNewsSources(){
+	var news = JSON.parse(localStorage.getItem("newsoptions"));
+	var newsHTML = "";
+	for(var n in news){
+		newsHTML += "<a class=\"item item-avatar item-toggle\" href=\"#\"><img src=\"" + news[n] + "\"><h2>" + n +"</h2><p>Offical</p><label class=\"toggle toggle-assertive\"><input type=\"checkbox\" onClick=\"removeNewsSource('" + n + "')\"><div class=\"track\"><div class=\"handle\"></div></div></label></a>";
+	}
+	document.getElementById('news').innerHTML = newsHTML;
+}
+
+function removeNewsSource(name){
+	var news = JSON.parse(localStorage.getItem("newsoptions"));
+	delete news[name];
+	localStorage.setItem("newsoptions", JSON.stringify(news));
+	setNewsSources();
+}
+
+function addNewsSourceFromSelect(){
+	var value = document.getElementById('newNewsSources').value;
+	document.getElementById('newNewsSources').value = 'none';
+
+	var news = JSON.parse(localStorage.getItem("newsoptions"));
+	news[value] = allNewsSources[value];
+	localStorage.setItem("newsoptions", JSON.stringify(news));
+
+	setNewsSources();
+}
+
+var allNewsSources;
+timeout(5000, getFromAPI("news/list")).then(
+	function(responce){
+		responce.json().then(
+			function(json){
+				allNewsSources = json;
+				var selectHTML = "<option value='none'>...</option>";
+				for(var org in json){
+					selectHTML += "<option value=\"" + org +"\">" + org + "</option>";
+				}
+				document.getElementById('newNewsSources').innerHTML = selectHTML;
+			}
+		);
+	}
+).catch(function(error){
+	AppAlert("Error", "Unable to get other new sources! 😞");
+});
+
+setNewsSources();
 
 supersonic.app.splashscreen.hide();
 </script>
