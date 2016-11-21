@@ -5,7 +5,8 @@ function setDefault(key, initial){
   }
 }
 
-setDefault("newsoptions", JSON.stringify({'The Cy-Ranch App':'/icons/Developer.png'}));
+setDefault("newsoptions", JSON.stringify({'The Cy-Ranch App':'/icons/Developer.png',
+                                          'Mustang News':'/icons/CyRanchMustangs.png'}));
 
 setDefault("lunch", "none");
 

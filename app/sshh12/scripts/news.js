@@ -2,12 +2,12 @@ function NormalCardBox(header, date, iconURL, imageURL, text, link){
 	this.header = parseXSS(header);
 	this.date = new Date(date);
 	this.text = parseXSS(text);
-	this.onclick = 'supersonic.app.openURL("' + link + '")';
+	this.onclick = 'supersonic.app.openURL(\'' + link + '\')';
 	this.iconURL = iconURL;
 	this.imageURL = imageURL;
 
 	this.getHTML = function(){
-		return '<div class="card" ontouchstart="' +
+		return '<div class="card" onClick="' +
 						this.onclick + '"><div class="item item-avatar headercolor"><img src="' +
 						this.iconURL + '" /><h2>' +
 						this.header + '</h2><p>' +
@@ -25,7 +25,7 @@ function NoImageCardBox(header, date, iconURL, onclick, text){
 	this.iconURL = iconURL;
 
 	this.getHTML = function(){
-		return '<div class="card" ontouchstart=""><div class="item item-avatar headercolor"><img src="' +
+		return '<div class="card" onClick=""><div class="item item-avatar headercolor"><img src="' +
 						this.iconURL + '" /><h2>' +
 						this.header + '</h2><p>' +
 						this.date.toDateString() + '</p></div><div class="item item-body"><p>' +
@@ -61,56 +61,6 @@ function refreshAllContent(){
   setNews();
 	document.getElementById("cardlist").style.display = 'none';
   document.getElementById("loading_box").style.display = 'block';
-}
-
-function parserCyRanchNews(text, source, icon){//REMOVE
-	var cards = [];
-	CyRanchNewsPage = createDocElement("CyRanchNewsPage", text);
-	for (var i = 0; i < 12; i++) { // CyRanchNews1
-		cards.push(new NormalCardBox(source,
-														CyRanchNewsPage.getElementsByClassName("categorypreviewbox")[i].lastChild.previousSibling.textContent,
-														icon,
-														CyRanchNewsPage.getElementsByClassName("categorypreviewbox")[i].firstChild.firstChild.getAttribute("src"),
-														CyRanchNewsPage.getElementsByClassName("categorypreviewbox")[i].firstChild.nextSibling.firstChild.textContent,
-														'supersonic.app.openURL(\''+CyRanchNewsPage.getElementsByClassName("categorypreviewbox")[i].firstChild.getAttribute("href")+'\');'));
-	}
-	return cards;
-}
-
-function parserJSON(text, source, icon){//REMOVE
-	var cards = [];
-	var news = JSON.parse(text);
-	for (var i in news) { //CyRanchApp
-		cards.push(new NormalCardBox(source, news[i].date, icon, news[i].image, news[i].text, ''));
-	}
-	return cards;
-}
-
-function parserCFISDNews(text, source, icon){//REMOVE
-	var cards = [];
-	CFISDNews = createDocElement("CFISDNewsBody", text);
-	for (i = 0; i < CFISDNews.getElementsByClassName("index-item").length; i++) { //CFISDNews
-		cards.push(new NoImageCardBox(source,
-															 CFISDNews.getElementsByClassName("index-item")[i].getElementsByClassName("item-date")[0].textContent,
-															 icon,
-															 'supersonic.app.openURL(\'http://cfisd.net/' + CFISDNews.getElementsByClassName("index-item")[i].getElementsByTagName('a')[0].getAttribute('href')+'\');',
-															 CFISDNews.getElementsByClassName("index-item")[i].firstChild.nextSibling.firstChild.nextSibling.textContent));
-	}
-	return cards;
-}
-
-function fetchNews(apimethod, parser, source, icon){//REMOVE ME
-	timeout(6000, getFromAPI(apimethod)).then(
-		function(responce){
-			responce.text().then(
-				function(text){
-					addCards(parser(text, source, icon));
-				}
-			);
-		}
-	).catch(function(error){
-		AppAlert("Error", "Unable to Connect to Server 😭");
-	});
 }
 
 function JSONToCards(json){

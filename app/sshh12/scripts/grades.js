@@ -188,7 +188,7 @@ function updateGrades() {
             );
 
         } else {
-          setFromClassworkJson(JSON.parse(data));
+          setFromClassworkJson(JSON.parse(data));//Use Old
         }
     } else { //User Input is Incorrect
         document.getElementById("main").innerHTML = ErrorMessage;
