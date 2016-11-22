@@ -1,4 +1,3 @@
-//School Schedules
 function timeslot(timestring, name) {
     this.rawstring = timestring;
 
@@ -155,18 +154,3 @@ var CSchedule = [
         ]
     }
 ];
-
-var SpecialSchedule;
-if (isUndefined(SpecialSchedule)) {
-    timeout(6000, getFromAPI("schedule")).then(
-        function(responce) {
-            responce.text().then(
-                function(text) {
-                    SpecialSchedule = eval(text);
-                }
-            );
-        }
-    ).catch(function(error) {
-        AppAlert("Error", "Unable to get an updated schedule 😞");
-    });
-}

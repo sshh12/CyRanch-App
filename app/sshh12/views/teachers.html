@@ -35,68 +35,69 @@
 	</div>
 </div>
 <script defer>
-function makeDivider(letter){
-	return "<div class=\"item item-divider\">" + letter + "</div>";
+function makeDivider(letter) {
+    return "<div class=\"item item-divider\">" + letter + "</div>";
 }
 
-function makeTeacher(name, website, email){
-	var site = website.replace("https://", "")
-										.replace("http://www.", "")
-										.replace("/a/cfisd.net/", "/../");
-	return "<a class=\"item item-button-right\"><b><h3>" + name + "</h3></b><button onClick=\"supersonic.app.openURL('mailto:" +
-					email + "')\" class=\"button icon super-email button-positive\"></button><p onClick=\"supersonic.app.openURL('" + website + "')\">" + site + "</p></a>";
+function makeTeacher(name, website, email) {
+    var site = website.replace("https://", "")
+        .replace("http://www.", "")
+        .replace("/a/cfisd.net/", "/../");
+    return "<a class=\"item item-button-right\"><b><h3>" + name + "</h3></b><button onClick=\"supersonic.app.openURL('mailto:" +
+        email + "')\" class=\"button icon super-email button-positive\"></button><p onClick=\"supersonic.app.openURL('" + website + "')\">" + site + "</p></a>";
 }
 
-function setTeachers(json){
-	json = json || JSON.parse(localStorage.getItem("faculty_json"));
+function setTeachers(json) {
+    json = json || JSON.parse(localStorage.getItem("faculty_json"));
 
-	var search = reduceString(document.getElementById("search_bar").value);
+    var search = reduceString(document.getElementById("search_bar").value);
 
-	var html = "";
-	var letters = ['A', 'B', 'C', 'D', 'E', 'F',
-	 							 'G', 'H', 'I', 'J', 'K', 'L',
-								 'M', 'N', 'O', 'P', 'Q', 'R',
-								 'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z'];
+    var html = "";
+    var letters = ['A', 'B', 'C', 'D', 'E', 'F',
+        'G', 'H', 'I', 'J', 'K', 'L',
+        'M', 'N', 'O', 'P', 'Q', 'R',
+        'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z'
+    ];
 
-	for(var div_letter in letters){
-		var groupOfTeachers = "";
-		if(json[letters[div_letter]]){
-			for(var i = 0; i < json[letters[div_letter]].length; i++){
-				var teacher = makeTeacher(json[ letters[div_letter] ][i].name, json[ letters[div_letter] ][i].website, json[ letters[div_letter] ][i].email);
-				if(reduceString(teacher).indexOf(search) >= 0 || search.length < 1){
-					groupOfTeachers += teacher;
-				}
-			}
+    for (var div_letter in letters) {
+        var groupOfTeachers = "";
+        if (json[letters[div_letter]]) {
+            for (var i = 0; i < json[letters[div_letter]].length; i++) {
+                var teacher = makeTeacher(json[letters[div_letter]][i].name, json[letters[div_letter]][i].website, json[letters[div_letter]][i].email);
+                if (reduceString(teacher).indexOf(search) >= 0 || search.length < 1) {
+                    groupOfTeachers += teacher;
+                }
+            }
 
-			if(groupOfTeachers.length > 0){
-				groupOfTeachers = makeDivider(letters[div_letter]) + groupOfTeachers;
-			}
-			html += groupOfTeachers;
+            if (groupOfTeachers.length > 0) {
+                groupOfTeachers = makeDivider(letters[div_letter]) + groupOfTeachers;
+            }
+            html += groupOfTeachers;
 
-		}
-	}
-	document.getElementById("content").innerHTML = html;
+        }
+    }
+    document.getElementById("content").innerHTML = html;
 }
 
-function getTeachers(){
-	var original_json = localStorage.getItem("faculty_json");
-	if(isUndefined(original_json) || original_json == null || original_json.length < 50){
-		timeout(6000, getFromAPI("faculty")).then(
-			function(responce){
-				responce.json().then(
-					function(json){
-						localStorage.setItem('faculty_json', JSON.stringify(json));
-						setTeachers(json);
-					}
-				);
-			}
-		).catch(function(error){
-			AppAlert("Error", "Unable to Get Teachers 😞");
-		});
+function getTeachers() {
+    var original_json = localStorage.getItem("faculty_json");
+    if (isUndefined(original_json) || original_json == null || original_json.length < 50) {
+        timeout(6000, getFromAPI("faculty")).then(
+            function(responce) {
+                responce.json().then(
+                    function(json) {
+                        localStorage.setItem('faculty_json', JSON.stringify(json));
+                        setTeachers(json);
+                    }
+                );
+            }
+        ).catch(function(error) {
+            AppAlert("Error", "Unable to Get Teachers 😞");
+        });
 
-	} else {
-			setTeachers(JSON.parse(original_json));
-	}
+    } else {
+        setTeachers(JSON.parse(original_json));
+    }
 }
 
 getTeachers();
