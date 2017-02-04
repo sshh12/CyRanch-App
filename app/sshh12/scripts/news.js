@@ -72,7 +72,7 @@ function JSONToCards(json) {
 }
 
 function fetchCurrentNews(source) {
-    timeout(6000, getFromAPI("news/" + encodeToURL(source))).then(
+    timeout(15000, getFromAPI("news/" + encodeToURL(source))).then(
         function(responce) {
             responce.json().then(
                 function(json) {
@@ -81,7 +81,7 @@ function fetchCurrentNews(source) {
             );
         }
     ).catch(function(error) {
-        AppAlert("Error", "Unable to Connect to Server 😭");
+        //AppAlert("Error", "Unable to Connect to Server 😭");
     });
 }
 
