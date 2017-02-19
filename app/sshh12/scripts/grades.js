@@ -59,7 +59,7 @@ function ClassGradeItem(subject, percent, lettr, ident) {
     this.badge = letterToColor(this.lettr);
 
     this.getHTML = function() {
-        return "<a class=\"item\"><i style='text-align: left' class='icon super-chevron-down'></i>&nbsp<b ontouchstart=\"toggleVisibility('" + this.ident + "');\">" + this.subject +
+        return "<a class=\"item\"><i style='text-align: left' class='icon super-chevron-down'></i>&nbsp<b onClick=\"toggleVisibility('" + this.ident + "');\" ontouchstart=\"toggleVisibility('" + this.ident + "');\">" + this.subject +
             "</b><span ontouchstart=\"showStats('" + this.subject + "','" + this.subject + " AVG" + "', '" + this.percent.replace("%", "") + "')\" class=\"badge badge-" + this.badge +
             "\">" + this.percent + "</span></a>";
     };
@@ -163,9 +163,7 @@ function setFromReportCardJSON(json) {
     document.getElementById('reportcard').innerHTML = newHTML;
 }
 
-var counter;
-var interval;
-
+var counter, interval;
 function startCounter() {
     counter = 0;
     interval = setInterval(

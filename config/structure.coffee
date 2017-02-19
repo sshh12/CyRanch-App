@@ -33,14 +33,6 @@ module.exports =
 
   preloads: [
     {
-      id: "calender"
-      location: "sshh12#calender"
-    }
-    {
-      id: "credits"
-      location: "sshh12#credits"
-    }
-    {
       id: "schedule"
       location: "sshh12#schedule"
     }
