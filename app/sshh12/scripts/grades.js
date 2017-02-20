@@ -59,7 +59,7 @@ function ClassGradeItem(subject, percent, lettr, ident) {
     this.badge = letterToColor(this.lettr);
 
     this.getHTML = function() {
-        return "<a class=\"item\"><i style='text-align: left' class='icon super-chevron-down'></i>&nbsp<b onClick=\"toggleVisibility('" + this.ident + "');\" ontouchstart=\"toggleVisibility('" + this.ident + "');\">" + this.subject +
+        return "<a class=\"item\"><i style='text-align: left' class='icon super-chevron-down'></i>&nbsp<b ontouchstart=\"toggleVisibility('" + this.ident + "');\">" + this.subject +
             "</b><span ontouchstart=\"showStats('" + this.subject + "','" + this.subject + " AVG" + "', '" + this.percent.replace("%", "") + "')\" class=\"badge badge-" + this.badge +
             "\">" + this.percent + "</span></a>";
     };
@@ -111,43 +111,59 @@ function ReportCardItem(classname, averages) {
 }
 
 function setFromClassworkJson(json) {
-    var i = 0;
-    var showhtml = "<div class=\"list\">";
-    showhtml += "<div class=\"item item-divider\">Current Classwork</div>";
 
-    var classworkKeys = Object.keys(json);
-    classworkKeys.sort(
-        function(a, b) {
-            return json[a].name.toLowerCase() > json[b].name.toLowerCase() ? 1 : -1;
-        }
-    );
+    var showhtml;
 
-    for (var c in classworkKeys) {
+    if(json.status === 'success'){
 
-        var subject = json[classworkKeys[c]];
+      localStorage.setItem('classwork', JSON.stringify(json));
 
-        showhtml += new ClassGradeItem(subject.name, subject.overallavg, subject.letter, "GROUP_" + i).getHTML();
+      delete json.status;
 
-        if (Object.keys(subject.assignments).length >= 1) {
-            var assignmentKeys = Object.keys(subject.assignments);
-            assignmentKeys.sort(
-                function(a, b) {
-                    return new Date(subject.assignments[b].datedue).getTime() - new Date(subject.assignments[a].datedue).getTime();
-                }
-            );
+      var i = 0;
+      showhtml = "<div class=\"list\">";
+      showhtml += "<div class=\"item item-divider\">Current Classwork</div>";
 
-            for (var s in assignmentKeys) {
-                var assignment = subject.assignments[assignmentKeys[s]];
-                showhtml += new AssignmentGradeItem(subject.name, assignmentKeys[s], assignment.grade, assignment.letter, "GROUP_" + i).getHTML();
-            }
+      var classworkKeys = Object.keys(json);
+      classworkKeys.sort(
+          function(a, b) {
+              return json[a].name.toLowerCase() > json[b].name.toLowerCase() ? 1 : -1;
+          }
+      );
 
-        }
-        i++;
+      for (var c in classworkKeys) {
+
+          var subject = json[classworkKeys[c]];
+
+          showhtml += new ClassGradeItem(subject.name, subject.overallavg, subject.letter, "GROUP_" + i).getHTML();
+
+          if (Object.keys(subject.assignments).length >= 1) {
+              var assignmentKeys = Object.keys(subject.assignments);
+              assignmentKeys.sort(
+                  function(a, b) {
+                      return new Date(subject.assignments[b].datedue).getTime() - new Date(subject.assignments[a].datedue).getTime();
+                  }
+              );
+
+              for (var s in assignmentKeys) {
+                  var assignment = subject.assignments[assignmentKeys[s]];
+                  showhtml += new AssignmentGradeItem(subject.name, assignmentKeys[s], assignment.grade, assignment.letter, "GROUP_" + i).getHTML();
+              }
+
+          }
+          i++;
+      }
+
+      showhtml += "<div class=\"item item-divider\">Report Card</div>" +
+          "<div id=\"reportcard\"><a class=\"item item-icon-right\" onClick=\"updateReportCard()\" href=\"#\">Download<i class=\"icon super-ios-cloud-download\"></i></a></div>";
+
+    } else if(json.status === 'login_failed'){
+      AppAlert("Error", "Login Failed");
+      showhtml = "";
+    } else if(json.status === 'connection_failed'){
+      AppAlert("Error", "Unable to connect to HomeAccessCenter");
+      showhtml = "";
     }
-
-
-    showhtml += "<div class=\"item item-divider\">Report Card</div>" +
-        "<div id=\"reportcard\"><a class=\"item item-icon-right\" onClick=\"updateReportCard()\" href=\"#\">Download<i class=\"icon super-ios-cloud-download\"></i></a></div>";
 
     document.getElementById("main").innerHTML = showhtml;
     document.getElementById("main").style.display = 'block';
@@ -230,7 +246,6 @@ function updateGrades() {
                 function(responce) {
                     responce.json().then(
                         function(json) {
-                            localStorage.setItem('classwork', JSON.stringify(json));
                             setFromClassworkJson(json);
                         }
                     );
