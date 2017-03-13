@@ -184,8 +184,8 @@ function startCounter() {
     counter = 0;
     interval = setInterval(
         function() {
-            counter += 0.5;
-            if (counter >= 100) {
+            counter += 1;
+            if (counter >= 400) {
                 clearInterval(interval);
                 document.getElementById('status').innerHTML = "Something Went Wrong...";
             } else {

@@ -1,4 +1,4 @@
-function NormalCardBox(header, date, iconURL, imageURL, text, link) {
+function ArticleCardBox(header, date, iconURL, imageURL, text, link) {
     this.header = parseXSS(header);
     this.date = new Date(date);
     this.text = parseXSS(text);
@@ -17,15 +17,16 @@ function NormalCardBox(header, date, iconURL, imageURL, text, link) {
     };
 }
 
-function NoImageCardBox(header, date, iconURL, onclick, text) {
+function TextCardBox(header, date, iconURL, text, link) {
     this.header = parseXSS(header);
     this.date = new Date(date);
     this.text = parseXSS(text);
-    this.onclick = onclick;
+    this.onclick = 'supersonic.app.openURL(\'' + link + '\')';
     this.iconURL = iconURL;
 
     this.getHTML = function() {
-        return '<div class="card" onClick=""><div class="item item-avatar headercolor"><img src="' +
+        return '<div class="card" onClick="' +
+            this.onclick + '"><div class="item item-avatar headercolor"><img src="' +
             this.iconURL + '" /><h2>' +
             this.header + '</h2><p>' +
             this.date.toDateString() + '</p></div><div class="item item-body"><p>' +
@@ -66,13 +67,17 @@ function refreshAllContent() {
 function JSONToCards(json) {
     var cards = [];
     for (var i in json) {
-        cards.push(new NormalCardBox(json[i].organization, json[i].date, json[i].icon, json[i].image, json[i].text, json[i].link));
+        if(json[i].type === 1){
+          cards.push(new ArticleCardBox(json[i].organization, json[i].date, json[i].icon, json[i].image, json[i].text, json[i].link));
+        } else if(json[i].type === 2) {
+          cards.push(new TextCardBox(json[i].organization, json[i].date, json[i].icon, json[i].text, json[i].link));
+        }
     }
     return cards;
 }
 
 function fetchCurrentNews(source) {
-    timeout(15000, getFromAPI("news/" + encodeToURL(source))).then(
+    timeout(20000, getFromAPI("news/" + encodeToURL(source))).then(
         function(responce) {
             responce.json().then(
                 function(json) {
