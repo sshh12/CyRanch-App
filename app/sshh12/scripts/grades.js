@@ -89,23 +89,38 @@ function AssignmentGradeItem(subject, name, percent, lettr, ident) {
 
 }
 
-function ReportCardItem(classname, averages) {
+function ReportCardItem(json) {
 
-    this.classname = classname;
-    this.averages = averages;
+    this.classname = json.name;
+    this.averages = json.averages;
+    this.teacher = json.teacher;
+    this.exams = json.exams;
+    this.sem = json.semesters;
+
+    this.getRowHTML = function(content){
+      var contentHTML = "";
+      for (var m in content) {
+          var avg = content[m].average;
+          var lettr = content[m].letter;
+          if (avg <= 0) {
+              avg = "-";
+              lettr = "U";
+          }
+          contentHTML += "<div class=\"col\"><button class=\"button button-block button-" + letterToColor(lettr) + "\">" + avg + "</button></div>";
+      }
+      return contentHTML;
+    };
 
     this.getHTML = function() {
-        var avgHTML = "";
-        for (var m in this.averages) {
-            var avg = this.averages[m].average;
-            var lettr = this.averages[m].letter;
-            if (avg.length < 1) {
-                avg = "?";
-                lettr = "U";
-            }
-            avgHTML += "<div class=\"col\"><button class=\"button button-block button-" + letterToColor(lettr) + "\">" + avg + "</button></div>";
-        }
-        return "<a class=\"item\" href=\"#\"><b>" + this.classname + "</b><div class=\"row\">" + avgHTML + "</div></a>";
+
+        var avgHTML = this.getRowHTML(this.averages);
+        var examHTML = this.getRowHTML(this.exams);
+        var semHTML = this.getRowHTML(this.sem);
+
+        return "<a class=\"item\" href=\"#\"><b>" + this.classname + "</b> " + this.teacher +
+               "<br><br><span class='sep'>Six Weeks</span><div class=\"row\">" + avgHTML +
+               "</div><span class='sep'>Finals</span><div class=\"row\">" + examHTML +
+               "</div><span class='sep'>Semesters</span><div class=\"row\">" + semHTML + "</div></a>";
     };
 
 }
@@ -172,11 +187,24 @@ function setFromClassworkJson(json) {
 }
 
 function setFromReportCardJSON(json) {
-    var newHTML = "";
-    for (var classid in json) {
-        newHTML += new ReportCardItem(json[classid].name, json[classid].averages).getHTML();
+    if(json.status === 'success'){
+
+      delete json.status;
+
+      var classkeys = Object.keys(json);
+      classkeys.sort(
+          function(a, b) {
+              return json[a].name.localeCompare(json[b].name);
+          }
+      );
+
+      var newHTML = "";
+      for (var i in classkeys) {
+          newHTML += new ReportCardItem(json[classkeys[i]]).getHTML();
+      }
+      document.getElementById('reportcard').innerHTML = newHTML;
+
     }
-    document.getElementById('reportcard').innerHTML = newHTML;
 }
 
 var counter, interval;
@@ -184,8 +212,8 @@ function startCounter() {
     counter = 0;
     interval = setInterval(
         function() {
-            counter += 1;
-            if (counter >= 400) {
+            counter += .25;
+            if (counter >= 100) {
                 clearInterval(interval);
                 document.getElementById('status').innerHTML = "Something Went Wrong...";
             } else {
