@@ -53,6 +53,7 @@ function ClassGradeItem(subject, percent, lettr, ident) {
         this.lettr = lettr;
     }
 
+
     this.ident = ident;
     this.subject = subject;
 
@@ -65,7 +66,7 @@ function ClassGradeItem(subject, percent, lettr, ident) {
     };
 }
 
-function AssignmentGradeItem(subject, name, percent, lettr, ident) {
+function AssignmentGradeItem(subject, name, percent, lettr, gradetype, ident) {
 
     if (isUndefined(percent) || percent.length < 2) {
         this.percent = "None";
@@ -75,6 +76,7 @@ function AssignmentGradeItem(subject, name, percent, lettr, ident) {
         this.lettr = lettr;
     }
 
+    this.gradetype = gradetype.split(" ")[0];
     this.name = name;
     this.subject = subject;
     this.ident = ident;
@@ -83,7 +85,7 @@ function AssignmentGradeItem(subject, name, percent, lettr, ident) {
 
     this.getHTML = function() {
         return "<a style=\"display: none; font-size: 14px; color: #9c9c9c;\" class=\"item " + this.ident + "\">&nbsp;" + this.name +
-            "<span style=\"font-size: 15px;\" ontouchstart=\"showStats('" + this.subject + "','" + this.name + "', '" + this.percent.replace("%", "") + "')\" class=\"badge badge-" + this.badge +
+            "&nbsp<sup>(" + this.gradetype + ")</sup><span style=\"font-size: 15px;\" ontouchstart=\"showStats('" + this.subject + "','" + this.name + "', '" + this.percent.replace("%", "") + "')\" class=\"badge badge-" + this.badge +
             "\">" + this.percent + "</span></a>";
     };
 
@@ -162,7 +164,7 @@ function setFromClassworkJson(json) {
 
               for (var s in assignmentKeys) {
                   var assignment = subject.assignments[assignmentKeys[s]];
-                  showhtml += new AssignmentGradeItem(subject.name, assignmentKeys[s], assignment.grade, assignment.letter, "GROUP_" + i).getHTML();
+                  showhtml += new AssignmentGradeItem(subject.name, assignmentKeys[s], assignment.grade, assignment.letter, assignment.gradetype, "GROUP_" + i).getHTML();
               }
 
           }
