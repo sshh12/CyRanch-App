@@ -91,6 +91,30 @@ function AssignmentGradeItem(subject, name, percent, lettr, gradetype, ident) {
 
 }
 
+function CategoryGradeItem(category, weight, percent, lettr, ident) {
+
+    if (isUndefined(percent) || percent.length < 2) {
+        this.percent = "None";
+        this.lettr = 'U';
+    } else {
+        this.percent = percent;
+        this.lettr = lettr;
+    }
+
+    this.category = category;
+    this.ident = ident;
+    this.weight = weight;
+
+    this.badge = letterToColor(this.lettr);
+
+    this.getHTML = function() {
+        return "<a style=\"display: none; font-size: 14px; color: #6a6a6a; font-style: italic;\" class=\"item " + this.ident + "\">&nbsp;All " + this.category +
+            "&nbsp<sup>(Weight " + this.weight + ")</sup><span style=\"font-size: 15px;\" class=\"badge badge-" + this.badge +
+            "\">" + this.percent + "</span></a>";
+    };
+
+}
+
 function ReportCardItem(json) {
 
     this.classname = json.name;
@@ -168,6 +192,12 @@ function setFromClassworkJson(json) {
               }
 
           }
+
+          for(var category in subject.categories){
+            var cat = subject.categories[category];
+            showhtml += new CategoryGradeItem(category, cat.weight, cat.grade, cat.letter, "GROUP_" + i).getHTML();
+          }
+
           i++;
       }
 
