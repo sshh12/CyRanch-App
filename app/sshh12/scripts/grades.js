@@ -2,11 +2,11 @@ var ErrorMessage = '<div class="card"><div class="item item-text-wrap">Looks lik
 var ErrorMessageConnection = '<div class="card"><div class="item item-text-wrap" style="text-align:center">Unable to Connect 😞</div></div>';
 
 function showStats(subject, name, grade) {
-    getFromAPI("homeaccess/stats/" + encodeToURL(subject) + "/" + encodeToURL(name) + "/" + grade).then(
+    getFromAPI("homeaccess/statistics/" + encodeToURL(subject) + "/" + encodeToURL(name) + "/" + grade).then(
         function(responce) {
             responce.json().then(
                 function(json) {
-                    AppAlert(name, "Average: " + Math.round(json.Average, -2) + "\n%Tile: " + Math.round(json.PercentBelow, -2));
+                    AppAlert(name, "Average: " + Math.round(json.average, -2) + "\n%Tile: " + Math.round(json.percentile, -2));
                 }
             );
         }
