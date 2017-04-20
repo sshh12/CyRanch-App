@@ -265,6 +265,7 @@ function updateReportCard() {
 
     var formData = new FormData();
     formData.append("password", encodeToURL(password));
+    formData.append("concent", "true");
     timeout(20000, postFromAPI("homeaccess/reportcard/" + username, formData)).then(
         function(responce) {
             responce.json().then(
@@ -288,44 +289,66 @@ function updateReportCard() {
 
 function updateGrades() {
 
-    var username = localStorage.getItem("username").toLowerCase();
-    var password = localStorage.getItem("password");
+    var legal = localStorage.getItem("legal") == "true";
+    if(!legal) {
 
-    if (password.length > 4 && username.substring(0, 1) == 's' && username.length === 7 && username.substring(1, 7).match(/^[0-9]+$/) !== null) {
+      var options = {
+        message: "To provide assignment averages, percentiles, and other features, the app requires that you accept the policies outlined in the legal section of the app.",
+        buttonLabels: ["Yup (I accept)", "No!"]
+      };
 
-        var data = localStorage.getItem('classwork');
-
-        if (data.length < 10) { //Need to Update Data
-
-            document.getElementById("main").style.display = 'none';
-            document.getElementById("loading_box").style.display = 'block';
-
-            var formData = new FormData();
-            formData.append("password", encodeToURL(password));
-            timeout(20000, postFromAPI("homeaccess/classwork/" + username, formData)).then(
-                function(responce) {
-                    responce.json().then(
-                        function(json) {
-                            setFromClassworkJson(json);
-                        }
-                    );
-                }
-            ).catch(function(error) {
-                clearInterval(interval);
-                AppAlert("Error", "Unable to Download Grades 😞");
-                document.getElementById("main").innerHTML = ErrorMessageConnection;
-                document.getElementById("main").style.display = 'block';
-                document.getElementById("loading_box").style.display = 'none';
-            });
-
-            startCounter();
-
+      supersonic.ui.dialog.confirm("Legal", options).then(function(index) {
+        if (index == 0) {
+          localStorage.setItem("legal", "true");
+          updateGrades();
         } else {
-            setFromClassworkJson(JSON.parse(data)); //Use Old
+          AppAlert("Error", "You must accept to access your grades.");
         }
-    } else { //User Input is Incorrect
-        document.getElementById("main").innerHTML = ErrorMessage;
-    }
+      });
+
+    } else {
+
+      var username = localStorage.getItem("username").toLowerCase();
+      var password = localStorage.getItem("password");
+
+      if (password.length > 4 && username.substring(0, 1) == 's' && username.length === 7 && username.substring(1, 7).match(/^[0-9]+$/) !== null) {
+
+          var data = localStorage.getItem('classwork');
+
+          if (data.length < 10) { //Need to Update Data
+
+              document.getElementById("main").style.display = 'none';
+              document.getElementById("loading_box").style.display = 'block';
+
+              var formData = new FormData();
+              formData.append("password", encodeToURL(password));
+              formData.append("concent", "true");
+              timeout(20000, postFromAPI("homeaccess/classwork/" + username, formData)).then(
+                  function(responce) {
+                      responce.json().then(
+                          function(json) {
+                              setFromClassworkJson(json);
+                          }
+                      );
+                  }
+              ).catch(function(error) {
+                  clearInterval(interval);
+                  AppAlert("Error", "Unable to Download Grades 😞");
+                  document.getElementById("main").innerHTML = ErrorMessageConnection;
+                  document.getElementById("main").style.display = 'block';
+                  document.getElementById("loading_box").style.display = 'none';
+              });
+
+              startCounter();
+
+          } else {
+              setFromClassworkJson(JSON.parse(data)); //Use Old
+          }
+      } else { //User Input is Incorrect
+          document.getElementById("main").innerHTML = ErrorMessage;
+      }
+
+  }
 
 }
 

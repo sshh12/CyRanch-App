@@ -15,3 +15,5 @@ setDefault("lunch", "none");
 setDefault("username", "");
 setDefault("password", "");
 setDefault("classwork", "");
+
+setDefault("legal", "false");
