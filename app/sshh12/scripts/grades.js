@@ -123,18 +123,18 @@ function ReportCardItem(json) {
     this.exams = json.exams;
     this.sem = json.semesters;
 
-    this.getRowHTML = function(content){
-      var contentHTML = "";
-      for (var m in content) {
-          var avg = content[m].average;
-          var lettr = content[m].letter;
-          if (avg <= 0) {
-              avg = "-";
-              lettr = "U";
-          }
-          contentHTML += "<div class=\"col\"><button class=\"button button-block button-" + letterToColor(lettr) + "\">" + avg + "</button></div>";
-      }
-      return contentHTML;
+    this.getRowHTML = function(content) {
+        var contentHTML = "";
+        for (var m in content) {
+            var avg = content[m].average;
+            var lettr = content[m].letter;
+            if (avg <= 0) {
+                avg = "-";
+                lettr = "U";
+            }
+            contentHTML += "<div class=\"col\"><button class=\"button button-block button-" + letterToColor(lettr) + "\">" + avg + "</button></div>";
+        }
+        return contentHTML;
     };
 
     this.getHTML = function() {
@@ -144,9 +144,9 @@ function ReportCardItem(json) {
         var semHTML = this.getRowHTML(this.sem);
 
         return "<a class=\"item\" href=\"#\"><b>" + this.classname + "</b> " + this.teacher +
-               "<br><br><span class='sep'>Six Weeks</span><div class=\"row\">" + avgHTML +
-               "</div><span class='sep'>Finals</span><div class=\"row\">" + examHTML +
-               "</div><span class='sep'>Semesters</span><div class=\"row\">" + semHTML + "</div></a>";
+            "<br><br><span class='sep'>Six Weeks</span><div class=\"row\">" + avgHTML +
+            "</div><span class='sep'>Finals</span><div class=\"row\">" + examHTML +
+            "</div><span class='sep'>Semesters</span><div class=\"row\">" + semHTML + "</div></a>";
     };
 
 }
@@ -155,61 +155,61 @@ function setFromClassworkJson(json) {
 
     var showhtml;
 
-    if(json.status === 'success'){
+    if (json.status === 'success') {
 
-      localStorage.setItem('classwork', JSON.stringify(json));
+        localStorage.setItem('classwork', JSON.stringify(json));
 
-      delete json.status;
+        delete json.status;
 
-      var i = 0;
-      showhtml = "<div class=\"list\">";
-      showhtml += "<div class=\"item item-divider\">Current Classwork</div>";
+        var i = 0;
+        showhtml = "<div class=\"list\">";
+        showhtml += "<div class=\"item item-divider\">Current Classwork</div>";
 
-      var classworkKeys = Object.keys(json);
-      classworkKeys.sort(
-          function(a, b) {
-              return json[a].name.toLowerCase() > json[b].name.toLowerCase() ? 1 : -1;
-          }
-      );
+        var classworkKeys = Object.keys(json);
+        classworkKeys.sort(
+            function(a, b) {
+                return json[a].name.toLowerCase() > json[b].name.toLowerCase() ? 1 : -1;
+            }
+        );
 
-      for (var c in classworkKeys) {
+        for (var c in classworkKeys) {
 
-          var subject = json[classworkKeys[c]];
+            var subject = json[classworkKeys[c]];
 
-          showhtml += new ClassGradeItem(subject.name, subject.overallavg, subject.letter, "GROUP_" + i).getHTML();
+            showhtml += new ClassGradeItem(subject.name, subject.overallavg, subject.letter, "GROUP_" + i).getHTML();
 
-          if (Object.keys(subject.assignments).length >= 1) {
-              var assignmentKeys = Object.keys(subject.assignments);
-              assignmentKeys.sort(
-                  function(a, b) {
-                      return new Date(subject.assignments[b].datedue).getTime() - new Date(subject.assignments[a].datedue).getTime();
-                  }
-              );
+            if (Object.keys(subject.assignments).length >= 1) {
+                var assignmentKeys = Object.keys(subject.assignments);
+                assignmentKeys.sort(
+                    function(a, b) {
+                        return new Date(subject.assignments[b].datedue).getTime() - new Date(subject.assignments[a].datedue).getTime();
+                    }
+                );
 
-              for (var s in assignmentKeys) {
-                  var assignment = subject.assignments[assignmentKeys[s]];
-                  showhtml += new AssignmentGradeItem(subject.name, assignmentKeys[s], assignment.grade, assignment.letter, assignment.gradetype, "GROUP_" + i).getHTML();
-              }
+                for (var s in assignmentKeys) {
+                    var assignment = subject.assignments[assignmentKeys[s]];
+                    showhtml += new AssignmentGradeItem(subject.name, assignmentKeys[s], assignment.grade, assignment.letter, assignment.gradetype, "GROUP_" + i).getHTML();
+                }
 
-          }
+            }
 
-          for(var category in subject.categories){
-            var cat = subject.categories[category];
-            showhtml += new CategoryGradeItem(category, cat.weight, cat.grade, cat.letter, "GROUP_" + i).getHTML();
-          }
+            for (var category in subject.categories) {
+                var cat = subject.categories[category];
+                showhtml += new CategoryGradeItem(category, cat.weight, cat.grade, cat.letter, "GROUP_" + i).getHTML();
+            }
 
-          i++;
-      }
+            i++;
+        }
 
-      showhtml += "<div class=\"item item-divider\">Report Card</div>" +
-          "<div id=\"reportcard\"><a class=\"item item-icon-right\" onClick=\"updateReportCard()\" href=\"#\">Download<i class=\"icon super-ios-cloud-download\"></i></a></div>";
+        showhtml += "<div class=\"item item-divider\">Report Card</div>" +
+            "<div id=\"reportcard\"><a class=\"item item-icon-right\" onClick=\"updateReportCard()\" href=\"#\">Download<i class=\"icon super-ios-cloud-download\"></i></a></div>";
 
-    } else if(json.status === 'login_failed'){
-      AppAlert("Error", "Login Failed");
-      showhtml = "";
-    } else if(json.status === 'connection_failed'){
-      AppAlert("Error", "Unable to connect to HomeAccessCenter");
-      showhtml = "";
+    } else if (json.status === 'login_failed') {
+        AppAlert("Error", "Login Failed");
+        showhtml = "";
+    } else if (json.status === 'connection_failed') {
+        AppAlert("Error", "Unable to connect to HomeAccessCenter");
+        showhtml = "";
     }
 
     document.getElementById("main").innerHTML = showhtml;
@@ -219,27 +219,28 @@ function setFromClassworkJson(json) {
 }
 
 function setFromReportCardJSON(json) {
-    if(json.status === 'success'){
+    if (json.status === 'success') {
 
-      delete json.status;
+        delete json.status;
 
-      var classkeys = Object.keys(json);
-      classkeys.sort(
-          function(a, b) {
-              return json[a].name.localeCompare(json[b].name);
-          }
-      );
+        var classkeys = Object.keys(json);
+        classkeys.sort(
+            function(a, b) {
+                return json[a].name.localeCompare(json[b].name);
+            }
+        );
 
-      var newHTML = "";
-      for (var i in classkeys) {
-          newHTML += new ReportCardItem(json[classkeys[i]]).getHTML();
-      }
-      document.getElementById('reportcard').innerHTML = newHTML;
+        var newHTML = "";
+        for (var i in classkeys) {
+            newHTML += new ReportCardItem(json[classkeys[i]]).getHTML();
+        }
+        document.getElementById('reportcard').innerHTML = newHTML;
 
     }
 }
 
 var counter, interval;
+
 function startCounter() {
     counter = 0;
     interval = setInterval(
@@ -290,66 +291,64 @@ function updateReportCard() {
 function updateGrades() {
 
     var legal = localStorage.getItem("legal") == "true";
-    if(!legal) {
+    var data = localStorage.getItem('classwork');
+    var username = localStorage.getItem("username").toLowerCase();
+    var password = localStorage.getItem("password");
 
-      var options = {
-        message: "To provide assignment averages, percentiles, and other features, the app requires that you accept the policies outlined in the legal section of the app.",
-        buttonLabels: ["Yup (I accept)", "No!"]
-      };
+    if (password.length > 4 && username.substring(0, 1) == 's' && username.length === 7 && username.substring(1, 7).match(/^[0-9]+$/) !== null) {
 
-      supersonic.ui.dialog.confirm("Legal", options).then(function(index) {
-        if (index == 0) {
-          localStorage.setItem("legal", "true");
-          updateGrades();
+        if (!legal) {
+
+            var options = {
+                message: "To provide assignment averages, percentiles, and other features, the app requires that you accept the policies outlined in the legal section of the app.",
+                buttonLabels: ["Yup (I accept)", "No!"]
+            };
+
+            supersonic.ui.dialog.confirm("Legal", options).then(function(index) {
+                if (index == 0) {
+                    localStorage.setItem("legal", "true");
+                    updateGrades();
+                } else {
+                    AppAlert("Error", "You must accept to access your grades.");
+                }
+            });
+
         } else {
-          AppAlert("Error", "You must accept to access your grades.");
+
+            if (data.length < 10) { //Need to Update Data
+
+                document.getElementById("main").style.display = 'none';
+                document.getElementById("loading_box").style.display = 'block';
+
+                var formData = new FormData();
+                formData.append("password", encodeToURL(password));
+                formData.append("concent", "true");
+                timeout(20000, postFromAPI("homeaccess/classwork/" + username, formData)).then(
+                    function(responce) {
+                        responce.json().then(
+                            function(json) {
+                                setFromClassworkJson(json);
+                            }
+                        );
+                    }
+                ).catch(function(error) {
+                    clearInterval(interval);
+                    AppAlert("Error", "Unable to Download Grades 😞");
+                    document.getElementById("main").innerHTML = ErrorMessageConnection;
+                    document.getElementById("main").style.display = 'block';
+                    document.getElementById("loading_box").style.display = 'none';
+                });
+
+                startCounter();
+
+            } else {
+                setFromClassworkJson(JSON.parse(data)); //Use Old
+            }
         }
-      });
 
-    } else {
-
-      var username = localStorage.getItem("username").toLowerCase();
-      var password = localStorage.getItem("password");
-
-      if (password.length > 4 && username.substring(0, 1) == 's' && username.length === 7 && username.substring(1, 7).match(/^[0-9]+$/) !== null) {
-
-          var data = localStorage.getItem('classwork');
-
-          if (data.length < 10) { //Need to Update Data
-
-              document.getElementById("main").style.display = 'none';
-              document.getElementById("loading_box").style.display = 'block';
-
-              var formData = new FormData();
-              formData.append("password", encodeToURL(password));
-              formData.append("concent", "true");
-              timeout(20000, postFromAPI("homeaccess/classwork/" + username, formData)).then(
-                  function(responce) {
-                      responce.json().then(
-                          function(json) {
-                              setFromClassworkJson(json);
-                          }
-                      );
-                  }
-              ).catch(function(error) {
-                  clearInterval(interval);
-                  AppAlert("Error", "Unable to Download Grades 😞");
-                  document.getElementById("main").innerHTML = ErrorMessageConnection;
-                  document.getElementById("main").style.display = 'block';
-                  document.getElementById("loading_box").style.display = 'none';
-              });
-
-              startCounter();
-
-          } else {
-              setFromClassworkJson(JSON.parse(data)); //Use Old
-          }
-      } else { //User Input is Incorrect
-          document.getElementById("main").innerHTML = ErrorMessage;
-      }
-
-  }
-
+    } else { //User Input is Incorrect
+      document.getElementById("main").innerHTML = ErrorMessage;
+    }
 }
 
 function onVisibilityChange() {

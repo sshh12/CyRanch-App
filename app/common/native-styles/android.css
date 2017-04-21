@@ -24,7 +24,7 @@ navigation-bar button {
 }
 
 navigation-bar back-indicator {
-  background-image: url(default_back_icon.png);
+  background-image: url("default_back_icon.png");
   background-size: 18;
 }
 
@@ -60,21 +60,21 @@ tab-bar tab-bar-item marker-top:selected {
 }
 
 tab-bar-item#news {
-	background-image: url(icons/tab_news.svg);
+	background-image: url("icons/tab_news.svg");
 }
 
 tab-bar-item#grades {
-	background-image: url(icons/tab_grades.svg);
+	background-image: url("icons/tab_grades.svg");
 }
 
 tab-bar-item#teachers {
-	background-image: url(icons/tab_teachers.svg);
+	background-image: url("icons/tab_teachers.svg");
 }
 
 tab-bar-item#settings {
-	background-image: url(icons/tab_settings.svg);
+	background-image: url("icons/tab_settings.svg");
 }
 
 tab-bar-item#classes {
-	background-image: url(icons/tab_school.svg);
+	background-image: url("icons/tab_school.svg");
 }
