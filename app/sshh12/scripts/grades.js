@@ -6,7 +6,9 @@ function showStats(subject, name, grade) {
         function(responce) {
             responce.json().then(
                 function(json) {
-                    AppAlert(name, "Average: " + Math.round(json.average, -2) + "\n%Tile: " + Math.round(json.percentile, -2));
+                    AppAlert(name, "Average: " + Math.round(json.average, -2) +
+                                   "\n%Tile: " + Math.round(json.percentile, -2) +
+                                   "\n# Unique: " + json.totalcount);
                 }
             );
         }
