@@ -1,4 +1,4 @@
-/*! steroids-js - v3.5.20 - 2016-06-30 16:42 */
+/*! steroids-js - v3.5.22 - 2017-03-29 16:08 */
 (function(window){
 var Bridge,
   __bind = function(fn, me){ return function(){ return fn.apply(me, arguments); }; };
@@ -109,7 +109,7 @@ Bridge = (function() {
   };
 
   Bridge.prototype.send = function(options) {
-    var callbacks, request;
+    var callbacks, context, request;
     if (options == null) {
       options = {};
     }
@@ -119,12 +119,31 @@ Bridge = (function() {
       parameters: (options != null ? options.parameters : void 0) != null ? options.parameters : {},
       callbacks: callbacks
     };
-    request.parameters["view"] = window.top.AG_VIEW_ID;
-    request.parameters["screen"] = window.top.AG_SCREEN_ID;
-    request.parameters["layer"] = window.top.AG_LAYER_ID;
-    request.parameters["udid"] = window.top.AG_WEBVIEW_UDID;
+    context = this.bestWindow();
+    request.parameters["view"] = context.AG_VIEW_ID;
+    request.parameters["screen"] = context.AG_SCREEN_ID;
+    request.parameters["layer"] = context.AG_LAYER_ID;
+    request.parameters["udid"] = context.AG_WEBVIEW_UDID;
     request = this.parseMessage(request);
     return this.sendMessageToNative(request);
+  };
+
+  Bridge.prototype.bestWindow = function() {
+    var currentBest, e, reachedTop;
+    currentBest = window;
+    while (true) {
+      reachedTop = currentBest === currentBest.parent;
+      if (reachedTop) {
+        return currentBest;
+      }
+      try {
+        currentBest.parent.location.href;
+      } catch (_error) {
+        e = _error;
+        return currentBest;
+      }
+      currentBest = currentBest.parent;
+    }
   };
 
   Bridge.prototype.parseMessage = function(message) {
@@ -4118,7 +4137,7 @@ Spinner = (function() {
 ;var _this = this;
 
 window.steroids = {
-  version: "3.5.20",
+  version: "3.5.22",
   Animation: Animation,
   File: File,
   views: {
@@ -4209,6 +4228,8 @@ window.steroids = {
     }
   }
 };
+
+window.steroids.Bridge = Bridge;
 
 window.steroids.nativeBridge = Bridge.getBestNativeBridge();
 

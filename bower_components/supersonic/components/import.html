@@ -209,7 +209,7 @@
     action = this.getAttribute("action") || "click";
     return this.addEventListener(action, (function(_this) {
       return function() {
-        var dataKey, datasetKeys, key, locationOrId, params, _i, _len;
+        var dataKey, datasetKeys, i, key, len, locationOrId, params;
         locationOrId = _this.getAttribute("view-id");
         if (locationOrId == null) {
           locationOrId = _this.getAttribute("location");
@@ -220,8 +220,8 @@
         params = null;
         datasetKeys = Object.keys(_this.dataset);
         if ((datasetKeys != null) && datasetKeys.length) {
-          for (_i = 0, _len = datasetKeys.length; _i < _len; _i++) {
-            dataKey = datasetKeys[_i];
+          for (i = 0, len = datasetKeys.length; i < len; i++) {
+            dataKey = datasetKeys[i];
             if (!(/^params/.test(dataKey))) {
               continue;
             }
@@ -273,19 +273,19 @@
 
 (function() {
   var SuperNavbar, observeAttributesOnElement,
-    __indexOf = [].indexOf || function(item) { for (var i = 0, l = this.length; i < l; i++) { if (i in this && this[i] === item) return i; } return -1; },
-    __hasProp = {}.hasOwnProperty,
-    __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; };
+    indexOf = [].indexOf || function(item) { for (var i = 0, l = this.length; i < l; i++) { if (i in this && this[i] === item) return i; } return -1; },
+    extend = function(child, parent) { for (var key in parent) { if (hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; },
+    hasProp = {}.hasOwnProperty;
 
   observeAttributesOnElement = function(element, attributes) {
     return supersonic.internal.Bacon.fromBinder(function(sink) {
       var observer;
       observer = new MutationObserver(function(mutations) {
-        var changes, mutation, _i, _len, _ref;
+        var changes, i, len, mutation, ref;
         changes = {};
-        for (_i = 0, _len = mutations.length; _i < _len; _i++) {
-          mutation = mutations[_i];
-          if ((mutation.type === "attributes") && (_ref = mutation.attributeName, __indexOf.call(attributes, _ref) >= 0)) {
+        for (i = 0, len = mutations.length; i < len; i++) {
+          mutation = mutations[i];
+          if ((mutation.type === "attributes") && (ref = mutation.attributeName, indexOf.call(attributes, ref) >= 0)) {
             changes[mutation.attributeName] = mutation.target.getAttribute(mutation.attributeName) || "";
           }
         }
@@ -299,18 +299,18 @@
         return observer.disconnect();
       };
     }).toProperty((function() {
-      var attributeName, initial, _i, _len;
+      var attributeName, i, initial, len;
       initial = {};
-      for (_i = 0, _len = attributes.length; _i < _len; _i++) {
-        attributeName = attributes[_i];
+      for (i = 0, len = attributes.length; i < len; i++) {
+        attributeName = attributes[i];
         initial[attributeName] = element.getAttribute(attributeName) || "";
       }
       return initial;
     })());
   };
 
-  document.registerElement("super-navbar", SuperNavbar = (function(_super) {
-    __extends(SuperNavbar, _super);
+  document.registerElement("super-navbar", SuperNavbar = (function(superClass) {
+    extend(SuperNavbar, superClass);
 
     function SuperNavbar() {
       return SuperNavbar.__super__.constructor.apply(this, arguments);
@@ -352,10 +352,10 @@
     };
 
     SuperNavbar.prototype.updateButton = function(button) {
-      var candidate, idx, _i, _j, _len, _len1, _ref, _ref1;
-      _ref = this._leftButtons;
-      for (idx = _i = 0, _len = _ref.length; _i < _len; idx = ++_i) {
-        candidate = _ref[idx];
+      var candidate, i, idx, j, len, len1, ref, ref1;
+      ref = this._leftButtons;
+      for (idx = i = 0, len = ref.length; i < len; idx = ++i) {
+        candidate = ref[idx];
         if (!(candidate === button)) {
           continue;
         }
@@ -363,9 +363,9 @@
         this.onButtonsChanged();
         return;
       }
-      _ref1 = this._rightButtons;
-      for (idx = _j = 0, _len1 = _ref1.length; _j < _len1; idx = ++_j) {
-        candidate = _ref1[idx];
+      ref1 = this._rightButtons;
+      for (idx = j = 0, len1 = ref1.length; j < len1; idx = ++j) {
+        candidate = ref1[idx];
         if (!(candidate === button)) {
           continue;
         }
@@ -389,19 +389,19 @@
     };
 
     SuperNavbar.prototype._removeButtonSilently = function(button) {
-      var candidate, idx, _i, _j, _len, _len1, _ref, _ref1;
-      _ref = this._leftButtons;
-      for (idx = _i = 0, _len = _ref.length; _i < _len; idx = ++_i) {
-        candidate = _ref[idx];
+      var candidate, i, idx, j, len, len1, ref, ref1;
+      ref = this._leftButtons;
+      for (idx = i = 0, len = ref.length; i < len; idx = ++i) {
+        candidate = ref[idx];
         if (!(candidate === button)) {
           continue;
         }
         this._leftButtons.splice(idx, 1);
         return;
       }
-      _ref1 = this._rightButtons;
-      for (idx = _j = 0, _len1 = _ref1.length; _j < _len1; idx = ++_j) {
-        candidate = _ref1[idx];
+      ref1 = this._rightButtons;
+      for (idx = j = 0, len1 = ref1.length; j < len1; idx = ++j) {
+        candidate = ref1[idx];
         if (!(candidate === button)) {
           continue;
         }
@@ -426,14 +426,14 @@
       this._propertiesChanged = new supersonic.internal.Bacon.Bus;
       this._unsubscribeFromAttributeChanges = observeAttributesOnElement(this, ["style", "class", "id"]).onValue((function(_this) {
         return function(attributes) {
-          var key, value, _results;
-          _results = [];
+          var key, results, value;
+          results = [];
           for (key in attributes) {
             value = attributes[key];
             _this._properties[key] = value;
-            _results.push(_this._propertiesChanged.push(key));
+            results.push(_this._propertiesChanged.push(key));
           }
-          return _results;
+          return results;
         };
       })(this));
       return this._unsubscribeFromPropertyChanges = supersonic.ui.views.current.visibility.flatMapLatest((function(_this) {
@@ -516,9 +516,9 @@
   var SuperNavbarButtonPrototype, observer;
 
   observer = new MutationObserver(function(mutations) {
-    var mutation, _i, _len;
-    for (_i = 0, _len = mutations.length; _i < _len; _i++) {
-      mutation = mutations[_i];
+    var i, len, mutation;
+    for (i = 0, len = mutations.length; i < len; i++) {
+      mutation = mutations[i];
       if (mutation.type === "childList") {
         mutation.target._setButtonTitle();
         mutation.target.updateOnNavbar();
@@ -574,12 +574,12 @@
     if (viewId != null) {
       return this._button.onTap = (function(_this) {
         return function() {
-          var dataKey, datasetKeys, key, params, _i, _len;
+          var dataKey, datasetKeys, i, key, len, params;
           params = null;
           datasetKeys = Object.keys(_this.dataset);
           if ((datasetKeys != null) && datasetKeys.length) {
-            for (_i = 0, _len = datasetKeys.length; _i < _len; _i++) {
-              dataKey = datasetKeys[_i];
+            for (i = 0, len = datasetKeys.length; i < len; i++) {
+              dataKey = datasetKeys[i];
               if (!(/^params/.test(dataKey))) {
                 continue;
               }
@@ -677,17 +677,17 @@
   };
 
   observer = new MutationObserver(function(mutations) {
-    var mutation, _i, _len, _results;
-    _results = [];
-    for (_i = 0, _len = mutations.length; _i < _len; _i++) {
-      mutation = mutations[_i];
+    var i, len, mutation, results;
+    results = [];
+    for (i = 0, len = mutations.length; i < len; i++) {
+      mutation = mutations[i];
       if (mutation.type === "childList") {
-        _results.push(onContentChanged(mutation.target));
+        results.push(onContentChanged(mutation.target));
       } else {
-        _results.push(void 0);
+        results.push(void 0);
       }
     }
-    return _results;
+    return results;
   });
 
   SuperNavbarTitlePrototype = Object.create(HTMLElement.prototype);
@@ -756,7 +756,7 @@
     action = this.getAttribute("action") || "click";
     return this.addEventListener(action, (function(_this) {
       return function() {
-        var dataKey, datasetKeys, key, locationOrId, params, _i, _len;
+        var dataKey, datasetKeys, i, key, len, locationOrId, params;
         locationOrId = _this.getAttribute("view-id");
         if (locationOrId == null) {
           locationOrId = _this.getAttribute("location");
@@ -767,8 +767,8 @@
         params = null;
         datasetKeys = Object.keys(_this.dataset);
         if ((datasetKeys != null) && datasetKeys.length) {
-          for (_i = 0, _len = datasetKeys.length; _i < _len; _i++) {
-            dataKey = datasetKeys[_i];
+          for (i = 0, len = datasetKeys.length; i < len; i++) {
+            dataKey = datasetKeys[i];
             if (!(/^params/.test(dataKey))) {
               continue;
             }

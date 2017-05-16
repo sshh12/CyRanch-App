@@ -28,7 +28,7 @@ node_modules
 
 # Stuff
 dist
-bower_components
+bower_components/steriods-js
 
 # Optional npm cache directory
 .npm
