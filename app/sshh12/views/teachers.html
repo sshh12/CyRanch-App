@@ -2,103 +2,103 @@
 <script src="sshh12#lang"></script>
 
 <style>
-	.head {
-		background-color: #F5F5F5;
-	}
+    .head {
+        background-color: #F5F5F5;
+    }
 </style>
 <div class="">
 
-  <super-navbar>
-    <super-navbar-title>
-      Teachers
-    </super-navbar-title>
-  </super-navbar>
-	<div id="main_lists">
+    <super-navbar>
+        <super-navbar-title>
+            Teachers
+        </super-navbar-title>
+    </super-navbar>
+    <div id="main_lists">
 
-		<div class="list">
-  		<label class="item item-input">
+        <div class="list">
+            <label class="item item-input">
     		<i class="icon super-search placeholder-icon"></i>
-    		<input type="text" placeholder="Search" id="search_bar" onChange="setTeachers();" onkeypress="setTeachers();" onkeyup="setTeachers();">
+    		<input type="text" placeholder="Search" id="search_bar" onChange="setTimeout(setTeachers, 0)" onkeypress="setTimeout(setTeachers, 0)" onkeyup="setTimeout(setTeachers, 0)">
   		</label>
 
-			<div id="content">
-				<!-- Template
+            <div id="content">
+                <!-- Template
 				<div class="item item-divider">A</div>
 				<a class="item item-button-right">
     	  	<b><h3>Teachers, Name</h3></b>
 					<button class="button icon super-email button-positive"></button>
     			<p>HTTP://website/here</p>
   			</a>-->
-			</div>
-	</div>
+            </div>
+        </div>
 
-	</div>
+    </div>
 </div>
 <script defer>
-function makeDivider(letter) {
-    return "<div class=\"item item-divider\">" + letter + "</div>";
-}
+    function makeDivider(letter) {
+        return "<div class=\"item item-divider\">" + letter + "</div>";
+    }
 
-function makeTeacher(name, website, email) {
-    var site = website.replace("https://", "")
-        .replace("http://www.", "")
-        .replace("/a/cfisd.net/", "/../");
-    return "<a class=\"item item-button-right\"><b><h3>" + name + "</h3></b><button onClick=\"supersonic.app.openURL('mailto:" +
-        email + "')\" class=\"button icon super-email button-positive\"></button><p onClick=\"supersonic.app.openURL('" + website + "')\">" + site + "</p></a>";
-}
+    function makeTeacher(name, website, email) {
+        var site = website.replace("https://", "")
+            .replace("http://www.", "")
+            .replace("/a/cfisd.net/", "/../");
+        return "<a class=\"item item-button-right\"><b><h3>" + name + "</h3></b><button onClick=\"supersonic.app.openURL('mailto:" +
+            email + "')\" class=\"button icon super-email button-positive\"></button><p onClick=\"supersonic.app.openURL('" + website + "')\">" + site + "</p></a>";
+    }
 
-function setTeachers(json) {
-    json = json || JSON.parse(localStorage.getItem("faculty_json"));
+    function setTeachers(json) {
+        json = json || JSON.parse(localStorage.getItem("faculty_json"));
 
-    var search = reduceString(document.getElementById("search_bar").value);
+        var search = reduceString(document.getElementById("search_bar").value);
 
-    var html = "";
-    var letters = ['A', 'B', 'C', 'D', 'E', 'F',
-        'G', 'H', 'I', 'J', 'K', 'L',
-        'M', 'N', 'O', 'P', 'Q', 'R',
-        'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z'
-    ];
+        var html = "";
+        var letters = ['A', 'B', 'C', 'D', 'E', 'F',
+            'G', 'H', 'I', 'J', 'K', 'L',
+            'M', 'N', 'O', 'P', 'Q', 'R',
+            'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z'
+        ];
 
-    for (var div_letter in letters) {
-        var groupOfTeachers = "";
-        if (json[letters[div_letter]]) {
-            for (var i = 0; i < json[letters[div_letter]].length; i++) {
-                var teacher = makeTeacher(json[letters[div_letter]][i].name, json[letters[div_letter]][i].website, json[letters[div_letter]][i].email);
-                if (reduceString(teacher).indexOf(search) >= 0 || search.length < 1) {
-                    groupOfTeachers += teacher;
+        for (var div_letter in letters) {
+            var groupOfTeachers = "";
+            if (json[letters[div_letter]]) {
+                for (var i = 0; i < json[letters[div_letter]].length; i++) {
+                    var teacher = makeTeacher(json[letters[div_letter]][i].name, json[letters[div_letter]][i].website, json[letters[div_letter]][i].email);
+                    if (reduceString(teacher).indexOf(search) >= 0 || search.length < 1) {
+                        groupOfTeachers += teacher;
+                    }
                 }
-            }
 
-            if (groupOfTeachers.length > 0) {
-                groupOfTeachers = makeDivider(letters[div_letter]) + groupOfTeachers;
-            }
-            html += groupOfTeachers;
+                if (groupOfTeachers.length > 0) {
+                    groupOfTeachers = makeDivider(letters[div_letter]) + groupOfTeachers;
+                }
+                html += groupOfTeachers;
 
+            }
+        }
+        document.getElementById("content").innerHTML = html;
+    }
+
+    function getTeachers() {
+        var original_json = localStorage.getItem("faculty_json");
+        if (isUndefined(original_json) || original_json == null || original_json.length < 50) {
+            timeout(6000, getFromAPI("faculty")).then(
+                function(responce) {
+                    responce.json().then(
+                        function(json) {
+                            localStorage.setItem('faculty_json', JSON.stringify(json));
+                            setTeachers(json);
+                        }
+                    );
+                }
+            ).catch(function(error) {
+                //AppAlert("Error", "Unable to Get Teachers 😞");
+            });
+
+        } else {
+            setTeachers(JSON.parse(original_json));
         }
     }
-    document.getElementById("content").innerHTML = html;
-}
 
-function getTeachers() {
-    var original_json = localStorage.getItem("faculty_json");
-    if (isUndefined(original_json) || original_json == null || original_json.length < 50) {
-        timeout(6000, getFromAPI("faculty")).then(
-            function(responce) {
-                responce.json().then(
-                    function(json) {
-                        localStorage.setItem('faculty_json', JSON.stringify(json));
-                        setTeachers(json);
-                    }
-                );
-            }
-        ).catch(function(error) {
-            //AppAlert("Error", "Unable to Get Teachers 😞");
-        });
-
-    } else {
-        setTeachers(JSON.parse(original_json));
-    }
-}
-
-getTeachers();
+    getTeachers();
 </script>
