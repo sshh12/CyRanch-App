@@ -83,8 +83,8 @@
         var original_json = localStorage.getItem("faculty_json");
         if (isUndefined(original_json) || original_json == null || original_json.length < 50) {
             timeout(6000, getFromAPI("faculty")).then(
-                function(responce) {
-                    responce.json().then(
+                function(response) {
+                    response.json().then(
                         function(json) {
                             localStorage.setItem('faculty_json', JSON.stringify(json));
                             setTeachers(json);

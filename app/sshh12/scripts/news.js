@@ -78,8 +78,8 @@ function JSONToCards(json) {
 
 function fetchCurrentNews(source) {
     timeout(20000, getFromAPI("news/" + encodeToURL(source))).then(
-        function(responce) {
-            responce.json().then(
+        function(response) {
+            response.json().then(
                 function(json) {
                     addCards(JSONToCards(json));
                 }

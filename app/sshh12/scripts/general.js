@@ -1,6 +1,7 @@
 //Global Functions and Stuff
 
-var SVR_ADDRESS = "https://cfisdapi.herokuapp.com";
+window.SVR_ADDRESS = "https://cfisdapi.herokuapp.com";
+window.checkedConnection = false;
 
 function createDocElement(name, bodytext) { //Magical HTML Parser Object
 	var page = document.implementation.createHTMLDocument(name);
@@ -44,11 +45,11 @@ function timeout(ms, promise) {
 }
 
 function postFromAPI(method, data){
-	return fetch(SVR_ADDRESS + "/" + method, { method:"POST", body:data });
+	return fetch(window.SVR_ADDRESS + "/" + method, { method:"POST", body:data });
 }
 
 function getFromAPI(method){
-	return fetch(SVR_ADDRESS + "/" + method);
+	return fetch(window.SVR_ADDRESS + "/" + method);
 }
 
 function AppAlert(title, text){

@@ -94,8 +94,8 @@
 
     var SpecialSchedule;
     timeout(6000, getFromAPI("schedule")).then(
-        function(responce) {
-            responce.text().then(
+        function(response) {
+            response.text().then(
                 function(text) {
                     if (text.length > 0) {
                         SpecialSchedule = eval(text);

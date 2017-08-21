@@ -121,8 +121,8 @@ function addNewsSourceFromSelect(){
 
 var allNewsSources;
 timeout(10000, getFromAPI("news/list")).then(
-	function(responce){
-		responce.json().then(
+	function(response){
+		response.json().then(
 			function(json){
 				allNewsSources = json;
 				var selectHTML = "<option value='none'>...</option>";

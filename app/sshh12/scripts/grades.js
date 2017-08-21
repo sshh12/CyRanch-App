@@ -3,8 +3,8 @@ var ErrorMessageConnection = '<div class="card"><div class="item item-text-wrap"
 
 function showStats(subject, name, grade) {
     getFromAPI("homeaccess/statistics/" + encodeToURL(subject.replace("/", "~SLASH~")) + "/" + encodeToURL(name.replace("/", "~SLASH~")) + "/" + grade).then(
-        function(responce) {
-            responce.json().then(
+        function(response) {
+            response.json().then(
                 function(json) {
                     AppAlert(name, "Average: " + Math.round(json.average, -2) +
                                    "\n%Tile: " + Math.round(json.percentile, -2));
@@ -269,8 +269,8 @@ function updateReportCard() {
     formData.append("password", encodeToURL(password));
     formData.append("concent", "true");
     timeout(20000, postFromAPI("homeaccess/reportcard/" + username, formData)).then(
-        function(responce) {
-            responce.json().then(
+        function(response) {
+            response.json().then(
                 function(json) {
                     clearInterval(interval);
                     setFromReportCardJSON(json);
@@ -325,8 +325,8 @@ function updateGrades() {
                 formData.append("password", encodeToURL(password));
                 formData.append("concent", "true");
                 timeout(20000, postFromAPI("homeaccess/classwork/" + username, formData)).then(
-                    function(responce) {
-                        responce.json().then(
+                    function(response) {
+                        response.json().then(
                             function(json) {
                                 setFromClassworkJson(json);
                             }
