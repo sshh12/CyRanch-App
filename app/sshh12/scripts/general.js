@@ -45,7 +45,7 @@ function timeout(ms, promise) {
 }
 
 function postFromAPI(method, data){
-	return fetch(window.SVR_ADDRESS + "/" + method, { method:"POST", body:data });
+	return fetch(window.SVR_ADDRESS + "/" + method, { method: "POST", body: data });
 }
 
 function getFromAPI(method){
@@ -53,5 +53,5 @@ function getFromAPI(method){
 }
 
 function AppAlert(title, text){
-	navigator.notification.alert(text, function(){ return false; }, title, 'Dismiss');
+	navigator.notification.alert(text, null, title, 'Dismiss');
 }
