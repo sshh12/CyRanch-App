@@ -11,13 +11,13 @@ This is an app I created for [Cy-Ranch High School](http://cyranch.cfisd.net/).
 
 ## What
 The Cy-Ranch was built as a utility for both Android and Apple users. The app includes ways to access
-news, grades, teachers, and more, allowing students get school related content alot faster and easier. 
-While this app was made specifically for Cy-Ranch HS, it was created unoffically and is also used throughout
+news, grades, teachers, and more, allowing students get school related content a lot faster and easier. 
+While this app was made specifically for Cy-Ranch HS, it was created unofficially and is also used throughout
 the district because the grades part of the app works for all of [cfisd](http://www.cfisd.net/en/). In order to access
-grades and other information the app uses the [unoffical cfisdapi](https://github.com/sshh12/CyRanch-App-Server) created by myself.
+grades and other information, the app uses the [unoffical cfisdapi](https://github.com/sshh12/CyRanch-App-Server) created by myself.
 
 #### Screenshots
-Some screenshots where taken on older versions.
+Some screenshots were taken on older versions.
 
 ![screenshot 1](https://is1-ssl.mzstatic.com/image/thumb/Purple62/v4/f9/2c/6e/f92c6ec1-bf09-86e8-8afe-e6182f4b2adc/pr_source.png/300x300bb.jpg?1493488612640) ![screenshot 2](https://is1-ssl.mzstatic.com/image/thumb/Purple62/v4/21/dc/a8/21dca82c-3e86-38a9-5671-2ccb45ae53b0/pr_source.png/300x300bb.jpg?1493488612641) ![screenshot 3](https://is1-ssl.mzstatic.com/image/thumb/Purple62/v4/a0/52/4d/a0524da0-59b7-e404-493a-fa345ddef60a/pr_source.png/300x300bb.jpg?1493488612642) ![screenshot 4](https://is1-ssl.mzstatic.com/image/thumb/Purple62/v4/eb/18/36/eb1836b1-463d-b2cf-4eab-4d6003b080ba/pr_source.png/300x300bb.jpg?1493488612642) ![screenshot 5](https://is1-ssl.mzstatic.com/image/thumb/Purple71/v4/62/f1/11/62f111e5-c88a-f74a-8b39-daa39547daaf/pr_source.png/300x300bb.jpg?1493488612643)
 
