@@ -2,7 +2,11 @@ var ErrorMessage = '<div class="card"><div class="item item-text-wrap">Looks lik
 var ErrorMessageConnection = '<div class="card"><div class="item item-text-wrap" style="text-align:center">Unable to Connect 😞</div></div>';
 
 function showStats(subject, name, grade) {
-    getFromAPI("homeaccess/statistics/" + encodeToURL(subject.replace("/", "~SLASH~")) + "/" + encodeToURL(name.replace("/", "~SLASH~")) + "/" + grade).then(
+
+    subject = subject.replace("/", "~SLASH~").replace("#", "~NUM~");
+    name = name.replace("/", "~SLASH~").replace("#", "~NUM~");
+
+    getFromAPI("homeaccess/statistics/" + encodeToURL(subject) + "/" + encodeToURL(name) + "/" + grade).then(
         function(response) {
             response.json().then(
                 function(json) {
