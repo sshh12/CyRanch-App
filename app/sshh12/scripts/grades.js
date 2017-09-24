@@ -3,10 +3,10 @@ var ErrorMessageConnection = '<div class="card"><div class="item item-text-wrap"
 
 function showStats(subject, name, grade) {
 
-    subject = subject.replace("/", "~SLASH~").replace("#", "~NUM~");
-    name = name.replace("/", "~SLASH~").replace("#", "~NUM~");
+    var encoded_subject = encodeToURL(subject.replace("/", "~SLASH~").replace("#", "~NUM~"));
+    var encoded_name = encodeToURL(name.replace("/", "~SLASH~").replace("#", "~NUM~"));
 
-    getFromAPI("homeaccess/statistics/" + encodeToURL(subject) + "/" + encodeToURL(name) + "/" + grade).then(
+    getFromAPI("homeaccess/statistics/" + encoded_subject + "/" + encoded_name + "/" + grade).then(
         function(response) {
             response.json().then(
                 function(json) {
@@ -166,9 +166,16 @@ function setFromClassworkJson(json) {
 
         delete json.status;
 
-        var i = 0;
+        var group_count = 0;
+
         showhtml = "<div class=\"list\">";
         showhtml += "<div class=\"item item-divider\">Current Classwork</div>";
+
+        var upcominghtml = "<div class=\"item item-divider\">Upcoming</div>" +
+                           "<a class=\"item\"><i ontouchstart=\"toggleVisibility('upcoming');\" style='text-align: left' class='icon super-chevron-down'></i>&nbsp&nbsp<b style=\"font-size:110%\" ontouchstart=\"toggleVisibility('upcoming');\">Upcoming Grades</b></a>";
+        var upcomingExists = false;
+
+
 
         var classworkKeys = Object.keys(json);
         classworkKeys.sort(
@@ -181,9 +188,10 @@ function setFromClassworkJson(json) {
 
             var subject = json[classworkKeys[c]];
 
-            showhtml += new ClassGradeItem(subject.name, subject.overallavg, subject.letter, "GROUP_" + i).getHTML();
+            showhtml += new ClassGradeItem(subject.name, subject.overallavg, subject.letter, "GROUP_" + group_count).getHTML();
 
             if (Object.keys(subject.assignments).length >= 1) {
+
                 var assignmentKeys = Object.keys(subject.assignments);
                 assignmentKeys.sort(
                     function(a, b) {
@@ -192,29 +200,50 @@ function setFromClassworkJson(json) {
                 );
 
                 for (var s in assignmentKeys) {
+
                     var assignment = subject.assignments[assignmentKeys[s]];
-                    showhtml += new AssignmentGradeItem(subject.name, assignmentKeys[s], assignment.grade, assignment.letter, assignment.gradetype, "GROUP_" + i).getHTML();
+                    showhtml += new AssignmentGradeItem(subject.name, assignmentKeys[s], assignment.grade, assignment.letter, assignment.gradetype, "GROUP_" + group_count).getHTML();
+
+                    if(isUndefined(assignment.grade) || assignment.grade.length < 2){
+
+                        upcominghtml += new AssignmentGradeItem(subject.name, assignmentKeys[s], assignment.datedue, 'U', assignment.gradetype, "upcoming").getHTML();
+
+                        upcomingExists = true;
+
+                    }
+
                 }
 
             }
 
             for (var category in subject.categories) {
+
                 var cat = subject.categories[category];
-                showhtml += new CategoryGradeItem(category, cat.weight, cat.grade, cat.letter, "GROUP_" + i).getHTML();
+                showhtml += new CategoryGradeItem(category, cat.weight, cat.grade, cat.letter, "GROUP_" + group_count).getHTML();
+
             }
 
-            i++;
+            group_count++;
+
         }
 
         showhtml += "<div class=\"item item-divider\">Report Card</div>" +
-            "<div id=\"reportcard\"><a class=\"item item-icon-right\" onClick=\"updateReportCard()\" href=\"#\">Download<i class=\"icon super-ios-cloud-download\"></i></a></div>";
+                    "<div id=\"reportcard\"><a class=\"item item-icon-right\" onClick=\"updateReportCard()\" href=\"#\"><b>Download</b><i class=\"icon super-ios-cloud-download\"></i></a></div>";
+
+        if(upcomingExists){
+          showhtml += upcominghtml;
+        }
 
     } else if (json.status === 'login_failed') {
+
         AppAlert("Error", "Login Failed");
         showhtml = "";
+
     } else if (json.status === 'connection_failed') {
+
         AppAlert("Error", "Unable to connect to HomeAccessCenter");
         showhtml = "";
+
     }
 
     document.getElementById("main").innerHTML = showhtml;
