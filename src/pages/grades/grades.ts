@@ -15,4 +15,21 @@ export class GradesPage {
 
   }
 
+  openClassGrades(){
+
+    this.navCtrl.push(AssignmentsPage);
+
+  }
+
+}
+
+@Component({
+  templateUrl: 'assignments.html'
+})
+export class AssignmentsPage {
+
+  constructor(public navCtrl: NavController) {
+
+  }
+
 }

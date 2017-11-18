@@ -6,6 +6,7 @@ import { MyApp } from './app.component';
 
 import { NewsPage } from '../pages/news/news';
 import { GradesPage } from '../pages/grades/grades';
+import { AssignmentsPage } from '../pages/grades/grades';
 import { BellsPage } from '../pages/bells/bells';
 import { TeachersPage } from '../pages/teachers/teachers';
 
@@ -14,11 +15,14 @@ import { TabsPage } from '../pages/tabs/tabs';
 import { StatusBar } from '@ionic-native/status-bar';
 import { SplashScreen } from '@ionic-native/splash-screen';
 
+import { HTTP } from '@ionic-native/http';
+
 @NgModule({
   declarations: [
     MyApp,
     NewsPage,
     GradesPage,
+    AssignmentsPage,
     BellsPage,
     TeachersPage,
     TabsPage
@@ -32,6 +36,7 @@ import { SplashScreen } from '@ionic-native/splash-screen';
     MyApp,
     NewsPage,
     GradesPage,
+    AssignmentsPage,
     BellsPage,
     TeachersPage,
     TabsPage
@@ -39,6 +44,7 @@ import { SplashScreen } from '@ionic-native/splash-screen';
   providers: [
     StatusBar,
     SplashScreen,
+    HTTP,
     {provide: ErrorHandler, useClass: IonicErrorHandler}
   ]
 })
