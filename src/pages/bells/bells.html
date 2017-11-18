@@ -2,10 +2,54 @@
   <ion-navbar color="mustangblue">
     <ion-title>Bells</ion-title>
   </ion-navbar>
+
+  <ion-toolbar>
+
+    <ion-segment [(ngModel)]="dayType">
+      <ion-segment-button value="a">
+        Normal
+      </ion-segment-button>
+      <ion-segment-button value="b">
+        Extended 2nd
+      </ion-segment-button>
+      <ion-segment-button value="c">
+        Pep Rally
+      </ion-segment-button>
+    </ion-segment>
+    </ion-toolbar>
+    <ion-toolbar>
+    <ion-segment [(ngModel)]="lunchType" color="dark">
+      <ion-segment-button value="A">
+        A
+      </ion-segment-button>
+      <ion-segment-button value="B">
+        B
+      </ion-segment-button>
+      <ion-segment-button value="C">
+        C
+      </ion-segment-button>
+    </ion-segment>
+
+  </ion-toolbar>
+
 </ion-header>
 
 <ion-content>
 
-  
+  <ion-list>
+    <ion-item>
+      <h2>1st</h2>
+      <p>7:20 AM - 8:13 AM (50 mins)</p>
+      <ion-badge item-end color="great">45 mins</ion-badge>
+    </ion-item>
+    <ion-item>
+      <h2>2nd</h2>
+      <p>7:20 AM - 8:13 AM (52 mins)</p>
+    </ion-item>
+    <ion-item>
+      <h2>3rd</h2>
+      <p>7:20 AM - 8:13 AM (52 mins)</p>
+    </ion-item>
+  </ion-list>
 
 </ion-content>
