@@ -7,9 +7,11 @@ import { NavController } from 'ionic-angular';
 })
 export class NewsPage {
 
-  newsType: string = "all";
+  newsType: string;
 
   constructor(public navCtrl: NavController) {
+
+    this.newsType = "all";
 
   }
 

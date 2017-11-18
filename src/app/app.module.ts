@@ -6,6 +6,7 @@ import { MyApp } from './app.component';
 
 import { NewsPage } from '../pages/news/news';
 import { GradesPage } from '../pages/grades/grades';
+import { BellsPage } from '../pages/bells/bells';
 import { TeachersPage } from '../pages/teachers/teachers';
 
 import { TabsPage } from '../pages/tabs/tabs';
@@ -18,6 +19,7 @@ import { SplashScreen } from '@ionic-native/splash-screen';
     MyApp,
     NewsPage,
     GradesPage,
+    BellsPage,
     TeachersPage,
     TabsPage
   ],
@@ -30,6 +32,7 @@ import { SplashScreen } from '@ionic-native/splash-screen';
     MyApp,
     NewsPage,
     GradesPage,
+    BellsPage,
     TeachersPage,
     TabsPage
   ],

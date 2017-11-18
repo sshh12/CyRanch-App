@@ -1,17 +1,79 @@
 <ion-header>
-  <ion-navbar>
+  <ion-navbar color="mustangblue">
     <ion-title>Grades</ion-title>
   </ion-navbar>
+  <ion-toolbar>
+    <ion-segment [(ngModel)]="gradeType">
+      <ion-segment-button value="current">
+        Current
+      </ion-segment-button>
+      <ion-segment-button value="reportcard">
+        Report Card
+      </ion-segment-button>
+    </ion-segment>
+  </ion-toolbar>
 </ion-header>
 
 <ion-content padding>
-  <h2>Welcome to Ionic!</h2>
-  <p>
-    This starter project comes with simple tabs-based layout for apps
-    that are going to primarily use a Tabbed UI.
-  </p>
-  <p>
-    Take a look at the <code>src/pages/</code> directory to add or change tabs,
-    update any existing page or create new pages.
-  </p>
+
+  <div [ngSwitch]="gradeType">
+
+    <ion-list *ngSwitchCase="'current'">
+
+        <ion-item>
+          <ion-icon name='calculator' item-start></ion-icon>
+          <ion-label>
+            Calc-BC AP
+          </ion-label>
+          <ion-badge item-end color="great">94.40%</ion-badge>
+        </ion-item>
+
+        <ion-item>
+          <ion-icon name='bookmarks' item-start></ion-icon>
+          <ion-label>
+            Eng IV AP
+          </ion-label>
+          <ion-badge item-end color="poor">78.69%</ion-badge>
+        </ion-item>
+
+        <ion-item>
+          <ion-icon name='flask' item-start></ion-icon>
+          <ion-label>
+            Physics C AP
+          </ion-label>
+          <ion-badge item-end color="great">99.78%</ion-badge>
+        </ion-item>
+
+        <ion-item>
+          <ion-icon name='code' item-start></ion-icon>
+          <ion-label>
+            Comp Sci K
+          </ion-label>
+          <ion-badge item-end color="bad">65.55%</ion-badge>
+        </ion-item>
+
+        <ion-item>
+          <ion-icon name='calculator' item-start></ion-icon>
+          <ion-label>
+            Statistics AP
+          </ion-label>
+          <ion-badge item-end item-end color="great">95.30%</ion-badge>
+        </ion-item>
+
+        <ion-item>
+          <ion-icon name='navigate' item-start></ion-icon>
+          <ion-label>
+            US Govt AP
+          </ion-label>
+          <ion-badge item-end color="ok">85.19%</ion-badge>
+        </ion-item>
+
+    </ion-list>
+
+    <ion-list *ngSwitchCase="'reportcard'">
+
+    </ion-list>
+
+  </div>
+
 </ion-content>

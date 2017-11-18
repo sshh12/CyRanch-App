@@ -2,16 +2,12 @@ import { Component } from '@angular/core';
 import { NavController } from 'ionic-angular';
 
 @Component({
-  selector: 'page-grades',
-  templateUrl: 'grades.html'
+  selector: 'page-bells',
+  templateUrl: 'bells.html'
 })
-export class GradesPage {
-
-  gradeType: string;
+export class BellsPage {
 
   constructor(public navCtrl: NavController) {
-
-    this.gradeType = "current";
 
   }
 

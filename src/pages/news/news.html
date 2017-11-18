@@ -1,5 +1,5 @@
 <ion-header>
-  <ion-navbar>
+  <ion-navbar color="mustangblue">
     <ion-title>News</ion-title>
   </ion-navbar>
   <ion-toolbar>
@@ -11,17 +11,14 @@
         Messenger
       </ion-segment-button>
     </ion-segment>
-    </ion-toolbar>
+  </ion-toolbar>
 </ion-header>
 
-<ion-content padding>
+<ion-content>
 
-<div [ngSwitch]="news-type">
+<div [ngSwitch]="newsType">
+
   <ion-list *ngSwitchCase="'all'">
-
-    <ion-item>
-      <h2>Luna</h2>
-    </ion-item>
 
     <ion-card>
 
@@ -53,10 +50,9 @@
   </ion-list>
 
   <ion-list *ngSwitchCase="'messenger'">
-    <ion-item>
-      <h2>Luna</h2>
-    </ion-item>
+
   </ion-list>
+
 </div>
 
 </ion-content>
