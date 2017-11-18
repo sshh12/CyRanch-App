@@ -1,2 +1,2 @@
 @echo off
-ionic serve
+ionic serve --lab

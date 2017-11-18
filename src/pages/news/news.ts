@@ -1,7 +1,7 @@
 import { Component } from '@angular/core';
 import { NavController } from 'ionic-angular';
 
-import { HTTP } from '@ionic-native/http';
+import { Http } from '@angular/http';
 
 @Component({
   selector: 'page-news',
@@ -11,13 +11,15 @@ export class NewsPage {
 
   newsType: string;
 
-  constructor(public navCtrl: NavController, private http: HTTP) {
+  constructor(public navCtrl: NavController, private http: Http) {
 
     this.newsType = "all";
 
-    this.http.get('https://cfisdapi.herokuapp.com/ping', {}, {}).then(data => {
-      alert(data.data);
-    })
+    this.http.get('https://cfisdapi.herokuapp.com/ping').subscribe(
+      data => {
+          alert(JSON.stringify(data));
+      }
+    );
 
   }
 
