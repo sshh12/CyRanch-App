@@ -6,28 +6,25 @@
   <ion-toolbar>
 
     <ion-segment [(ngModel)]="dayType">
-      <ion-segment-button value="a">
+      <ion-segment-button value="normal">
         Normal
       </ion-segment-button>
-      <ion-segment-button value="b">
+      <ion-segment-button value="extended">
         Extended 2nd
       </ion-segment-button>
-      <ion-segment-button value="c">
+      <ion-segment-button value="pep">
         Pep Rally
       </ion-segment-button>
     </ion-segment>
-    </ion-toolbar>
-    <ion-toolbar>
+
+  </ion-toolbar>
+
+  <ion-toolbar>
+
     <ion-segment [(ngModel)]="lunchType" color="dark">
-      <ion-segment-button value="A">
-        A
-      </ion-segment-button>
-      <ion-segment-button value="B">
-        B
-      </ion-segment-button>
-      <ion-segment-button value="C">
-        C
-      </ion-segment-button>
+      <ion-segment-button value="a">A</ion-segment-button>
+      <ion-segment-button value="b">B</ion-segment-button>
+      <ion-segment-button value="c">C</ion-segment-button>
     </ion-segment>
 
   </ion-toolbar>
@@ -37,19 +34,13 @@
 <ion-content>
 
   <ion-list>
-    <ion-item>
-      <h2>1st</h2>
-      <p>7:20 AM - 8:13 AM (50 mins)</p>
+
+    <ion-item *ngFor="let period of schedules[dayType].periods">
+      <h2>{{ period.name }}</h2>
+      <p>{{ period.start }} AM - {{ period.end }} AM (50 mins)</p>
       <ion-badge item-end color="great">45 mins</ion-badge>
     </ion-item>
-    <ion-item>
-      <h2>2nd</h2>
-      <p>7:20 AM - 8:13 AM (52 mins)</p>
-    </ion-item>
-    <ion-item>
-      <h2>3rd</h2>
-      <p>7:20 AM - 8:13 AM (52 mins)</p>
-    </ion-item>
+
   </ion-list>
 
 </ion-content>
