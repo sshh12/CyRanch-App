@@ -20,52 +20,10 @@
 
     <ion-list *ngSwitchCase="'current'">
 
-        <ion-item>
+        <ion-item *ngFor="let subject of currentGrades">
           <ion-icon name='calculator' item-start></ion-icon>
-          <ion-label (click)="openClassGrades()">
-            Calc-BC AP
-          </ion-label>
-          <ion-badge item-end color="great">94.40%</ion-badge>
-        </ion-item>
-
-        <ion-item>
-          <ion-icon name='bookmarks' item-start></ion-icon>
-          <ion-label>
-            Eng IV AP
-          </ion-label>
-          <ion-badge item-end color="poor">78.69%</ion-badge>
-        </ion-item>
-
-        <ion-item>
-          <ion-icon name='flask' item-start></ion-icon>
-          <ion-label>
-            Physics C AP
-          </ion-label>
-          <ion-badge item-end color="great">99.78%</ion-badge>
-        </ion-item>
-
-        <ion-item>
-          <ion-icon name='code' item-start></ion-icon>
-          <ion-label>
-            Comp Sci K
-          </ion-label>
-          <ion-badge item-end color="bad">65.55%</ion-badge>
-        </ion-item>
-
-        <ion-item>
-          <ion-icon name='calculator' item-start></ion-icon>
-          <ion-label>
-            Statistics AP
-          </ion-label>
-          <ion-badge item-end item-end color="great">95.30%</ion-badge>
-        </ion-item>
-
-        <ion-item>
-          <ion-icon name='navigate' item-start></ion-icon>
-          <ion-label>
-            US Govt AP
-          </ion-label>
-          <ion-badge item-end color="ok">85.19%</ion-badge>
+          <ion-label>{{ subject.name }}</ion-label>
+          <ion-badge item-end color="{{ getColor(subject.letter) }}">{{ subject.overallavg }}</ion-badge>
         </ion-item>
 
     </ion-list>
