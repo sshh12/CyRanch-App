@@ -3,6 +3,7 @@ import { NavController } from 'ionic-angular';
 import { Events } from 'ionic-angular';
 
 import { Http } from '@angular/http';
+import { Storage } from '@ionic/storage';
 
 import { Globals } from '../../app/globals';
 
@@ -16,13 +17,18 @@ export class TeachersPage {
   curTeachers: object;
   letters: string[];
 
-  constructor(public navCtrl: NavController, public events: Events, private http: Http) {
+  constructor(public navCtrl: NavController,
+              public events: Events,
+              private http: Http,
+              private storage: Storage) {
 
     this.allTeachers = {};
     this.curTeachers = {};
     this.letters = [];
 
     this.events.subscribe('faculty:downloaded', teachers => {
+
+      this.storage.set('faculty:data', teachers);
 
       this.allTeachers = teachers;
       this.curTeachers = teachers;
@@ -33,8 +39,14 @@ export class TeachersPage {
       this.letters.push(String.fromCharCode(i));
     }
 
-    this.loadTeachers();
-
+    this.storage.get('faculty:data').then((teachers) => {
+      if(teachers){
+        console.log("Using cached teachers...");
+        this.events.publish('faculty:downloaded', teachers);
+      } else {
+        this.loadTeachers();
+      }
+    });
   }
 
   loadTeachers() {
