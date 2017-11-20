@@ -1,6 +1,8 @@
 import { Component } from '@angular/core';
 import { NavController } from 'ionic-angular';
 
+import { Storage } from '@ionic/storage';
+
 @Component({
   selector: 'page-bells',
   templateUrl: 'bells.html'
@@ -13,7 +15,7 @@ export class BellsPage {
   now: Date;
   interval: any;
 
-  constructor(public navCtrl: NavController) {
+  constructor(public navCtrl: NavController, private storage: Storage) {
 
     this.schedules = {
 
@@ -84,6 +86,22 @@ export class BellsPage {
 
     this.dayType = 'normal';
     this.lunchType = 'a';
+
+    this.storage.get('bells:day').then((day) => {
+      if(day){
+        this.dayType = day;
+      } else {
+        this.storage.set('bells:day', this.dayType);
+      }
+    })
+
+    this.storage.get('bells:lunch').then((lunch) => {
+      if(lunch){
+        this.lunchType = lunch;
+      } else {
+        this.storage.set('bells:lunch', this.lunchType);
+      }
+    })
 
     this.now = new Date();
 
@@ -170,6 +188,11 @@ export class BellsPage {
       return 'great';
     }
 
+  }
+
+  updateDefaults() {
+    this.storage.set('bells:day', this.dayType);
+    this.storage.set('bells:lunch', this.lunchType);
   }
 
 }

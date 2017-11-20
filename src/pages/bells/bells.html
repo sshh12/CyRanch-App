@@ -5,7 +5,7 @@
 
   <ion-toolbar>
 
-    <ion-segment [(ngModel)]="dayType">
+    <ion-segment [(ngModel)]="dayType" (click)="updateDefaults()">
       <ion-segment-button value="normal">
         Normal
       </ion-segment-button>
@@ -21,7 +21,7 @@
 
   <ion-toolbar>
 
-    <ion-segment [(ngModel)]="lunchType" color="dark">
+    <ion-segment [(ngModel)]="lunchType" color="dark" (click)="updateDefaults()">
       <ion-segment-button value="a">A</ion-segment-button>
       <ion-segment-button value="b">B</ion-segment-button>
       <ion-segment-button value="c">C</ion-segment-button>
