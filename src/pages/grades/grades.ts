@@ -42,6 +42,7 @@ export class GradesPage {
 
     this.gradeType = "current";
     this.loading = false;
+    this.currentGrades = [];
 
     this.events.subscribe('grades:current', grades => {
 
@@ -64,6 +65,15 @@ export class GradesPage {
         }
 
         this.currentGrades = current;
+
+      } else if(grades.status == 'login_failed'){
+
+        let alert = this.alertCtrl.create({
+          title: 'Oops!',
+          subTitle: 'Your login didn\'t work 😞',
+          buttons: ['ok']
+        });
+        alert.present();
 
       }
 
@@ -89,8 +99,9 @@ export class GradesPage {
         let headers = new Headers({'Content-Type' : 'application/json'});
         let options = new RequestOptions({ headers: headers });
 
-        this.http.post(Globals.SERVER + '/api/classwork/' + username, JSON.stringify({password: password}), options).subscribe(
-          data => {
+        this.http.post(Globals.SERVER + '/api/classwork/' + username, JSON.stringify({password: password}), options).subscribe(data => {
+
+              console.log(data);
 
               if(callback){
                 callback();
@@ -218,6 +229,7 @@ export class GradesPage {
     this.storage.set('grades:data', {});
 
     this.currentGrades = [];
+    this.loading = false;
 
   }
 

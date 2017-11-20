@@ -33,7 +33,7 @@
     </ion-refresher-content>
   </ion-refresher>
 
-  <div *ngIf="!loading && !currentGrades">
+  <div *ngIf="!loading && currentGrades.length == 0">
     <ion-chip margin-top>
       <ion-label>Use the options button in the top right to login.</ion-label>
       <ion-icon name="options"></ion-icon>
