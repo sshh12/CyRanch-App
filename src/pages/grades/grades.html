@@ -16,13 +16,21 @@
 
 <ion-content padding>
 
+  <ion-refresher (ionRefresh)="refreshCurrent($event)">
+    <ion-refresher-content
+      pullingText="Refresh"
+      refreshingSpinner="crescent"
+      refreshingText="Refreshing...">
+    </ion-refresher-content>
+  </ion-refresher>
+
   <div [ngSwitch]="gradeType">
 
     <ion-list *ngSwitchCase="'current'">
 
         <ion-item *ngFor="let subject of currentGrades">
           <ion-icon name='calculator' item-start></ion-icon>
-          <ion-label>{{ subject.name }}</ion-label>
+          <ion-label (click)="openClassGrades(subject)">{{ subject.name }}</ion-label>
           <ion-badge item-end color="{{ getColor(subject.letter) }}">{{ subject.overallavg }}</ion-badge>
         </ion-item>
 

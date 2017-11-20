@@ -25,6 +25,14 @@
 
 <ion-content>
 
+  <ion-refresher (ionRefresh)="refresh($event)">
+    <ion-refresher-content
+      pullingText="Refresh"
+      refreshingSpinner="crescent"
+      refreshingText="Refreshing...">
+    </ion-refresher-content>
+  </ion-refresher>
+
   <ion-list>
 
     <div *ngFor="let article of allNews; let i = index">

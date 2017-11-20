@@ -1,11 +1,17 @@
 import { Component } from '@angular/core';
-import { NavController } from 'ionic-angular';
+import { NavController, NavParams } from 'ionic-angular';
 import { Events } from 'ionic-angular';
 
 import { Http, Headers, RequestOptions } from '@angular/http';
 
-class AssignmentGrade {
+import { Globals } from '../../app/globals';
 
+class AssignmentGrade {
+  date: string;
+  datedue: string;
+  grade: string;
+  gradetype: string;
+  letter: string;
 }
 
 class SubjectGrade {
@@ -31,11 +37,19 @@ export class GradesPage {
 
     this.events.subscribe('grades:current', grades => {
 
-      console.log(grades);
-
       if(grades.status == 'success'){
 
         let current: SubjectGrade[] = grades.grades;
+
+        for(let subject of current){
+
+          let grades: AssignmentGrade[] = subject.assignments;
+          grades.sort((a: AssignmentGrade, b: AssignmentGrade) => {
+            return (new Date(b.datedue)).getTime() - (new Date(a.datedue)).getTime();
+          })
+          subject.assignments = grades;
+
+        }
 
         this.currentGrades = current;
 
@@ -43,18 +57,41 @@ export class GradesPage {
 
     });
 
+    this.loadCurrentGrades();
+
+  }
+
+  loadCurrentGrades(callback?){
 
     let headers = new Headers({'Content-Type' : 'application/json'});
     let options = new RequestOptions({ headers: headers });
 
-    this.http.post('http://192.168.1.65:5000/api/classwork/s000000', JSON.stringify({password: '123456'}), options).subscribe(
+    this.http.post(Globals.SERVER + '/api/classwork/s000000', JSON.stringify({password: '123456'}), options).subscribe(
       data => {
+
+          if(callback){
+            callback();
+          }
+
           this.events.publish('grades:current', data.json());
+
       },
       error => {
         alert(error);
       }
     );
+
+  }
+
+  refreshCurrent(refresher){
+
+    this.loadCurrentGrades(() => refresher.complete());
+
+  }
+
+  openClassGrades(subject: SubjectGrade){
+
+    this.navCtrl.push(AssignmentsPage, {subject: subject});
 
   }
 
@@ -72,12 +109,6 @@ export class GradesPage {
     }
   }
 
-  openClassGrades(){
-
-    this.navCtrl.push(AssignmentsPage);
-
-  }
-
 }
 
 @Component({
@@ -85,8 +116,26 @@ export class GradesPage {
 })
 export class AssignmentsPage {
 
-  constructor(public navCtrl: NavController) {
+  subject: SubjectGrade;
 
+  constructor(public navCtrl: NavController, params: NavParams) {
+
+    this.subject = params.data.subject;
+
+  }
+
+  getColor(letter: string) : string {
+    if(letter == 'A'){
+      return 'great';
+    } else if(letter == 'B'){
+      return 'ok';
+    } else if(letter == 'C'){
+      return 'poor';
+    } else if(letter == 'U'){
+      return 'none';
+    } else {
+      return 'bad';
+    }
   }
 
 }

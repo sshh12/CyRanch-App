@@ -6,51 +6,35 @@
 
 <ion-content>
 
-  <ion-searchbar></ion-searchbar>
+  <ion-searchbar
+        (ionInput)="onSearch($event)"
+        (ionCancel)="onCancel($event)">
+  </ion-searchbar>
 
-  <ion-item-group>
-    <ion-item-divider color="light">A</ion-item-divider>
+  <div *ngFor="let letter of letters">
 
-    <ion-list>
+    <ion-item-group *ngIf="curTeachers[letter] && curTeachers[letter].length > 0">
 
-    <ion-item-sliding>
-      <ion-item>
-        Abrams, Danielle
-        <p>sites.google/.../her-website/</p>
-      </ion-item>
-      <ion-item-options side="right">
-      <button ion-button color="primary">
-        <ion-icon name="mail"></ion-icon>
-      </button>
-      </ion-item-options>
-    </ion-item-sliding>
+      <ion-item-divider color="light">{{ letter }}</ion-item-divider>
 
-    <ion-item-sliding>
-      <ion-item>
-        Abrams, Danielle
-        <p>sites.google/.../her-website/</p>
-      </ion-item>
-      <ion-item-options side="right">
-      <button ion-button color="primary">
-        <ion-icon name="mail"></ion-icon>
-      </button>
-      </ion-item-options>
-    </ion-item-sliding>
+      <ion-list>
 
-    <ion-item-sliding>
-      <ion-item>
-        Abrams, Danielle
-        <p>sites.google/.../her-website/</p>
-      </ion-item>
-      <ion-item-options side="right">
-      <button ion-button color="primary">
-        <ion-icon name="mail"></ion-icon>
-      </button>
-      </ion-item-options>
-    </ion-item-sliding>
+        <ion-item-sliding *ngFor="let teacher of curTeachers[letter]">
+          <ion-item>
+            {{ teacher.name }}
+            <p (click)="viewTeacher(teacher)">{{ cleanWebsite(teacher) }}</p>
+          </ion-item>
+          <ion-item-options side="right">
+          <button ion-button color="primary"  (click)="emailTeacher(teacher)">
+            <ion-icon name="mail"></ion-icon>
+          </button>
+          </ion-item-options>
+        </ion-item-sliding>
 
-    </ion-list>
+      </ion-list>
 
-  </ion-item-group>
+    </ion-item-group>
+
+  </div>
 
 </ion-content>

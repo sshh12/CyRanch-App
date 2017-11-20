@@ -4,6 +4,8 @@ import { Events } from 'ionic-angular';
 
 import { Http } from '@angular/http';
 
+import { Globals } from '../../app/globals';
+
 class Article {
   date: string;
   image: string;
@@ -37,9 +39,24 @@ export class NewsPage {
 
     });
 
-    this.http.get('http://192.168.1.65:5000/api/news/all').subscribe(
+    this.loadNews();
+
+  }
+
+  openArticle(article: Article){
+    window.open(article.link, '_system', 'location=yes');
+  }
+
+  loadNews(callback?){
+
+    this.http.get(Globals.SERVER + '/api/news/all').subscribe(
       data => {
           this.events.publish('news:downloaded', data.json());
+
+          if(callback){
+            callback();
+          }
+
       },
       error => {
         alert(error);
@@ -48,8 +65,10 @@ export class NewsPage {
 
   }
 
-  openArticle(article: Article){
-    window.open(article.link, '_system', 'location=yes');
+  refresh(refresher){
+
+    this.loadNews(() => refresher.complete());
+
   }
 
 }
