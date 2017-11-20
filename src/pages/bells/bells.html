@@ -35,11 +35,31 @@
 
   <ion-list>
 
-    <ion-item *ngFor="let period of schedules[dayType].periods">
-      <h2>{{ period.name }}</h2>
-      <p>{{ period.start }} AM - {{ period.end }} AM (50 mins)</p>
-      <ion-badge item-end color="great">45 mins</ion-badge>
-    </ion-item>
+    <div *ngFor="let period of schedules[dayType].periods">
+
+      <ion-item *ngIf="period.name != 'LUNCH_BLOCK'">
+
+        <h2><b>{{ period.name }}</b></h2>
+        <p>{{ formatSubText(period) }}</p>
+
+        <ion-badge *ngIf="isCurrentPeriod(period)" item-end color="{{ getRemainingColor(period) }}">{{ getTimeRemaining(period) }} mins</ion-badge>
+
+      </ion-item>
+
+      <div *ngIf="period.name == 'LUNCH_BLOCK'">
+
+        <ion-item *ngFor="let lunchPeriod of schedules[dayType].lunches[lunchType]">
+
+          <h2><b>{{ lunchPeriod.name }}</b></h2>
+          <p>{{ formatSubText(lunchPeriod) }}</p>
+
+          <ion-badge *ngIf="isCurrentPeriod(lunchPeriod)" item-end color="{{ getRemainingColor(lunchPeriod) }}">{{ getTimeRemaining(lunchPeriod) }} mins</ion-badge>
+
+        </ion-item>
+
+      </div>
+
+    </div>
 
   </ion-list>
 
