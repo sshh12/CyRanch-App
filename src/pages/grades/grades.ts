@@ -111,7 +111,10 @@ export class GradesPage {
 
           },
           error => {
-            alert(error);
+            this.loading = false;
+            if(callback){
+              callback();
+            }
           }
         );
 
@@ -121,15 +124,15 @@ export class GradesPage {
   }
 
   refreshCurrent(refresher){
-
     this.loadCurrentGrades(() => refresher.complete());
-
   }
 
   openClassGrades(subject: SubjectGrade){
-
     this.navCtrl.push(AssignmentsPage, {subject: subject});
+  }
 
+  openLegal() {
+    this.navCtrl.push(LegalPage);
   }
 
   getColor(letter: string) : string {
@@ -262,4 +265,10 @@ export class AssignmentsPage {
     }
   }
 
+}
+
+@Component({
+  templateUrl: 'legal.html'
+})
+export class LegalPage {
 }
