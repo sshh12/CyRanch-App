@@ -27,7 +27,7 @@ export class BellsPage {
           {name: 'LUNCH_BLOCK'},
           {name: '6th', start: '12:48', end: '13:41'},
           {name: '7th', start: '13:47', end: '14:40'},
-          {name: 'Tutorials', start: '14:50', end: '16:30'}
+          {name: 'Tutorials', start: '14:50', end: '15:15'}
         ],
         lunches:{
           a: [
@@ -50,39 +50,66 @@ export class BellsPage {
 
       extended:{
         periods:[
-          {name: '1st', start: '7:20', end: '8:13'}
+          {name: '1st', start: '7:20', end: '8:07'},
+          {name: '2nd', start: '8:13', end: '9:03'},
+          {name: 'Assembly', start: '9:03', end: '9:33'},
+          {name: '3rd', start: '9:39', end: '10:26'},
+          {name: 'LUNCH_BLOCK'},
+          {name: '6th', start: '13:00', end: '13:47'},
+          {name: '7th', start: '13:53', end: '14:40'},
+          {name: 'Tutorials', start: '14:50', end: '15:15'}
         ],
-        lunchs:{
+        lunches:{
           a: [
-
+            {name: 'A Lunch', start: '10:26', end: '10:56'},
+            {name: '4th', start: '11:02', end: '11:55'},
+            {name: '5th', start: '12:01', end: '12:54'}
           ],
           b: [
-
+            {name: '4th', start: '10:32', end: '11:25'},
+            {name: 'B Lunch', start: '11:25', end: '11:55'},
+            {name: '5th', start: '12:01', end: '12:54'}
           ],
           c: [
-
+            {name: '4th', start: '10:32', end: '11:25'},
+            {name: '5th', start: '11:31', end: '12:24'},
+            {name: 'C Lunch', start: '12:24', end: '12:54'}
           ]
         }
       },
 
       pep:{
         periods:[
-          {name: '1st', start: '7:20', end: '8:13'}
+          {name: '1st', start: '7:20', end: '8:06'},
+          {name: '2nd', start: '8:12', end: '9:01'},
+          {name: '3rd', start: '9:07', end: '9:53'},
+          {name: 'LUNCH_BLOCK'},
+          {name: '6th', start: '12:28', end: '13:13'},
+          {name: '7th/Pep Rally', start: '13:19', end: '14:40'},
+          {name: 'Tutorials', start: '14:50', end: '15:15'}
         ],
-        lunchs:{
+        lunches:{
           a: [
-
+            {name: 'A Lunch', start: '9:53', end: '10:23'},
+            {name: '4th', start: '10:29', end: '11:22'},
+            {name: '5th', start: '11:28', end: '12:22'}
           ],
           b: [
-
+            {name: '4th', start: '9:59', end: '10:52'},
+            {name: 'B Lunch', start: '10:52', end: '11:22'},
+            {name: '5th', start: '11:28', end: '12:22'}
           ],
           c: [
-
+            {name: '4th', start: '9:59', end: '10:52'},
+            {name: '5th', start: '10:58', end: '11:52'},
+            {name: 'C Lunch', start: '11:52', end: '12:22'}
           ]
         }
       }
 
     }
+
+    console.log(this.schedules);
 
     this.dayType = 'normal';
     this.lunchType = 'a';
