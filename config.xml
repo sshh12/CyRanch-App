@@ -1,5 +1,5 @@
 <?xml version='1.0' encoding='utf-8'?>
-<widget id="io.sshh.cyranch" version="7.0.0" xmlns="http://www.w3.org/ns/widgets" xmlns:cdv="http://cordova.apache.org/ns/1.0">
+<widget id="com.sshh12.cyranch" version="7.0.0" xmlns="http://www.w3.org/ns/widgets" xmlns:cdv="http://cordova.apache.org/ns/1.0">
     <name>CyRanchApp</name>
     <description>An app I created for Cy-Ranch High School.</description>
     <author email="shrivu1122@gmail.com" href="https://sshh.io">SSHH.IO</author>
