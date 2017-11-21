@@ -1,8 +1,8 @@
-# Cy-Ranch App (SUPER ALPHA 2.0)
+# Cy-Ranch App
 This is an app I created for [Cy-Ranch High School](http://cyranch.cfisd.net/).
 
 ## Dependencies
-+ [Steriods](http://www.appgyver.io/steroids)
++ [Ionic](https://ionicframework.com/)
 + [NodeJS](https://nodejs.org/)
 
 ## Releases
@@ -14,7 +14,7 @@ The Cy-Ranch was built as a utility for both Android and Apple users. The app in
 news, grades, teachers, and more, allowing students get school related content a lot faster and easier. 
 While this app was made specifically for Cy-Ranch HS, it was created unofficially and is also used throughout
 the district because the grades part of the app works for all of [cfisd](http://www.cfisd.net/en/). In order to access
-grades and other information, the app uses the [unoffical cfisdapi](https://github.com/sshh12/CyRanch-App-Server) created by myself.
+grades and other information, the app uses the my [unoffical Cfisd API](https://github.com/sshh12/CyRanch-App-Server).
 
 #### Screenshots
 Some screenshots were taken on older versions.
