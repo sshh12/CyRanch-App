@@ -49,7 +49,7 @@ export class NewsPage {
 
   loadNews(callback?){
 
-    this.http.get(Globals.SERVER + '/api/news/all').subscribe(
+    this.http.get(Globals.SERVER + '/api/news/cyranch/all').subscribe(
       data => {
           this.events.publish('news:downloaded', data.json());
 
@@ -59,7 +59,7 @@ export class NewsPage {
 
       },
       error => {
-        alert(error);
+        console.log(error);
       }
     );
 

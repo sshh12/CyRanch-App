@@ -24,6 +24,15 @@ class SubjectGrade {
   assignments: AssignmentGrade[];
 }
 
+class SubjectReportCard {
+  name: string;
+  exams: any[];
+  averages: any[];
+  semesters: any[];
+  teacher: string;
+  room: string;
+}
+
 @Component({
   selector: 'page-grades',
   templateUrl: 'grades.html'
@@ -31,9 +40,11 @@ class SubjectGrade {
 export class GradesPage {
 
   gradeType: string;
-  currentGrades: SubjectGrade[];
   loading: boolean;
   classList: object;
+
+  currentGrades: SubjectGrade[];
+  reportCardGrades: SubjectReportCard[];
 
   constructor(public navCtrl: NavController,
               public events: Events,
@@ -51,7 +62,7 @@ export class GradesPage {
 
         console.log(grades);
 
-        this.storage.set('grades:data', grades);
+        this.storage.set('grades:current', grades);
 
         let current: SubjectGrade[] = grades.grades;
 
@@ -82,9 +93,40 @@ export class GradesPage {
 
     });
 
-    this.storage.get('grades:data').then((grades) => {
+    this.events.subscribe('grades:reportcard', grades => {
+
+      if(grades.status == 'success'){
+
+        console.log(grades);
+
+        this.storage.set('grades:reportcard', grades);
+
+        this.reportCardGrades = grades.reportcard;
+
+      } else if(grades.status == 'login_failed'){
+
+        let alert = this.alertCtrl.create({
+          title: 'Oops!',
+          subTitle: 'Your login didn\'t work 😞',
+          buttons: ['ok']
+        });
+        alert.present();
+
+      }
+
+      this.loading = false;
+
+    });
+
+    this.storage.get('grades:current').then((grades) => {
       if(grades){
         this.events.publish('grades:current', grades);
+      }
+    });
+
+    this.storage.get('grades:reportcard').then((grades) => {
+      if(grades){
+        this.events.publish('grades:reportcard', grades);
       }
     });
 
@@ -96,11 +138,11 @@ export class GradesPage {
       "math": ["geom","cal-","bank financ","calc","geometry","pre cal","algebra","statistics","alg ","accounting"],
       "language": ["span iv","spanish","french","latin","german"],
       "sports": ["ath ","athletics","phys ed","athlet","cheerleading","dance","sports"]
-    }
+    };
 
   }
 
-  loadCurrentGrades(callback?){
+  loadGrades(gradeType: string, callback?){
 
     this.loading = true;
 
@@ -110,15 +152,13 @@ export class GradesPage {
         let headers = new Headers({'Content-Type' : 'application/json'});
         let options = new RequestOptions({ headers: headers });
 
-        this.http.post(Globals.SERVER + '/api/classwork/' + username, JSON.stringify({password: password}), options).subscribe(data => {
-
-              console.log(data);
+        this.http.post(Globals.SERVER + '/api/' + gradeType + '/' + username, JSON.stringify({password: password}), options).subscribe(data => {
 
               if(callback){
                 callback();
               }
 
-              this.events.publish('grades:current', data.json());
+              this.events.publish('grades:' + gradeType, data.json());
 
           },
           error => {
@@ -135,7 +175,7 @@ export class GradesPage {
   }
 
   refreshCurrent(refresher){
-    this.loadCurrentGrades(() => refresher.complete());
+    this.loadGrades(this.gradeType, () => refresher.complete());
   }
 
   openClassGrades(subject: SubjectGrade){
@@ -154,7 +194,7 @@ export class GradesPage {
       return 'ok';
     } else if(letter == 'C'){
       return 'poor';
-    } else if(letter == 'U'){
+    } else if(letter == 'U' || letter === ''){
       return 'none';
     } else {
       return 'bad';
@@ -172,6 +212,13 @@ export class GradesPage {
       }
     }
     return "other";
+  }
+
+  fixPercent(percent: string) : string {
+    if(!percent || percent == '' || percent == '0'){
+      return '-';
+    }
+    return percent;
   }
 
   getIcon(subject: SubjectGrade){
@@ -213,7 +260,8 @@ export class GradesPage {
             this.storage.set('grades:legal', true).then(() => {
               this.storage.set('grades:username', username).then(() => {
                 this.storage.set('grades:password', password).then(() => {
-                  this.loadCurrentGrades();
+                  this.loadGrades('current');
+                  this.loadGrades('reportcard');
                 });
               });
             });
@@ -256,7 +304,8 @@ export class GradesPage {
               if(accepted){
                 this.storage.set('grades:username', data.sid).then(() => {
                   this.storage.set('grades:password', data.password).then(() => {
-                    this.loadCurrentGrades();
+                    this.loadGrades('current');
+                    this.loadGrades('reportcard');
                   });
                 });
               } else {
@@ -279,7 +328,8 @@ export class GradesPage {
     this.storage.set('grades:username', '');
     this.storage.set('grades:password', '');
     this.storage.set('grades:legal', false);
-    this.storage.set('grades:data', {});
+    this.storage.set('grades:current', {});
+    this.storage.set('grades:reportcard', {});
 
     this.currentGrades = [];
     this.loading = false;

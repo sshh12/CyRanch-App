@@ -57,15 +57,46 @@
 
         <ion-item *ngFor="let subject of currentGrades">
           <ion-icon name='{{ getIcon(subject) }}' item-start></ion-icon>
-          <ion-label (click)="openClassGrades(subject)" text-nowrap>{{ subject.name }}</ion-label>
+          <ion-label (click)="openClassGrades(subject)">{{ subject.name }}</ion-label>
           <ion-badge item-end color="{{ getColor(subject.letter) }}">{{ subject.overallavg }}</ion-badge>
         </ion-item>
 
     </ion-list>
 
-    <ion-list *ngSwitchCase="'reportcard'">
+    <div *ngSwitchCase="'reportcard'">
 
-    </ion-list>
+      <ion-list>
+
+        <ion-card *ngFor="let subject of reportCardGrades">
+          <ion-card-header>
+            {{ subject.name }}
+          </ion-card-header>
+          <ion-card-content>
+            <p>9 Weeks</p>
+            <ion-row>
+                <ion-col col-3><ion-badge color="{{ getColor(subject.averages[0].letter) }}">{{ fixPercent(subject.averages[0].average) }}</ion-badge></ion-col>
+                <ion-col col-3><ion-badge color="{{ getColor(subject.averages[1].letter) }}">{{ fixPercent(subject.averages[1].average) }}</ion-badge></ion-col>
+                <ion-col col-3><ion-badge color="{{ getColor(subject.averages[2].letter) }}">{{ fixPercent(subject.averages[2].average) }}</ion-badge></ion-col>
+                <ion-col col-3><ion-badge color="{{ getColor(subject.averages[3].letter) }}">{{ fixPercent(subject.averages[3].average) }}</ion-badge></ion-col>
+            </ion-row>
+            <hr>
+            <p>Finals</p>
+            <ion-row>
+                <ion-col col-6><ion-badge color="{{ getColor(subject.exams[0].letter) }}">{{ fixPercent(subject.exams[0].average) }}</ion-badge></ion-col>
+                <ion-col col-6><ion-badge color="{{ getColor(subject.exams[1].letter) }}">{{ fixPercent(subject.exams[1].average) }}</ion-badge></ion-col>
+            </ion-row>
+            <hr>
+            <p>Semesters</p>
+            <ion-row>
+                <ion-col col-6><ion-badge color="{{ getColor(subject.semesters[0].letter) }}">{{ fixPercent(subject.semesters[0].average) }}</ion-badge></ion-col>
+                <ion-col col-6><ion-badge color="{{ getColor(subject.semesters[1].letter) }}">{{ fixPercent(subject.semesters[0].average) }}</ion-badge></ion-col>
+            </ion-row>
+          </ion-card-content>
+        </ion-card>
+
+      </ion-list>
+
+    </div>
 
   </div>
 

@@ -11,7 +11,7 @@
     <ion-item-divider color="light">Assignments</ion-item-divider>
 
     <ion-item *ngFor="let assignment of subject.assignments">
-      <ion-label>
+      <ion-label text-nowrap>
         {{ assignment.name }}
         <p>{{ assignment.gradetype }}</p>
       </ion-label>
