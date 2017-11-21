@@ -51,7 +51,7 @@
     <ion-list *ngSwitchCase="'current'">
 
         <ion-item *ngFor="let subject of currentGrades">
-          <ion-icon name='calculator' item-start></ion-icon>
+          <ion-icon name='{{ getIcon(subject) }}' item-start></ion-icon>
           <ion-label (click)="openClassGrades(subject)">{{ subject.name }}</ion-label>
           <ion-badge item-end color="{{ getColor(subject.letter) }}">{{ subject.overallavg }}</ion-badge>
         </ion-item>

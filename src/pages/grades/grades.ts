@@ -33,6 +33,7 @@ export class GradesPage {
   gradeType: string;
   currentGrades: SubjectGrade[];
   loading: boolean;
+  classList: object;
 
   constructor(public navCtrl: NavController,
               public events: Events,
@@ -86,6 +87,16 @@ export class GradesPage {
         this.events.publish('grades:current', grades);
       }
     });
+
+    this.classList = {
+      "socialstudies": ["hist","gov","macro eco","street law","human geog","geog","wd area","economics"],
+      "art": ["treble", "clarinet", " orch","art","band","animation","theater","bnd ","orchest","aud vid","chrl ","music","choir","a/v","av pro","voc ens","symph", "th. pro", " strings"],
+      "english": ["journl ","journal","eng ","creative write", "english","debate"],
+      "science": ["med term", "envir", "forensics", "chemsitry","phys ", "chemistry","phy/chem","web tech","tch sys","livestock","electr","vet med","wldlif fish eco","prof comm","sci","robot","physics","antmy","physlgy","biology","sociology","animal","psychology", "chem ","bio ","medical","prin ag fd nt r","food tech","com prog"],
+      "math": ["geom","cal-","bank financ","calc","geometry","pre cal","algebra","statistics","alg ","accounting"],
+      "language": ["span iv","spanish","french","latin","german"],
+      "sports": ["ath ","athletics","phys ed","athlet","cheerleading","dance","sports"]
+    }
 
   }
 
@@ -146,6 +157,40 @@ export class GradesPage {
       return 'none';
     } else {
       return 'bad';
+    }
+  }
+
+  getClassType(name: string) : string {
+    name = name.toLowerCase();
+    for(let classType of Object.keys(this.classList)){
+      let kwords = this.classList[classType];
+      for(let word of kwords){
+        if(name.includes(word)){
+          return classType;
+        }
+      }
+    }
+    return "other";
+  }
+
+  getIcon(subject: SubjectGrade){
+    let classType = this.getClassType(subject.name);
+    if(classType == "socialstudies"){
+      return "people";
+    } else if(classType == "art"){
+      return "brush";
+    } else if(classType == "english"){
+      return "bookmarks";
+    } else if(classType == "science"){
+      return "flask";
+    } else if(classType == "math"){
+      return "calculator";
+    } else if(classType == "language"){
+      return "globe";
+    } else if(classType == "sports"){
+      return "american-football";
+    } else {
+      return "create";
     }
   }
 
