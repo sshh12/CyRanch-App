@@ -1,4 +1,4 @@
-# Cy-Ranch App
+# Cy-Ranch App (SUPER ALPHA 2.0)
 This is an app I created for [Cy-Ranch High School](http://cyranch.cfisd.net/).
 
 ## Dependencies

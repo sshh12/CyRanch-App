@@ -1,9 +1,0 @@
-{
-  "name": "CyRanch",
-  "version": "0.1.0",
-  "private": true,
-  "dependencies": {
-    "angular": "1.3.x",
-    "supersonic": "1.x"
-  }
-}

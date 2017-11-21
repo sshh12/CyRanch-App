@@ -1,0 +1,71 @@
+<ion-header>
+  <ion-navbar color="mustangblue">
+    <ion-title>News</ion-title>
+  </ion-navbar>
+  <ion-toolbar>
+    <ion-segment [(ngModel)]="newsType">
+      <ion-segment-button value="all">
+        All
+      </ion-segment-button>
+      <ion-segment-button value="Mustang Sports">
+        Sports
+      </ion-segment-button>
+      <ion-segment-button value="Mustang Arts">
+        Arts
+      </ion-segment-button>
+      <ion-segment-button value="Mustang Students">
+        Students
+      </ion-segment-button>
+      <ion-segment-button value="Mustang Editorial">
+        Editorial
+      </ion-segment-button>
+    </ion-segment>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content>
+
+  <ion-refresher (ionRefresh)="refresh($event)">
+    <ion-refresher-content
+      pullingText="Refresh"
+      refreshingSpinner="crescent"
+      refreshingText="Refreshing...">
+    </ion-refresher-content>
+  </ion-refresher>
+
+  <ion-list>
+
+    <div *ngFor="let article of allNews; let i = index">
+
+      <ion-card *ngIf="i < 20 && (newsType == 'all' || article.organization == newsType)">
+
+        <ion-item>
+          <ion-avatar item-start>
+            <img src="assets/imgs/mustangs.png">
+          </ion-avatar>
+          <h2>{{ article.organization }}</h2>
+          <p>{{ article.date }}</p>
+        </ion-item>
+
+        <img src="{{ article.image }}">
+
+        <ion-card-content>
+          <p text-center>{{ article.text }}</p>
+        </ion-card-content>
+
+        <ion-row>
+          <ion-col>
+            <button ion-button icon-left clear small (click)="openArticle(article);">
+              <ion-icon name="exit"></ion-icon>
+              <div>View</div>
+            </button>
+          </ion-col>
+        </ion-row>
+
+      </ion-card>
+
+    </div>
+
+  </ion-list>
+
+</ion-content>

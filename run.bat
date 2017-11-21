@@ -1,3 +1,2 @@
 @echo off
-steroids connect
-pause
+ionic serve --lab

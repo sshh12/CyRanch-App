@@ -1,0 +1,37 @@
+<ion-header>
+  <ion-navbar color="mustangblue">
+    <ion-title>{{ subject.name }}</ion-title>
+  </ion-navbar>
+</ion-header>
+
+<ion-content>
+
+  <ion-item-group>
+
+    <ion-item-divider color="light">Assignments</ion-item-divider>
+
+    <ion-item *ngFor="let assignment of subject.assignments">
+      <ion-label text-nowrap>
+        {{ assignment.name }}
+        <p>{{ assignment.gradetype }}</p>
+      </ion-label>
+      <ion-badge item-end color="{{ getColor(assignment.letter) }}">{{ assignment.grade }}</ion-badge>
+    </ion-item>
+
+  </ion-item-group>
+
+  <ion-item-group>
+
+    <ion-item-divider color="light">Type Scores</ion-item-divider>
+
+    <ion-item *ngFor="let category of subject.categories">
+      <ion-label>
+        {{ category.name }}
+        <p>{{ category.weight }}</p>
+      </ion-label>
+      <ion-badge item-end color="{{ getColor(category.letter) }}">{{ category.grade }}</ion-badge>
+    </ion-item>
+
+  </ion-item-group>
+
+</ion-content>
