@@ -21,7 +21,8 @@
     <ion-fab-list>
       <button ion-fab (click)="openLegal(fab)"><ion-icon name="list-box"></ion-icon></button>
       <button ion-fab (click)="showLogin(fab)"><ion-icon name="person-add" color="great"></ion-icon></button>
-      <button ion-fab (click)="logout(fab)"><ion-icon name="close-circle" color="danger"></ion-icon></button>
+      <button *ngIf="!loading && currentGrades.length > 0" ion-fab (click)="refreshCurrent()"><ion-icon name="refresh" color="poor"></ion-icon></button>
+      <button *ngIf="currentGrades.length > 0" ion-fab (click)="logout(fab)"><ion-icon name="close-circle" color="danger"></ion-icon></button>
     </ion-fab-list>
   </ion-fab>
 

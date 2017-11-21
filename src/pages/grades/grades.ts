@@ -174,8 +174,12 @@ export class GradesPage {
 
   }
 
-  refreshCurrent(refresher){
-    this.loadGrades(this.gradeType, () => refresher.complete());
+  refreshCurrent(refresher?){
+    if(refresher){
+      this.loadGrades(this.gradeType, () => refresher.complete());
+    } else {
+      this.loadGrades(this.gradeType);
+    }
   }
 
   openClassGrades(subject: SubjectGrade){
