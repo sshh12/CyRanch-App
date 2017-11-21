@@ -142,7 +142,8 @@ export class GradesPage {
     this.navCtrl.push(AssignmentsPage, {subject: subject});
   }
 
-  openLegal() {
+  openLegal(fab) {
+    fab.close();
     this.navCtrl.push(LegalPage);
   }
 
@@ -224,7 +225,9 @@ export class GradesPage {
 
   }
 
-  showLogin() {
+  showLogin(fab) {
+
+    fab.close();
 
     let prompt = this.alertCtrl.create({
       title: 'Login',
@@ -269,7 +272,9 @@ export class GradesPage {
 
   }
 
-  logout() {
+  logout(fab) {
+
+    fab.close();
 
     this.storage.set('grades:username', '');
     this.storage.set('grades:password', '');
