@@ -33,6 +33,10 @@
 
 <ion-content>
 
+  <ion-fab top right edge>
+    <button ion-fab mini color="mustangblue" (click)="setNotifications()"><ion-icon name="{{ notifications ? 'notifications' : 'notifications-off' }}"></ion-icon></button>
+  </ion-fab>
+
   <ion-list>
 
     <div *ngFor="let period of schedules[dayType].periods">

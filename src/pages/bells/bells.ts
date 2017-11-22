@@ -2,6 +2,7 @@ import { Component } from '@angular/core';
 import { NavController } from 'ionic-angular';
 
 import { Storage } from '@ionic/storage';
+import { LocalNotifications } from '@ionic-native/local-notifications';
 
 @Component({
   selector: 'page-bells',
@@ -14,8 +15,11 @@ export class BellsPage {
   schedules: object;
   now: Date;
   interval: any;
+  notifications: boolean;
 
-  constructor(public navCtrl: NavController, private storage: Storage) {
+  constructor(public navCtrl: NavController,
+              private storage: Storage,
+              private notif: LocalNotifications) {
 
     this.schedules = {
 
@@ -109,10 +113,9 @@ export class BellsPage {
 
     }
 
-    console.log(this.schedules);
-
     this.dayType = 'normal';
     this.lunchType = 'a';
+    this.notifications = false;
 
     this.storage.get('bells:day').then((day) => {
       if(day){
@@ -120,7 +123,7 @@ export class BellsPage {
       } else {
         this.storage.set('bells:day', this.dayType);
       }
-    })
+    });
 
     this.storage.get('bells:lunch').then((lunch) => {
       if(lunch){
@@ -128,14 +131,53 @@ export class BellsPage {
       } else {
         this.storage.set('bells:lunch', this.lunchType);
       }
+    });
+
+    this.storage.get('bells:notifications').then((enabled) => {
+      if(enabled){
+        this.notifications = true;
+      }
     })
 
     this.now = new Date();
 
     this.interval = setInterval(() => {
+
       this.now = new Date();
+
+      if(this.notifications){
+
+        let {period, timeLeft} = this.getCurrentClassInfo();
+
+        if(period){
+          this.notif.schedule({
+            id: 0,
+            title: period.name,
+            text: `${timeLeft} mins remaining`,
+            badge: timeLeft
+          });
+        }
+
+      }
+
     }, 5000);
 
+  }
+
+  formatTime(time: Date) : string {
+    let suffix = 'am';
+    let mins = '' + time.getMinutes();
+    if(time.getHours() == 12){
+      suffix = 'pm';
+    }
+    if(time.getHours() > 12) {
+      time.setHours(time.getHours() - 12);
+      suffix = 'pm';
+    }
+    while(mins.length < 2){
+      mins = '0' + mins;
+    }
+    return `${time.getHours()}:${mins} ${suffix}`;
   }
 
   formatSubText(period) : string {
@@ -143,40 +185,9 @@ export class BellsPage {
     let start: Date = new Date(2000, 0, 0, ...period.start.split(':'));
     let end: Date = new Date(2000, 0, 0, ...period.end.split(':'));
 
-    let startSuffix = 'am';
-    let endSuffix = 'am';
-    let startMins = '' + start.getMinutes();
-    let endMins = '' + end.getMinutes();
-
     let duration = Math.floor((end.getTime() - start.getTime()) / 1000 / 60);
 
-    if(start.getHours() == 12){
-      startSuffix = 'pm';
-    }
-
-    if(end.getHours() == 12){
-      endSuffix = 'pm';
-    }
-
-    if(start.getHours() > 12) {
-      start.setHours(start.getHours() - 12);
-      startSuffix = 'pm';
-    }
-
-    if(end.getHours() > 12) {
-      end.setHours(end.getHours() - 12);
-      endSuffix = 'pm';
-    }
-
-    while(startMins.length < 2){
-      startMins = '0' + startMins;
-    }
-
-    while(endMins.length < 2){
-      endMins = '0' + endMins;
-    }
-
-    return `${start.getHours()}:${startMins} ${startSuffix} - ${end.getHours()}:${endMins} ${endSuffix} (${duration} mins)`;
+    return `${this.formatTime(start)} - ${this.formatTime(end)} (${duration} mins)`;
 
   }
 
@@ -220,6 +231,39 @@ export class BellsPage {
   updateDefaults() {
     this.storage.set('bells:day', this.dayType);
     this.storage.set('bells:lunch', this.lunchType);
+  }
+
+  setNotifications(){
+    this.notifications = !this.notifications;
+    this.storage.set('bells:notifications', this.notifications);
+  }
+
+  getCurrentClassInfo() {
+
+    let currentPeriod = null;
+
+    for(let period of this.schedules[this.dayType].periods){
+      if(period.name != 'LUNCH_BLOCK' && this.isCurrentPeriod(period)){
+        currentPeriod = period;
+        break;
+      }
+    }
+
+    if(!currentPeriod){
+      for(let period of this.schedules[this.dayType].lunches[this.lunchType]){
+        if(this.isCurrentPeriod(period)){
+          currentPeriod = period;
+          break;
+        }
+      }
+    }
+
+    if(!currentPeriod){
+      return {period: false, timeLeft: -1};
+    } else {
+      return {period: currentPeriod, timeLeft: this.getTimeRemaining(currentPeriod)};
+    }
+
   }
 
 }

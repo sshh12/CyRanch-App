@@ -2,6 +2,15 @@ import { NgModule, ErrorHandler } from '@angular/core';
 import { BrowserModule } from '@angular/platform-browser';
 import { IonicApp, IonicModule, IonicErrorHandler } from 'ionic-angular';
 
+import { TabsPage } from '../pages/tabs/tabs';
+
+import { StatusBar } from '@ionic-native/status-bar';
+import { SplashScreen } from '@ionic-native/splash-screen';
+
+import { HttpModule } from '@angular/http';
+import { IonicStorageModule } from '@ionic/storage';
+import { LocalNotifications } from '@ionic-native/local-notifications';
+
 import { MyApp } from './app.component';
 
 import { NewsPage } from '../pages/news/news';
@@ -10,14 +19,6 @@ import { AssignmentsPage } from '../pages/grades/grades';
 import { LegalPage } from '../pages/grades/grades';
 import { BellsPage } from '../pages/bells/bells';
 import { TeachersPage } from '../pages/teachers/teachers';
-
-import { TabsPage } from '../pages/tabs/tabs';
-
-import { StatusBar } from '@ionic-native/status-bar';
-import { SplashScreen } from '@ionic-native/splash-screen';
-
-import { HttpModule } from '@angular/http';
-import { IonicStorageModule } from '@ionic/storage';
 
 @NgModule({
   declarations: [
@@ -50,6 +51,7 @@ import { IonicStorageModule } from '@ionic/storage';
   providers: [
     StatusBar,
     SplashScreen,
+    LocalNotifications,
     {provide: ErrorHandler, useClass: IonicErrorHandler}
   ]
 })
