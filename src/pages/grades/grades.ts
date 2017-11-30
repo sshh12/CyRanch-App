@@ -5,6 +5,7 @@ import { Events } from 'ionic-angular';
 import { Http, Headers, RequestOptions } from '@angular/http';
 import { Storage } from '@ionic/storage';
 import { AlertController } from 'ionic-angular';
+import { ToastController } from 'ionic-angular';
 
 import { Globals } from '../../app/globals';
 
@@ -50,7 +51,8 @@ export class GradesPage {
               public events: Events,
               private http: Http,
               private storage: Storage,
-              public alertCtrl: AlertController) {
+              public alertCtrl: AlertController,
+              public toastCtrl: ToastController) {
 
     this.gradeType = "current";
     this.loading = false;
@@ -59,6 +61,8 @@ export class GradesPage {
     this.events.subscribe('grades:current', grades => {
 
       if(grades.status == 'success'){
+
+        this.currentGrades = [];
 
         console.log(grades);
 
@@ -80,12 +84,11 @@ export class GradesPage {
 
       } else if(grades.status == 'login_failed'){
 
-        let alert = this.alertCtrl.create({
-          title: 'Oops!',
-          subTitle: 'Your login didn\'t work 😞',
-          buttons: ['ok']
-        });
-        alert.present();
+        this.toastCtrl.create({
+          message: 'Your login didn\'t work 😞',
+          position: 'top',
+          duration: 3000
+        }).present();
 
       }
 
@@ -105,12 +108,11 @@ export class GradesPage {
 
       } else if(grades.status == 'login_failed'){
 
-        let alert = this.alertCtrl.create({
-          title: 'Oops!',
-          subTitle: 'Your login didn\'t work 😞',
-          buttons: ['ok']
-        });
-        alert.present();
+        this.toastCtrl.create({
+          message: 'Your login didn\'t work 😞',
+          position: 'top',
+          duration: 3000
+        }).present();
 
       }
 
@@ -144,25 +146,44 @@ export class GradesPage {
 
   loadGrades(gradeType: string, callback?){
 
-    this.loading = true;
-
     this.storage.get('grades:username').then((username) => {
       this.storage.get('grades:password').then((password) => {
 
+        this.loading = true;
+
+        if(!this.validCreds(username, password)){
+          let toast = this.toastCtrl.create({
+            message: 'Invalid username or password',
+            position: 'top',
+            duration: 3000
+          }).present();
+          this.loading = false;
+          if(callback){
+            callback();
+          }
+          return;
+        }
+
         let headers = new Headers({'Content-Type' : 'application/json'});
         let options = new RequestOptions({ headers: headers });
+
+        username = username.toLowerCase(); // Sxxxxxx -> sxxxxxx
 
         this.http.post(Globals.SERVER + '/api/' + gradeType + '/' + username, JSON.stringify({password: password}), options).subscribe(data => {
 
               if(callback){
                 callback();
               }
-
               this.events.publish('grades:' + gradeType, data.json());
 
           },
           error => {
             this.loading = false;
+            this.toastCtrl.create({
+              message: 'A network error occured 😞',
+              position: 'top',
+              duration: 3000
+            }).present();
             if(callback){
               callback();
             }
@@ -256,6 +277,11 @@ export class GradesPage {
           text: 'No!',
           handler: () => {
             this.storage.set('grades:legal', false);
+            let toast = this.toastCtrl.create({
+              message: 'Cannot retrieve grades',
+              position: 'top',
+              duration: 3000
+            }).present();
           }
         },
         {
@@ -275,6 +301,10 @@ export class GradesPage {
     });
     confirm.present();
 
+  }
+
+  validCreds(sid: string, password: string) : boolean {
+    return password.length > 4 && sid.length == 7;
   }
 
   showLogin(fab) {
@@ -336,6 +366,7 @@ export class GradesPage {
     this.storage.set('grades:reportcard', {});
 
     this.currentGrades = [];
+    this.reportCardGrades = [];
     this.loading = false;
 
   }

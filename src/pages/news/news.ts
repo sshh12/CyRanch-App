@@ -3,6 +3,7 @@ import { NavController } from 'ionic-angular';
 import { Events } from 'ionic-angular';
 
 import { Http } from '@angular/http';
+import { ToastController } from 'ionic-angular';
 
 import { Globals } from '../../app/globals';
 
@@ -24,7 +25,10 @@ export class NewsPage {
   newsType: string;
   allNews: Article[];
 
-  constructor(public navCtrl: NavController, public events: Events, private http: Http) {
+  constructor(public navCtrl: NavController,
+              public events: Events,
+              private http: Http,
+              public toastCtrl: ToastController) {
 
     this.newsType = "all";
     this.allNews = [];
@@ -59,7 +63,11 @@ export class NewsPage {
 
       },
       error => {
-        console.log(error);
+        this.toastCtrl.create({
+          message: 'Network error 😞',
+          position: 'top',
+          duration: 3000
+        }).present();
       }
     );
 
