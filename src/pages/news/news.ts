@@ -66,9 +66,13 @@ export class NewsPage {
   }
 
   refresh(refresher){
-
     this.loadNews(() => refresher.complete());
+  }
 
+  swipeTab(swipe){
+    if(swipe.direction == 2){
+      this.navCtrl.parent.select(1);
+    }
   }
 
 }

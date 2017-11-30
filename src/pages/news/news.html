@@ -23,7 +23,7 @@
   </ion-toolbar>
 </ion-header>
 
-<ion-content>
+<ion-content (swipe)="swipeTab($event)">
 
   <ion-refresher (ionRefresh)="refresh($event)">
     <ion-refresher-content
@@ -35,7 +35,7 @@
 
   <ion-list>
 
-    <div *ngFor="let article of allNews; let i = index">
+    <div *ngFor="let article of allNews; let i = index" (swipe)="swipeTab($event)">
 
       <ion-card *ngIf="i < 20 && (newsType == 'all' || article.organization == newsType)">
 

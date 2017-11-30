@@ -14,7 +14,7 @@
   </ion-toolbar>
 </ion-header>
 
-<ion-content padding>
+<ion-content padding (swipe)="swipeTab($event)">
 
   <ion-fab top right edge #fab>
     <button ion-fab mini color="mustangblue"><ion-icon name="options"></ion-icon></button>

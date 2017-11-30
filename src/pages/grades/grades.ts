@@ -340,6 +340,22 @@ export class GradesPage {
 
   }
 
+  swipeTab(swipe){
+    if(swipe.direction == 2){
+      if(this.gradeType == 'current'){
+        this.gradeType = 'reportcard';
+      } else {
+        this.navCtrl.parent.select(2);
+      }
+    } else if(swipe.direction == 4) {
+      if(this.gradeType == 'reportcard'){
+        this.gradeType = 'current';
+      } else {
+        this.navCtrl.parent.select(0);
+      }
+    }
+  }
+
 }
 
 @Component({

@@ -233,7 +233,7 @@ export class BellsPage {
     this.storage.set('bells:lunch', this.lunchType);
   }
 
-  setNotifications(){
+  toggleNotifications() {
     this.notifications = !this.notifications;
     this.storage.set('bells:notifications', this.notifications);
   }
@@ -242,7 +242,7 @@ export class BellsPage {
 
     let currentPeriod = null;
 
-    for(let period of this.schedules[this.dayType].periods){
+    for(let period of this.schedules[this.dayType].periods) {
       if(period.name != 'LUNCH_BLOCK' && this.isCurrentPeriod(period)){
         currentPeriod = period;
         break;
@@ -250,7 +250,7 @@ export class BellsPage {
     }
 
     if(!currentPeriod){
-      for(let period of this.schedules[this.dayType].lunches[this.lunchType]){
+      for(let period of this.schedules[this.dayType].lunches[this.lunchType]) {
         if(this.isCurrentPeriod(period)){
           currentPeriod = period;
           break;
@@ -258,12 +258,20 @@ export class BellsPage {
       }
     }
 
-    if(!currentPeriod){
+    if(!currentPeriod) {
       return {period: false, timeLeft: -1};
     } else {
       return {period: currentPeriod, timeLeft: this.getTimeRemaining(currentPeriod)};
     }
 
+  }
+
+  swipeTab(swipe){
+    if(swipe.direction == 2) {
+      this.navCtrl.parent.select(3);
+    } else if(swipe.direction == 4) {
+      this.navCtrl.parent.select(1);
+    }
   }
 
 }
