@@ -16,6 +16,7 @@ import { MyApp } from './app.component';
 import { NewsPage } from '../pages/news/news';
 import { GradesPage } from '../pages/grades/grades';
 import { AssignmentsPage } from '../pages/grades/grades';
+import { CalculatorPage } from '../pages/grades/grades';
 import { LegalPage } from '../pages/grades/grades';
 import { BellsPage } from '../pages/bells/bells';
 import { TeachersPage } from '../pages/teachers/teachers';
@@ -26,6 +27,7 @@ import { TeachersPage } from '../pages/teachers/teachers';
     NewsPage,
     GradesPage,
     AssignmentsPage,
+    CalculatorPage,
     LegalPage,
     BellsPage,
     TeachersPage,
@@ -43,6 +45,7 @@ import { TeachersPage } from '../pages/teachers/teachers';
     NewsPage,
     GradesPage,
     AssignmentsPage,
+    CalculatorPage,
     LegalPage,
     BellsPage,
     TeachersPage,

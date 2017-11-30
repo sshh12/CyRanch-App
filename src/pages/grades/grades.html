@@ -26,6 +26,10 @@
     </ion-fab-list>
   </ion-fab>
 
+  <ion-fab top left edge *ngIf="gradeType == 'reportcard' && reportCardGrades && reportCardGrades.length > 0">
+    <button ion-fab mini color="poor" (click)="calculate()"><ion-icon name="calculator"></ion-icon></button>
+  </ion-fab>
+
   <ion-refresher (ionRefresh)="refreshCurrent($event)">
     <ion-refresher-content
       pullingText="Refresh"

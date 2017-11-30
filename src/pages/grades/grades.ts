@@ -152,7 +152,7 @@ export class GradesPage {
         this.loading = true;
 
         if(!this.validCreds(username, password)){
-          let toast = this.toastCtrl.create({
+          this.toastCtrl.create({
             message: 'Invalid username or password',
             position: 'top',
             duration: 3000
@@ -277,7 +277,7 @@ export class GradesPage {
           text: 'No!',
           handler: () => {
             this.storage.set('grades:legal', false);
-            let toast = this.toastCtrl.create({
+            this.toastCtrl.create({
               message: 'Cannot retrieve grades',
               position: 'top',
               duration: 3000
@@ -387,6 +387,37 @@ export class GradesPage {
     }
   }
 
+  calculate() {
+    let alert = this.alertCtrl.create();
+    alert.setTitle('Choose a class');
+
+    let first: boolean = true;
+
+    for(let subject of this.reportCardGrades){
+      alert.addInput({
+        type: 'radio',
+        label: subject.name,
+        value: subject.name,
+        checked: first
+      });
+      first = false;
+    }
+
+    alert.addButton('Cancel');
+    alert.addButton({
+      text: 'OK',
+      handler: data => {
+        for(let subject of this.reportCardGrades) {
+          if(subject.name == data) {
+            this.navCtrl.push(CalculatorPage, {subject: subject});
+            break;
+          }
+        }
+      }
+    });
+    alert.present();
+  }
+
 }
 
 @Component({
@@ -397,9 +428,7 @@ export class AssignmentsPage {
   subject: SubjectGrade;
 
   constructor(public navCtrl: NavController, params: NavParams) {
-
     this.subject = params.data.subject;
-
   }
 
   getColor(letter: string) : string {
@@ -413,6 +442,40 @@ export class AssignmentsPage {
       return 'none';
     } else {
       return 'bad';
+    }
+  }
+
+}
+
+@Component({
+  templateUrl: 'calculator.html'
+})
+export class CalculatorPage {
+
+  subject: SubjectReportCard;
+  semester: string;
+  firstweeks: Number;
+  secondweeks: Number;
+  exam: Number;
+  sem: Number;
+
+  constructor(public navCtrl: NavController, params: NavParams) {
+    this.subject = params.data.subject;
+    this.semester = 'fall';
+    this.resetValues();
+  }
+
+  resetValues() {
+    if(this.semester == 'fall') {
+      this.firstweeks = this.subject.averages[0].average;
+      this.secondweeks = this.subject.averages[1].average;
+      this.exam = this.subject.exams[0].average;
+      this.sem = this.subject.semesters[0].average;
+    } else {
+      this.firstweeks = this.subject.averages[2].average;
+      this.secondweeks = this.subject.averages[3].average;
+      this.exam = this.subject.exams[1].average;
+      this.sem = this.subject.semesters[1].average;
     }
   }
 

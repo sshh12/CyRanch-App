@@ -1,0 +1,49 @@
+<ion-header>
+  <ion-navbar color="mustangblue">
+    <ion-title>{{ subject.name }}</ion-title>
+  </ion-navbar>
+  <ion-toolbar>
+    <ion-segment [(ngModel)]="semester" (click)="resetValues()">
+      <ion-segment-button value="fall">
+        Fall
+      </ion-segment-button>
+      <ion-segment-button value="spring">
+        Spring
+      </ion-segment-button>
+    </ion-segment>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content>
+
+  <ion-card>
+    <ion-card-content>
+
+      <ion-list>
+
+        <ion-item>
+          <ion-label stacked>First 9 Weeks</ion-label>
+          <ion-input [(ngModel)]="firstweeks" type="text"></ion-input>
+        </ion-item>
+
+        <ion-item>
+          <ion-label stacked>Second 9 Weeks</ion-label>
+          <ion-input [(ngModel)]="secondweeks" type="text"></ion-input>
+        </ion-item>
+
+        <ion-item>
+          <ion-label stacked>Final</ion-label>
+          <ion-input [(ngModel)]="exam" type="text"></ion-input>
+        </ion-item>
+
+        <ion-item>
+          <ion-label stacked>Semester</ion-label>
+          <ion-input [(ngModel)]="sem" type="text"></ion-input>
+        </ion-item>
+
+      </ion-list>
+
+    </ion-card-content>
+  </ion-card>
+
+</ion-content>
