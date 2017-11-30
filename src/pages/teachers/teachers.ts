@@ -4,6 +4,7 @@ import { Events } from 'ionic-angular';
 
 import { Http } from '@angular/http';
 import { Storage } from '@ionic/storage';
+import { ToastController } from 'ionic-angular';
 
 import { Globals } from '../../app/globals';
 
@@ -20,7 +21,8 @@ export class TeachersPage {
   constructor(public navCtrl: NavController,
               public events: Events,
               private http: Http,
-              private storage: Storage) {
+              private storage: Storage,
+              public toastCtrl: ToastController) {
 
     this.allTeachers = {};
     this.curTeachers = {};
@@ -28,18 +30,18 @@ export class TeachersPage {
 
     this.events.subscribe('faculty:downloaded', teachers => {
 
-      this.storage.set('faculty:data', teachers);
+      this.storage.set('faculty:list', teachers);
 
       this.allTeachers = teachers;
       this.curTeachers = teachers;
 
     });
 
-    for(let i = 65; i <= 90; i++){
+    for(let i = 65; i <= 90; i++) {
       this.letters.push(String.fromCharCode(i));
     }
 
-    this.storage.get('faculty:data').then((teachers) => {
+    this.storage.get('faculty:list').then((teachers) => {
       if(teachers){
         console.log("Using cached teachers...");
         this.events.publish('faculty:downloaded', teachers);
@@ -47,6 +49,7 @@ export class TeachersPage {
         this.loadTeachers();
       }
     });
+
   }
 
   loadTeachers() {
@@ -56,7 +59,11 @@ export class TeachersPage {
           this.events.publish('faculty:downloaded', data.json());
       },
       error => {
-        alert(error);
+        this.toastCtrl.create({
+          message: 'Couldn\'t find any teachers 😞',
+          position: 'top',
+          duration: 3000
+        }).present();
       }
     );
 
