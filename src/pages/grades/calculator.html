@@ -21,24 +21,39 @@
 
       <ion-list>
 
-        <ion-item>
-          <ion-label stacked>First 9 Weeks</ion-label>
-          <ion-input [(ngModel)]="firstweeks" type="text"></ion-input>
-        </ion-item>
+            <ion-row>
+              <ion-col col-6>
+                  <ion-item>
+                    <ion-label stacked>First 9 Weeks</ion-label>
+                    <ion-input (change)="update('first')" [(ngModel)]="firstweeks" type="number"></ion-input>
+                  </ion-item>
+              </ion-col>
+              <ion-col col-6>
+                <ion-item>
+                  <ion-label stacked>Second 9 Weeks</ion-label>
+                  <ion-input (change)="update('second')" [(ngModel)]="secondweeks" type="number"></ion-input>
+                </ion-item>
+              </ion-col>
+          </ion-row>
+
+          <ion-row>
+            <ion-col col-6>
+              <ion-item>
+                <ion-label stacked>Final</ion-label>
+                <ion-input disabled="{{ exempt }}" (change)="update('exam')" [(ngModel)]="exam" type="number"></ion-input>
+              </ion-item>
+            </ion-col>
+            <ion-col col-6>
+              <ion-item>
+                <ion-label stacked>Semester</ion-label>
+                <ion-input (change)="update('sem')" [(ngModel)]="sem" type="number"></ion-input>
+              </ion-item>
+            </ion-col>
+        </ion-row>
 
         <ion-item>
-          <ion-label stacked>Second 9 Weeks</ion-label>
-          <ion-input [(ngModel)]="secondweeks" type="text"></ion-input>
-        </ion-item>
-
-        <ion-item>
-          <ion-label stacked>Final</ion-label>
-          <ion-input [(ngModel)]="exam" type="text"></ion-input>
-        </ion-item>
-
-        <ion-item>
-          <ion-label stacked>Semester</ion-label>
-          <ion-input [(ngModel)]="sem" type="text"></ion-input>
+          <ion-checkbox (click)="update('exam')" [(ngModel)]="exempt" color="great" checked="true"></ion-checkbox>
+          <ion-label>Exempt</ion-label>
         </ion-item>
 
       </ion-list>
