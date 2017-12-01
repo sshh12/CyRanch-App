@@ -15,6 +15,21 @@
         (ionCancel)="onCancel($event)">
   </ion-searchbar>
 
+  <ion-item-group>
+
+    <ion-item-divider color="light">General</ion-item-divider>
+
+    <ion-list>
+
+      <ion-item>
+        Cy-Ranch
+        <p (click)="openWebsite('https://cyranch.cfisd.net/en/')">cyranch.cfisd.net</p>
+      </ion-item>
+
+    </ion-list>
+
+  </ion-item-group>
+
   <div *ngFor="let letter of letters">
 
     <ion-item-group *ngIf="curTeachers[letter] && curTeachers[letter].length > 0">
