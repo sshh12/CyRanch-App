@@ -6,6 +6,10 @@
 
 <ion-content>
 
+  <ion-fab top right edge>
+    <button ion-fab mini color="danger" (click)="openWebsite('https://www.p3tips.com/tipform.aspx?ID=242')"><ion-icon name="warning"></ion-icon></button>
+  </ion-fab>
+
   <ion-searchbar
         (ionInput)="onSearch($event)"
         (ionCancel)="onCancel($event)">
@@ -22,7 +26,7 @@
         <ion-item-sliding *ngFor="let teacher of curTeachers[letter]">
           <ion-item>
             {{ teacher.name }}
-            <p (click)="viewTeacher(teacher)">{{ cleanWebsite(teacher) }}</p>
+            <p (click)="openWebsite(teacher.website)">{{ cleanWebsite(teacher) }}</p>
           </ion-item>
           <ion-item-options side="right">
             <button ion-button color="primary"  (click)="emailTeacher(teacher)">

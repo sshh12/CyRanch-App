@@ -69,8 +69,8 @@ export class SitesPage {
 
   }
 
-  viewTeacher(teacher) {
-    window.open(teacher.website, '_system', 'location=yes');
+  openWebsite(url) {
+    window.open(url, '_system', 'location=yes');
   }
 
   emailTeacher(teacher) {
