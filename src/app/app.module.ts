@@ -19,7 +19,7 @@ import { AssignmentsPage } from '../pages/grades/grades';
 import { CalculatorPage } from '../pages/grades/calculator';
 import { LegalPage } from '../pages/grades/grades';
 import { BellsPage } from '../pages/bells/bells';
-import { TeachersPage } from '../pages/teachers/teachers';
+import { SitesPage } from '../pages/sites/sites';
 
 @NgModule({
   declarations: [
@@ -30,7 +30,7 @@ import { TeachersPage } from '../pages/teachers/teachers';
     CalculatorPage,
     LegalPage,
     BellsPage,
-    TeachersPage,
+    SitesPage,
     TabsPage
   ],
   imports: [
@@ -48,7 +48,7 @@ import { TeachersPage } from '../pages/teachers/teachers';
     CalculatorPage,
     LegalPage,
     BellsPage,
-    TeachersPage,
+    SitesPage,
     TabsPage
   ],
   providers: [

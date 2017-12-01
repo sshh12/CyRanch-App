@@ -9,10 +9,10 @@ import { ToastController } from 'ionic-angular';
 import { Globals } from '../../app/globals';
 
 @Component({
-  selector: 'page-teachers',
-  templateUrl: 'teachers.html'
+  selector: 'page-sites',
+  templateUrl: 'sites.html'
 })
-export class TeachersPage {
+export class SitesPage {
 
   allTeachers: object;
   curTeachers: object;
