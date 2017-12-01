@@ -10,10 +10,13 @@
         Normal
       </ion-segment-button>
       <ion-segment-button value="extended">
-        Extended 2nd
+        Extended
       </ion-segment-button>
       <ion-segment-button value="pep">
         Pep Rally
+      </ion-segment-button>
+      <ion-segment-button value="finals" (click)="openWebsite('https://cyranch.cfisd.net/download_file/view/1095/135/')">
+        Finals
       </ion-segment-button>
     </ion-segment>
 
@@ -37,7 +40,7 @@
     <button ion-fab mini color="mustangblue" (click)="toggleNotifications()"><ion-icon name="{{ notifications ? 'notifications' : 'notifications-off' }}"></ion-icon></button>
   </ion-fab>
 
-  <ion-list>
+  <ion-list *ngIf="schedules[dayType]">
 
     <div *ngFor="let period of schedules[dayType].periods">
 
