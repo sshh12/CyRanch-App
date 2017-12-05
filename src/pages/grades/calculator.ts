@@ -44,29 +44,35 @@ export class CalculatorPage {
     let lastOp = this.orderOfOps[0];
     if(lastOp == 'sem') {
       if(!this.exempt){
-        this.sem = ((this.firstweeks * 2 + this.secondweeks * 2) + this.exam) / 5;
+        this.sem = ((this.firstweeks * 3 + this.secondweeks * 3) + this.exam) / 7;
       } else {
         this.sem = (this.firstweeks + this.secondweeks) / 2;
       }
     } else if(lastOp == 'exam') {
       if(!this.exempt){
-        this.exam = this.sem * 5 - (this.firstweeks * 2 + this.secondweeks * 2);
+        this.exam = this.sem * 7 - (this.firstweeks * 3 + this.secondweeks * 3);
       } else {
-        this.sem = ((this.firstweeks * 2 + this.secondweeks * 2) + this.exam) / 5;
+        this.sem = ((this.firstweeks * 3 + this.secondweeks * 3) + this.exam) / 7;
       }
     } else if(lastOp == 'second') {
       if(!this.exempt){
-        this.secondweeks = (this.sem * 5 - this.exam - this.firstweeks * 2) / 2;
+        this.secondweeks = (this.sem * 7 - this.exam - this.firstweeks * 3) / 3;
       } else {
         this.secondweeks = this.sem * 2 - this.firstweeks;
       }
     } else {
       if(!this.exempt){
-        this.firstweeks = (this.sem * 5 - this.exam - this.secondweeks * 2) / 2;
+        this.firstweeks = (this.sem * 7 - this.exam - this.secondweeks * 3) / 3;
       } else {
         this.firstweeks = this.sem * 2 - this.secondweeks;
       }
     }
+
+    this.sem.toFixed(2);
+    this.exam.toFixed(2);
+    this.firstweeks.toFixed(2);
+    this.secondweeks.toFixed(2);
+
   }
 
   resetValues() {
