@@ -1,73 +1,55 @@
 <ion-header>
-  <ion-navbar color="mustangblue">
-    <ion-title>Bells</ion-title>
-  </ion-navbar>
-
-  <ion-toolbar>
-
-    <ion-segment [(ngModel)]="dayType" (click)="updateDefaults()">
-      <ion-segment-button value="normal">
-        Normal
-      </ion-segment-button>
-      <ion-segment-button value="extended">
-        Extended
-      </ion-segment-button>
-      <ion-segment-button value="pep">
-        Pep Rally
-      </ion-segment-button>
-      <ion-segment-button value="finals" (click)="openWebsite('https://cyranch.cfisd.net/download_file/view/1095/135/')">
-        Finals
-      </ion-segment-button>
-    </ion-segment>
-
-  </ion-toolbar>
-
-  <ion-toolbar>
-
-    <ion-segment [(ngModel)]="lunchType" color="dark" (click)="updateDefaults()">
-      <ion-segment-button value="a">A</ion-segment-button>
-      <ion-segment-button value="b">B</ion-segment-button>
-      <ion-segment-button value="c">C</ion-segment-button>
-    </ion-segment>
-
-  </ion-toolbar>
-
+    <ion-navbar color="mustangblue">
+        <ion-title>Bells</ion-title>
+    </ion-navbar>
+    <ion-toolbar>
+        <ion-segment [(ngModel)]="dayType" (click)="updateDefaults()">
+            <ion-segment-button value="normal">
+                Normal
+            </ion-segment-button>
+            <ion-segment-button value="extended">
+                Extended
+            </ion-segment-button>
+            <ion-segment-button value="pep">
+                Pep Rally
+            </ion-segment-button>
+            <ion-segment-button value="finals" (click)="openWebsite('https://cyranch.cfisd.net/download_file/view/1095/135/')">
+                Finals
+            </ion-segment-button>
+        </ion-segment>
+    </ion-toolbar>
+    <ion-toolbar>
+        <ion-segment [(ngModel)]="lunchType" color="dark" (click)="updateDefaults()">
+            <ion-segment-button value="a">A</ion-segment-button>
+            <ion-segment-button value="b">B</ion-segment-button>
+            <ion-segment-button value="c">C</ion-segment-button>
+        </ion-segment>
+    </ion-toolbar>
 </ion-header>
-
 <ion-content (swipe)="swipeTab($event)">
-
-  <ion-fab top right edge>
-    <button ion-fab mini color="mustangblue" (click)="toggleNotifications()"><ion-icon name="{{ notifications ? 'notifications' : 'notifications-off' }}"></ion-icon></button>
-  </ion-fab>
-
-  <ion-list *ngIf="schedules[dayType]">
-
-    <div *ngFor="let period of schedules[dayType].periods">
-
-      <ion-item *ngIf="period.name != 'LUNCH_BLOCK'">
-
-        <h2><b>{{ period.name }}</b></h2>
-        <p>{{ formatSubText(period) }}</p>
-
-        <ion-badge *ngIf="isCurrentPeriod(period)" item-end color="{{ getRemainingColor(period) }}">{{ getTimeRemaining(period) }} mins</ion-badge>
-
-      </ion-item>
-
-      <div *ngIf="period.name == 'LUNCH_BLOCK'">
-
-        <ion-item *ngFor="let lunchPeriod of schedules[dayType].lunches[lunchType]">
-
-          <h2><b>{{ lunchPeriod.name }}</b></h2>
-          <p>{{ formatSubText(lunchPeriod) }}</p>
-
-          <ion-badge *ngIf="isCurrentPeriod(lunchPeriod)" item-end color="{{ getRemainingColor(lunchPeriod) }}">{{ getTimeRemaining(lunchPeriod) }} mins</ion-badge>
-
-        </ion-item>
-
-      </div>
-
-    </div>
-
-  </ion-list>
-
+    <ion-fab top right edge>
+        <button ion-fab mini color="mustangblue" (click)="toggleNotifications()">
+            <ion-icon name="{{ notifications ? 'notifications' : 'notifications-off' }}"></ion-icon>
+        </button>
+    </ion-fab>
+    <ion-list *ngIf="schedules[dayType]">
+        <div *ngFor="let period of schedules[dayType].periods">
+            <ion-item *ngIf="period.name != 'LUNCH_BLOCK'">
+                <h2>
+                    <b>{{ period.name }}</b>
+                </h2>
+                <p>{{ formatSubText(period) }}</p>
+                <ion-badge *ngIf="isCurrentPeriod(period)" item-end color="{{ getRemainingColor(period) }}">{{ getTimeRemaining(period) }} mins</ion-badge>
+            </ion-item>
+            <div *ngIf="period.name == 'LUNCH_BLOCK'">
+                <ion-item *ngFor="let lunchPeriod of schedules[dayType].lunches[lunchType]">
+                    <h2>
+                        <b>{{ lunchPeriod.name }}</b>
+                    </h2>
+                    <p>{{ formatSubText(lunchPeriod) }}</p>
+                    <ion-badge *ngIf="isCurrentPeriod(lunchPeriod)" item-end color="{{ getRemainingColor(lunchPeriod) }}">{{ getTimeRemaining(lunchPeriod) }} mins</ion-badge>
+                </ion-item>
+            </div>
+        </div>
+    </ion-list>
 </ion-content>

@@ -1,71 +1,68 @@
 <ion-header>
-  <ion-navbar color="mustangblue">
-    <ion-title>News</ion-title>
-  </ion-navbar>
-  <ion-toolbar>
-    <ion-segment [(ngModel)]="newsType">
-      <ion-segment-button value="all">
-        All
-      </ion-segment-button>
-      <ion-segment-button value="Mustang Sports">
-        Sports
-      </ion-segment-button>
-      <ion-segment-button value="Mustang Arts">
-        Arts
-      </ion-segment-button>
-      <ion-segment-button value="Mustang Students">
-        Students
-      </ion-segment-button>
-      <ion-segment-button value="Mustang Editorial">
-        Editorial
-      </ion-segment-button>
-    </ion-segment>
-  </ion-toolbar>
+    <ion-navbar color="mustangblue">
+        <ion-title>News</ion-title>
+    </ion-navbar>
+    <ion-toolbar>
+        <ion-segment [(ngModel)]="newsType">
+            <ion-segment-button value="all">
+                All
+            </ion-segment-button>
+            <ion-segment-button value="Mustang Sports">
+                Sports
+            </ion-segment-button>
+            <ion-segment-button value="Mustang Arts">
+                Arts
+            </ion-segment-button>
+            <ion-segment-button value="Mustang Students">
+                Students
+            </ion-segment-button>
+            <ion-segment-button value="Mustang Editorial">
+                Editorial
+            </ion-segment-button>
+        </ion-segment>
+    </ion-toolbar>
 </ion-header>
 
 <ion-content (swipe)="swipeTab($event)">
 
-  <ion-refresher (ionRefresh)="refresh($event)">
-    <ion-refresher-content
-      pullingText="Refresh"
-      refreshingSpinner="crescent"
-      refreshingText="Refreshing...">
-    </ion-refresher-content>
-  </ion-refresher>
+    <ion-refresher (ionRefresh)="refresh($event)">
+        <ion-refresher-content pullingText="Refresh" refreshingSpinner="crescent" refreshingText="Refreshing...">
+        </ion-refresher-content>
+    </ion-refresher>
 
-  <ion-list>
+    <ion-list>
 
-    <div *ngFor="let article of allNews; let i = index" (swipe)="swipeTab($event)">
+        <div *ngFor="let article of allNews; let i = index" (swipe)="swipeTab($event)">
 
-      <ion-card *ngIf="i < 20 && (newsType == 'all' || article.organization == newsType)">
+            <ion-card *ngIf="i < 20 && (newsType == 'all' || article.organization == newsType)">
 
-        <ion-item>
-          <ion-avatar item-start>
-            <img src="assets/imgs/mustangs.png">
-          </ion-avatar>
-          <h2>{{ article.organization }}</h2>
-          <p>{{ article.date }}</p>
-        </ion-item>
+                <ion-item>
+                    <ion-avatar item-start>
+                        <img src="assets/imgs/mustangs.png">
+                    </ion-avatar>
+                    <h2>{{ article.organization }}</h2>
+                    <p>{{ article.date }}</p>
+                </ion-item>
 
-        <img src="{{ article.image }}">
+                <img src="{{ article.image }}">
 
-        <ion-card-content>
-          <p text-center>{{ article.text }}</p>
-        </ion-card-content>
+                <ion-card-content>
+                    <p text-center>{{ article.text }}</p>
+                </ion-card-content>
 
-        <ion-row>
-          <ion-col>
-            <button ion-button icon-left clear small (click)="openArticle(article);">
+                <ion-row>
+                    <ion-col>
+                        <button ion-button icon-left clear small (click)="openArticle(article);">
               <ion-icon name="exit"></ion-icon>
               <div>View</div>
             </button>
-          </ion-col>
-        </ion-row>
+                    </ion-col>
+                </ion-row>
 
-      </ion-card>
+            </ion-card>
 
-    </div>
+        </div>
 
-  </ion-list>
+    </ion-list>
 
 </ion-content>

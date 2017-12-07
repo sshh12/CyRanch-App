@@ -28,7 +28,7 @@ export class CalculatorPage {
 
   clean(num) {
     num = "0" + num;
-    return parseFloat(num.replace(/\D/g,''));
+    return parseFloat(num.replace(/\D/g, ''));
   }
 
   update(section: string) {
@@ -42,26 +42,26 @@ export class CalculatorPage {
     this.sem = this.clean(this.sem);
 
     let lastOp = this.orderOfOps[0];
-    if(lastOp == 'sem') {
-      if(!this.exempt){
+    if (lastOp == 'sem') {
+      if (!this.exempt) {
         this.sem = ((this.firstweeks * 3 + this.secondweeks * 3) + this.exam) / 7;
       } else {
         this.sem = (this.firstweeks + this.secondweeks) / 2;
       }
-    } else if(lastOp == 'exam') {
-      if(!this.exempt){
+    } else if (lastOp == 'exam') {
+      if (!this.exempt) {
         this.exam = this.sem * 7 - (this.firstweeks * 3 + this.secondweeks * 3);
       } else {
         this.sem = ((this.firstweeks * 3 + this.secondweeks * 3) + this.exam) / 7;
       }
-    } else if(lastOp == 'second') {
-      if(!this.exempt){
+    } else if (lastOp == 'second') {
+      if (!this.exempt) {
         this.secondweeks = (this.sem * 7 - this.exam - this.firstweeks * 3) / 3;
       } else {
         this.secondweeks = this.sem * 2 - this.firstweeks;
       }
     } else {
-      if(!this.exempt){
+      if (!this.exempt) {
         this.firstweeks = (this.sem * 7 - this.exam - this.secondweeks * 3) / 3;
       } else {
         this.firstweeks = this.sem * 2 - this.secondweeks;
@@ -76,7 +76,7 @@ export class CalculatorPage {
   }
 
   resetValues() {
-    if(this.semester == 'fall') {
+    if (this.semester == 'fall') {
       this.firstweeks = this.subject.averages[0].average;
       this.secondweeks = this.subject.averages[1].average;
       this.exam = this.subject.exams[0].average;

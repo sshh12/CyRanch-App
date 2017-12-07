@@ -26,9 +26,9 @@ export class NewsPage {
   allNews: Article[];
 
   constructor(public navCtrl: NavController,
-              public events: Events,
-              private http: Http,
-              public toastCtrl: ToastController) {
+    public events: Events,
+    private http: Http,
+    public toastCtrl: ToastController) {
 
     this.newsType = "all";
     this.allNews = [];
@@ -47,19 +47,19 @@ export class NewsPage {
 
   }
 
-  openArticle(article: Article){
+  openArticle(article: Article) {
     window.open(article.link, '_system', 'location=yes');
   }
 
-  loadNews(callback?){
+  loadNews(callback?) {
 
     this.http.get(Globals.SERVER + '/api/news/cyranch/all').subscribe(
       data => {
-          this.events.publish('news:downloaded', data.json());
+        this.events.publish('news:downloaded', data.json());
 
-          if(callback){
-            callback();
-          }
+        if (callback) {
+          callback();
+        }
 
       },
       error => {
@@ -73,12 +73,12 @@ export class NewsPage {
 
   }
 
-  refresh(refresher){
+  refresh(refresher) {
     this.loadNews(() => refresher.complete());
   }
 
-  swipeTab(swipe){
-    if(swipe.direction == 2){
+  swipeTab(swipe) {
+    if (swipe.direction == 2) {
       this.navCtrl.parent.select(1);
     }
   }

@@ -55,7 +55,7 @@ import { SitesPage } from '../pages/sites/sites';
     StatusBar,
     SplashScreen,
     LocalNotifications,
-    {provide: ErrorHandler, useClass: IonicErrorHandler}
+    { provide: ErrorHandler, useClass: IonicErrorHandler }
   ]
 })
-export class AppModule {}
+export class AppModule { }

@@ -19,10 +19,10 @@ export class SitesPage {
   letters: string[];
 
   constructor(public navCtrl: NavController,
-              public events: Events,
-              private http: Http,
-              private storage: Storage,
-              public toastCtrl: ToastController) {
+    public events: Events,
+    private http: Http,
+    private storage: Storage,
+    public toastCtrl: ToastController) {
 
     this.allTeachers = {};
     this.curTeachers = {};
@@ -37,12 +37,12 @@ export class SitesPage {
 
     });
 
-    for(let i = 65; i <= 90; i++) {
+    for (let i = 65; i <= 90; i++) {
       this.letters.push(String.fromCharCode(i));
     }
 
     this.storage.get('faculty:list').then((teachers) => {
-      if(teachers){
+      if (teachers) {
         console.log("Using cached teachers...");
         this.events.publish('faculty:downloaded', teachers);
       } else {
@@ -56,7 +56,7 @@ export class SitesPage {
 
     this.http.get(Globals.SERVER + '/api/faculty/list').subscribe(
       data => {
-          this.events.publish('faculty:downloaded', data.json());
+        this.events.publish('faculty:downloaded', data.json());
       },
       error => {
         this.toastCtrl.create({
@@ -79,17 +79,17 @@ export class SitesPage {
 
   cleanWebsite(teacher) {
     return teacher.website.replace("https://", "")
-                          .replace("http://www.", "")
-                          .replace("/a/cfisd.net/", "/../");
+      .replace("http://www.", "")
+      .replace("/a/cfisd.net/", "/../");
   }
 
-  onSearch(input){
+  onSearch(input) {
 
     this.curTeachers = JSON.parse(JSON.stringify(this.allTeachers));
 
     let term = input.target.value;
 
-    for(let letter of this.letters){
+    for (let letter of this.letters) {
       if (this.curTeachers[letter] && term && term.trim() !== '') {
         this.curTeachers[letter] = this.curTeachers[letter].filter((teacher) => {
           return teacher.name.toLowerCase().replace(' ', '').replace(',', '').includes(term.toLowerCase());
