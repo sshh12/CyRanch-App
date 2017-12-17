@@ -92,6 +92,14 @@ export class GradesPage {
           duration: 3000
         }).present();
 
+      } else if(grades.status == 'connection_failed') {
+
+        this.toastCtrl.create({
+          message: 'Unable to connect to HomeAccessCenter 😞',
+          position: 'top',
+          duration: 3000
+        }).present();
+
       }
 
       this.loading = false;
