@@ -49,6 +49,10 @@ export class GradesPage {
   currentGrades: SubjectGrade[];
   reportCardGrades: SubjectReportCard[];
 
+  transcript: any = {};
+  gpa: number;
+  percentile: number;
+
   constructor(public navCtrl: NavController,
     public events: Events,
     private http: Http,
@@ -130,15 +134,48 @@ export class GradesPage {
 
     });
 
+    this.events.subscribe('grades:transcript', transcript => {
+
+      if (transcript.status == 'success') {
+
+        console.log(transcript);
+
+        this.storage.set('grades:transcript', transcript);
+
+        this.gpa = transcript.gpa.value;
+        this.percentile = Math.ceil(transcript.gpa.rank / transcript.gpa.class_size * 100);
+
+        this.transcript = transcript;
+
+      } else {
+
+        this.toastCtrl.create({
+          message: 'Your login didn\'t work 😞',
+          position: 'top',
+          duration: 3000
+        }).present();
+
+      }
+
+      this.loading = false;
+
+    });
+
     this.storage.get('grades:current').then((grades) => {
       if (grades) {
         this.events.publish('grades:current', grades);
       }
     });
 
-    this.storage.get('grades:reportcard').then((grades) => {
-      if (grades) {
-        this.events.publish('grades:reportcard', grades);
+    this.storage.get('grades:reportcard').then((reportcard) => {
+      if (reportcard) {
+        this.events.publish('grades:reportcard', reportcard);
+      }
+    });
+
+    this.storage.get('grades:transcript').then((transcript) => {
+      if (transcript) {
+        this.events.publish('grades:transcript', transcript);
       }
     });
 
@@ -231,6 +268,18 @@ export class GradesPage {
       return 'poor';
     } else if (letter == 'U' || letter === '') {
       return 'none';
+    } else {
+      return 'bad';
+    }
+  }
+
+  getColorRank(percentile: number): string {
+    if (percentile <= 10) {
+      return 'great';
+    } else if (percentile <= 40) {
+      return 'ok';
+    } else if (percentile <= 60) {
+      return 'poor';
     } else {
       return 'bad';
     }

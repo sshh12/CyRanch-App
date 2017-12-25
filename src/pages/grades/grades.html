@@ -10,6 +10,9 @@
             <ion-segment-button value="reportcard">
                 Report Card
             </ion-segment-button>
+            <ion-segment-button value="transcript">
+                GPA
+            </ion-segment-button>
         </ion-segment>
     </ion-toolbar>
 </ion-header>
@@ -113,6 +116,31 @@
                 </ion-card>
 
             </ion-list>
+
+        </div>
+
+        <div *ngSwitchCase="'transcript'">
+          <ion-card>
+            <ion-card-header>
+                <h1 text-center><b>{{ gpa.toFixed(3) }}</b></h1>
+            </ion-card-header>
+            <ion-card-content>
+                <ion-list>
+                  <ion-item>
+                    <p text-center>{{ transcript.gpa.rank }} / {{ transcript.gpa.class_size }}</p>
+                  </ion-item>
+                  <!--<ion-item>
+                    <ion-range readonly min="0" max="{{ transcript.gpa.class_size }}" [(ngModel)]="transcript.gpa.class_size - transcript.gpa.rank">
+                        <ion-icon color="poor" range-left small name="school"></ion-icon>
+                        <ion-icon color="great" range-right name="school"></ion-icon>
+                    </ion-range>
+                  </ion-item>-->
+                  <ion-item>
+                    <div text-center><ion-badge color='{{ getColorRank(percentile) }}'>Top {{ percentile }}%</ion-badge></div>
+                  </ion-item>
+                </ion-list>
+            </ion-card-content>
+          </ion-card>
 
         </div>
 
