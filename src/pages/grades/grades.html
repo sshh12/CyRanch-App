@@ -120,7 +120,8 @@
         </div>
 
         <div *ngSwitchCase="'transcript'">
-          <ion-card>
+
+          <ion-card *ngIf="transcript.gpa">
             <ion-card-header>
                 <h1 text-center><b>{{ gpa.toFixed(3) }}</b></h1>
             </ion-card-header>
@@ -139,6 +140,12 @@
                     <div text-center><ion-badge color='{{ getColorRank(percentile) }}'>Top {{ percentile }}%</ion-badge></div>
                   </ion-item>
                 </ion-list>
+            </ion-card-content>
+          </ion-card>
+
+          <ion-card *ngIf="!transcript.gpa">
+            <ion-card-content>
+                <h3 text-center>Reload to see GPA</h3>
             </ion-card-content>
           </ion-card>
 

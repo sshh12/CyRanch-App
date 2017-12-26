@@ -66,11 +66,11 @@ export class GradesPage {
 
     this.events.subscribe('grades:current', grades => {
 
+      console.log(grades);
+
       if (grades.status == 'success') {
 
         this.currentGrades = [];
-
-        console.log(grades);
 
         this.storage.set('grades:current', grades);
 
@@ -96,7 +96,7 @@ export class GradesPage {
           duration: 3000
         }).present();
 
-      } else if(grades.status == 'connection_failed') {
+      } else {
 
         this.toastCtrl.create({
           message: 'Unable to connect to HomeAccessCenter 😞',
@@ -112,9 +112,9 @@ export class GradesPage {
 
     this.events.subscribe('grades:reportcard', grades => {
 
-      if (grades.status == 'success') {
+      console.log(grades);
 
-        console.log(grades);
+      if (grades.status == 'success') {
 
         this.storage.set('grades:reportcard', grades);
 
@@ -123,7 +123,15 @@ export class GradesPage {
       } else if (grades.status == 'login_failed') {
 
         this.toastCtrl.create({
-          message: 'Your login didn\'t work 😞',
+          message: 'Your login didn\'t work 😢',
+          position: 'top',
+          duration: 3000
+        }).present();
+
+      } else {
+
+        this.toastCtrl.create({
+          message: 'Unable to connect to HomeAccessCenter 😢',
           position: 'top',
           duration: 3000
         }).present();
@@ -136,9 +144,9 @@ export class GradesPage {
 
     this.events.subscribe('grades:transcript', transcript => {
 
-      if (transcript.status == 'success') {
+      console.log(transcript);
 
-        console.log(transcript);
+      if (transcript.status == 'success') {
 
         this.storage.set('grades:transcript', transcript);
 
@@ -147,10 +155,18 @@ export class GradesPage {
 
         this.transcript = transcript;
 
+      } else if (transcript.status == 'login_failed') {
+
+        this.toastCtrl.create({
+          message: 'Your login didn\'t work 😢',
+          position: 'top',
+          duration: 3000
+        }).present();
+
       } else {
 
         this.toastCtrl.create({
-          message: 'Your login didn\'t work 😞',
+          message: 'Unable to connect to HomeAccessCenter 😢',
           position: 'top',
           duration: 3000
         }).present();
@@ -227,7 +243,7 @@ export class GradesPage {
           error => {
             this.loading = false;
             this.toastCtrl.create({
-              message: 'A network error occured 😞',
+              message: 'A network error occured 😢',
               position: 'top',
               duration: 3000
             }).present();
@@ -351,6 +367,7 @@ export class GradesPage {
                 this.storage.set('grades:password', password).then(() => {
                   this.loadGrades('current');
                   this.loadGrades('reportcard');
+                  this.loadGrades('transcript');
                 });
               });
             });
@@ -399,6 +416,7 @@ export class GradesPage {
                   this.storage.set('grades:password', data.password).then(() => {
                     this.loadGrades('current');
                     this.loadGrades('reportcard');
+                    this.loadGrades('transcript');
                   });
                 });
               } else {
@@ -423,9 +441,13 @@ export class GradesPage {
     this.storage.set('grades:legal', false);
     this.storage.set('grades:current', {});
     this.storage.set('grades:reportcard', {});
+    this.storage.set('grades:transcript', {});
 
     this.currentGrades = [];
     this.reportCardGrades = [];
+    this.gpa = -1;
+    this.percentile = -1;
+    this.transcript = {};
     this.loading = false;
 
   }

@@ -64,7 +64,7 @@ export class NewsPage {
       },
       error => {
         this.toastCtrl.create({
-          message: 'Network error 😞',
+          message: 'Network error 😢',
           position: 'top',
           duration: 3000
         }).present();
