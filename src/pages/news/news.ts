@@ -48,7 +48,7 @@ export class NewsPage {
   }
 
   openArticle(article: Article) {
-    window.open(article.link, '_system', 'location=yes');
+    window.open(article.link, '_system');
   }
 
   loadNews(callback?) {

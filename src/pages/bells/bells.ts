@@ -275,7 +275,7 @@ export class BellsPage {
   }
 
   openWebsite(url) {
-    window.open(url, '_system', 'location=yes');
+    window.open(url, '_system');
   }
 
 }
