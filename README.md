@@ -20,7 +20,7 @@ grades and other information, the app uses the my [unoffical Cfisd API](https://
 
 Current:
 
-![screenshot current 1](http://is1.mzstatic.com/image/thumb/Purple128/v4/d8/23/d3/d823d3f4-8b9c-5ceb-14b6-5ab9600a7828/source/392x696bb.jpg) ![screenshot current 2](http://is1.mzstatic.com/image/thumb/Purple118/v4/05/94/e3/0594e3e7-8dae-db29-e981-37caa233d974/source/392x696bb.jpg) ![screenshot current 3](http://is2.mzstatic.com/image/thumb/Purple128/v4/99/51/c8/9951c854-738c-cabd-4cd4-43ffee3189ea/source/392x696bb.jpg) ![screenshot current 4](http://is1.mzstatic.com/image/thumb/Purple118/v4/0e/d5/e9/0ed5e94f-5ad6-56fa-69a3-1efa85928073/source/392x696bb.jpg) ![screenshot current 5](http://is4.mzstatic.com/image/thumb/Purple118/v4/86/e4/9d/86e49d70-4465-bcca-c14f-efe2d4c72c2a/source/392x696bb.jpg)
+![screenshot current 1](http://is1.mzstatic.com/image/thumb/Purple128/v4/d8/23/d3/d823d3f4-8b9c-5ceb-14b6-5ab9600a7828/source/300x300bb.jpg) ![screenshot current 2](http://is1.mzstatic.com/image/thumb/Purple118/v4/05/94/e3/0594e3e7-8dae-db29-e981-37caa233d974/source/300x300bb.jpg) ![screenshot current 3](http://is2.mzstatic.com/image/thumb/Purple128/v4/99/51/c8/9951c854-738c-cabd-4cd4-43ffee3189ea/source/300x300bb.jpg) ![screenshot current 4](http://is1.mzstatic.com/image/thumb/Purple118/v4/0e/d5/e9/0ed5e94f-5ad6-56fa-69a3-1efa85928073/source/300x300bb.jpg) ![screenshot current 5](http://is4.mzstatic.com/image/thumb/Purple118/v4/86/e4/9d/86e49d70-4465-bcca-c14f-efe2d4c72c2a/source/300x300bb.jpg)
 
 Older:
 
