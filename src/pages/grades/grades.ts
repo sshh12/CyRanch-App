@@ -54,11 +54,11 @@ export class GradesPage {
   percentile: number;
 
   constructor(public navCtrl: NavController,
-    public events: Events,
-    private http: Http,
-    private storage: Storage,
-    public alertCtrl: AlertController,
-    public toastCtrl: ToastController) {
+              public events: Events,
+              private http: Http,
+              private storage: Storage,
+              public alertCtrl: AlertController,
+              public toastCtrl: ToastController) {
 
     this.gradeType = "current";
     this.loading = false;
@@ -88,21 +88,9 @@ export class GradesPage {
 
         this.currentGrades = current;
 
-      } else if (grades.status == 'login_failed') {
-
-        this.toastCtrl.create({
-          message: 'Your login didn\'t work 😞',
-          position: 'top',
-          duration: 3000
-        }).present();
-
       } else {
 
-        this.toastCtrl.create({
-          message: 'Unable to connect to HomeAccessCenter 😞',
-          position: 'top',
-          duration: 3000
-        }).present();
+        this.showServerDialog(grades.status);
 
       }
 
@@ -110,31 +98,19 @@ export class GradesPage {
 
     });
 
-    this.events.subscribe('grades:reportcard', grades => {
+    this.events.subscribe('grades:reportcard', reportcard => {
 
-      console.log(grades);
+      console.log(reportcard);
 
-      if (grades.status == 'success') {
+      if (reportcard.status == 'success') {
 
-        this.storage.set('grades:reportcard', grades);
+        this.storage.set('grades:reportcard', reportcard);
 
-        this.reportCardGrades = grades.reportcard;
-
-      } else if (grades.status == 'login_failed') {
-
-        this.toastCtrl.create({
-          message: 'Your login didn\'t work 😢',
-          position: 'top',
-          duration: 3000
-        }).present();
+        this.reportCardGrades = reportcard.reportcard;
 
       } else {
 
-        this.toastCtrl.create({
-          message: 'Unable to connect to HomeAccessCenter 😢',
-          position: 'top',
-          duration: 3000
-        }).present();
+        this.showServerDialog(reportcard.status);
 
       }
 
@@ -155,21 +131,9 @@ export class GradesPage {
 
         this.transcript = transcript;
 
-      } else if (transcript.status == 'login_failed') {
-
-        this.toastCtrl.create({
-          message: 'Your login didn\'t work 😢',
-          position: 'top',
-          duration: 3000
-        }).present();
-
       } else {
 
-        this.toastCtrl.create({
-          message: 'Unable to connect to HomeAccessCenter 😢',
-          position: 'top',
-          duration: 3000
-        }).present();
+        this.showServerDialog(transcript.status);
 
       }
 
@@ -204,6 +168,44 @@ export class GradesPage {
       "language": ["span iv", "spanish", "french", "latin", "german"],
       "sports": ["ath ", "athletics", "phys ed", "athlet", "cheerleading", "dance", "sports"]
     };
+
+  }
+
+  showServerDialog(status: string) {
+
+    if (status == 'login_failed') {
+
+      this.toastCtrl.create({
+        message: 'Your login didn\'t work 😞',
+        position: 'top',
+        duration: 3000
+      }).present();
+
+    } else if(status == 'connection_failed'){
+
+      this.toastCtrl.create({
+        message: 'Unable to connect to HomeAccessCenter 😞',
+        position: 'top',
+        duration: 3000
+      }).present();
+
+    } else if(status == 'server_error'){
+
+      this.toastCtrl.create({
+        message: 'The server encoutered an error 😞',
+        position: 'top',
+        duration: 3000
+      }).present();
+
+    } else {
+
+      this.toastCtrl.create({
+        message: 'Oops something\'s wrong... 😞',
+        position: 'top',
+        duration: 3000
+      }).present();
+
+    }
 
   }
 
