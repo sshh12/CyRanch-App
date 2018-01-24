@@ -6,15 +6,16 @@ This is an app I created for [Cy-Ranch High School](http://cyranch.cfisd.net/).
 + [NodeJS](https://nodejs.org/)
 
 ## Releases
-+ [Android](https://play.google.com/apps/testing/com.sshh12.cyranch)
-+ [Apple](https://itunes.apple.com/WebObjects/MZStore.woa/wa/viewSoftware?id=1082927247&mt=8)
++ [Android](https://play.google.com/store/apps/details?id=com.sshh12.cyranch) 
++ [Android Beta](https://play.google.com/apps/testing/com.sshh12.cyranch)
++ [Apple](https://itunes.apple.com/us/app/cy-ranch/id1082927247?mt=8)
 
 ## What
 The Cy-Ranch was built as a utility for both Android and Apple users. The app includes ways to access
-news, grades, teachers, and more, allowing students get school related content a lot faster and easier. 
+news, grades, teachers, and more, allowing students get school related content significantly faster and easier. 
 While this app was made specifically for Cy-Ranch HS, it was created unofficially and is also used throughout
-the district because the grades part of the app works for all of [cfisd](http://www.cfisd.net/en/). In order to access
-grades and other information, the app uses the my [unoffical Cfisd API](https://github.com/sshh12/CyRanch-App-Server).
+the district because the grades part of the app works for all of [CFISD](http://www.cfisd.net/en/). In order to access
+grades and other information, the app uses the my unoffical [CFISD/HAC API](https://github.com/sshh12/CyRanch-App-Server).
 
 #### Screenshots
 
