@@ -17,6 +17,7 @@ export class SitesPage {
   allTeachers: object;
   curTeachers: object;
   letters: string[];
+  showGeneral: boolean = true;
 
   constructor(public navCtrl: NavController,
     public events: Events,
@@ -85,9 +86,16 @@ export class SitesPage {
 
   onSearch(input) {
 
-    this.curTeachers = JSON.parse(JSON.stringify(this.allTeachers));
+    this.curTeachers = JSON.parse(JSON.stringify(this.allTeachers)); // Ez Object Copy
 
     let term = input.target.value;
+
+    if(!term || term.length == 0) {
+      this.showGeneral = true;
+      return;
+    }
+
+    this.showGeneral = false;
 
     for (let letter of this.letters) {
       if (this.curTeachers[letter] && term && term.trim() !== '') {
@@ -101,6 +109,7 @@ export class SitesPage {
 
   onCancel() {
     this.curTeachers = this.allTeachers;
+    this.showGeneral = true;
   }
 
 }

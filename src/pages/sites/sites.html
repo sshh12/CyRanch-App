@@ -13,7 +13,7 @@
     <ion-searchbar (ionInput)="onSearch($event)" (ionCancel)="onCancel($event)">
     </ion-searchbar>
 
-    <ion-item-group>
+    <ion-item-group *ngIf="showGeneral">
 
         <ion-item-divider color="light">General</ion-item-divider>
 
