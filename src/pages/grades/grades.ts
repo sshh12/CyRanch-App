@@ -48,6 +48,7 @@ export class GradesPage {
 
   currentGrades: SubjectGrade[];
   reportCardGrades: SubjectReportCard[];
+  lastUpdated: Date;
 
   transcript: any = {};
   gpa: number;
@@ -69,6 +70,8 @@ export class GradesPage {
       console.log(grades);
 
       if (grades.status == 'success') {
+
+        this.lastUpdated = grades._updatedDate;
 
         this.currentGrades = [];
 
@@ -239,7 +242,9 @@ export class GradesPage {
           if (callback) {
             callback();
           }
-          this.events.publish('grades:' + gradeType, data.json());
+          let json = data.json();
+          json._updatedDate = new Date();
+          this.events.publish('grades:' + gradeType, json);
 
         },
           error => {

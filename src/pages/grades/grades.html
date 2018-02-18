@@ -66,6 +66,8 @@
                 <ion-badge item-end color="{{ getColor(subject.letter) }}">{{ subject.overallavg }}</ion-badge>
             </ion-item>
 
+            <div *ngIf="currentGrades.length != 0" class="note">Last Updated {{ lastUpdated.toLocaleString() }}</div>
+
         </ion-list>
 
         <div *ngSwitchCase="'reportcard'">
