@@ -289,6 +289,8 @@ export class GradesPage {
       return 'ok';
     } else if (letter == 'C') {
       return 'poor';
+    } else if (letter == 'Z') {
+      return 'zero';
     } else if (letter == 'U' || letter === '') {
       return 'none';
     } else {
@@ -526,6 +528,8 @@ export class AssignmentsPage {
       return 'ok';
     } else if (letter == 'C') {
       return 'poor';
+    } else if (letter == 'Z') {
+      return 'zero';
     } else if (letter == 'U') {
       return 'none';
     } else {
