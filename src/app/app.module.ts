@@ -10,6 +10,7 @@ import { SplashScreen } from '@ionic-native/splash-screen';
 import { HttpModule } from '@angular/http';
 import { IonicStorageModule } from '@ionic/storage';
 import { LocalNotifications } from '@ionic-native/local-notifications';
+import { AdMobFree } from '@ionic-native/admob-free';
 
 import { MyApp } from './app.component';
 
@@ -55,6 +56,7 @@ import { SitesPage } from '../pages/sites/sites';
     StatusBar,
     SplashScreen,
     LocalNotifications,
+    AdMobFree,
     { provide: ErrorHandler, useClass: IonicErrorHandler }
   ]
 })
