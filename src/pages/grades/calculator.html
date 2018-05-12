@@ -1,7 +1,10 @@
 <ion-header>
+
     <ion-navbar color="mustangblue">
         <ion-title>{{ subject.name }}</ion-title>
     </ion-navbar>
+
+    <!-- Semester Selection -->
     <ion-toolbar>
         <ion-segment [(ngModel)]="semester" (click)="resetValues()">
             <ion-segment-button value="fall">
@@ -12,10 +15,13 @@
             </ion-segment-button>
         </ion-segment>
     </ion-toolbar>
+
 </ion-header>
 
+<!-- Main Content -->
 <ion-content>
 
+    <!-- Calculator -->
     <ion-card>
         <ion-card-content>
 
@@ -51,6 +57,7 @@
                     </ion-col>
                 </ion-row>
 
+                <!-- Exemption Check Box -->
                 <ion-item>
                     <ion-checkbox (click)="update('exam')" [(ngModel)]="exempt" color="great" checked="true"></ion-checkbox>
                     <ion-label>Exempt</ion-label>

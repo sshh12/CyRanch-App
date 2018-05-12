@@ -26,13 +26,15 @@ export class NewsPage {
   allNews: Article[];
 
   constructor(public navCtrl: NavController,
-    public events: Events,
-    private http: Http,
-    public toastCtrl: ToastController) {
+              public events: Events,
+              private http: Http,
+              public toastCtrl: ToastController) {
 
+    // Defaults
     this.newsType = "all";
     this.allNews = [];
 
+    // Handle incoming news download
     this.events.subscribe('news:downloaded', news => {
 
       let articles: Article[] = news.news.all;
@@ -47,10 +49,18 @@ export class NewsPage {
 
   }
 
+  /**
+   * Opens article in new window
+   * @param {Article} article - article to open
+   */
   openArticle(article: Article) {
     window.open(article.link, '_system');
   }
 
+  /**
+   * Loads news
+   * @param {Function?} callback - callback once news loaded
+   */
   loadNews(callback?) {
 
     this.http.get(Globals.SERVER + '/api/news/cyranch/all').subscribe(
@@ -73,10 +83,17 @@ export class NewsPage {
 
   }
 
+  /**
+   * Refreshes news
+   * @param {Refresher} refresher - refresher (spinny thing)
+   */
   refresh(refresher) {
     this.loadNews(() => refresher.complete());
   }
 
+  /**
+   * Handles swipe
+   */
   swipeTab(swipe) {
     if (swipe.direction == 2) {
       this.navCtrl.parent.select(1);

@@ -19,20 +19,35 @@ export class CalculatorPage {
   orderOfOps: string[];
 
   constructor(public navCtrl: NavController, params: NavParams) {
+
+    // Defaults
     this.subject = params.data.subject;
     this.semester = 'fall';
     this.exempt = false;
-    this.orderOfOps = ['sem', 'exam', 'second', 'first'];
+    this.orderOfOps = ['sem', 'exam', 'second', 'first']; // Order of Operations
     this.resetValues();
+
   }
 
+  /**
+   * Cleans/Parses value
+   * @param {String} num - number to clean
+   * @returns {Number} value
+   */
   clean(num) {
     num = "0" + num;
     return parseFloat(num.replace(/\D/g, ''));
   }
 
+  /**
+   * Updates Input boxes. Uses queue of operations/updates to calculate
+   * the rest of the other values (sem/exam/1st/2nd) based on the most
+   * recent input.
+   * @param {String} section - box most recently updated
+   */
   update(section: string) {
 
+    // Updated order of inputs
     this.orderOfOps.splice(this.orderOfOps.indexOf(section), 1);
     this.orderOfOps.push(section);
 
@@ -41,6 +56,7 @@ export class CalculatorPage {
     this.exam = this.clean(this.exam);
     this.sem = this.clean(this.sem);
 
+    // Choose appropriate calculation
     let lastOp = this.orderOfOps[0];
     if (lastOp == 'sem') {
       if (!this.exempt) {
@@ -75,6 +91,9 @@ export class CalculatorPage {
 
   }
 
+  /**
+   * Resets values to defaults
+   */
   resetValues() {
     if (this.semester == 'fall') {
       this.firstweeks = this.subject.averages[0].average;

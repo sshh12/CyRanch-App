@@ -1,7 +1,10 @@
 <ion-header>
+
     <ion-navbar color="mustangblue">
         <ion-title>Grades</ion-title>
     </ion-navbar>
+
+    <!-- Grades Tabs -->
     <ion-toolbar>
         <ion-segment [(ngModel)]="gradeType">
             <ion-segment-button value="current">
@@ -15,10 +18,13 @@
             </ion-segment-button>
         </ion-segment>
     </ion-toolbar>
+
 </ion-header>
 
+<!-- Main Content -->
 <ion-content padding (swipe)="swipeTab($event)">
 
+    <!-- Options FAB -->
     <ion-fab top right edge #fab>
         <button ion-fab mini color="mustangblue"><ion-icon name="options"></ion-icon></button>
         <ion-fab-list>
@@ -29,15 +35,18 @@
         </ion-fab-list>
     </ion-fab>
 
+    <!-- Calculator FAB -->
     <ion-fab top left edge *ngIf="gradeType == 'reportcard' && reportCardGrades && reportCardGrades.length > 0">
         <button ion-fab mini color="poor" (click)="calculate()"><ion-icon name="calculator"></ion-icon></button>
     </ion-fab>
 
+    <!-- Refresher -->
     <ion-refresher (ionRefresh)="refreshCurrent($event)">
         <ion-refresher-content pullingText="Refresh" refreshingSpinner="crescent" refreshingText="">
         </ion-refresher-content>
     </ion-refresher>
 
+    <!-- Default Pre-Login Screen -->
     <ion-card *ngIf="!loading && currentGrades.length == 0">
         <ion-card-header>
             Login
@@ -50,14 +59,17 @@
         </ion-card-content>
     </ion-card>
 
+    <!-- Loading... -->
     <div *ngIf="loading" text-center>
         <ion-chip>
             <ion-label>Please wait...</ion-label>
         </ion-chip>
     </div>
 
+    <!-- Grades -->
     <div [ngSwitch]="gradeType">
 
+        <!-- Current Grades -->
         <ion-list *ngSwitchCase="'current'">
 
             <ion-item *ngFor="let subject of currentGrades">
@@ -70,6 +82,7 @@
 
         </ion-list>
 
+        <!-- Reportcard Grades -->
         <div *ngSwitchCase="'reportcard'">
 
             <ion-list>
@@ -121,6 +134,7 @@
 
         </div>
 
+        <!-- Transcript -->
         <div *ngSwitchCase="'transcript'">
 
           <ion-card *ngIf="transcript.gpa">
@@ -145,6 +159,7 @@
             </ion-card-content>
           </ion-card>
 
+          <!-- Reload Button -->
           <ion-card *ngIf="!transcript.gpa">
             <ion-card-content>
                 <h3 text-center>Reload to see GPA</h3>

@@ -1,7 +1,10 @@
 <ion-header>
+
     <ion-navbar color="mustangblue">
         <ion-title>Bells</ion-title>
     </ion-navbar>
+
+    <!-- Day Toolbar -->
     <ion-toolbar>
         <ion-segment [(ngModel)]="dayType" (click)="updateDefaults()">
             <ion-segment-button value="normal">
@@ -18,6 +21,8 @@
             </ion-segment-button>-->
         </ion-segment>
     </ion-toolbar>
+
+    <!-- Lunch Toolbar -->
     <ion-toolbar>
         <ion-segment [(ngModel)]="lunchType" color="dark" (click)="updateDefaults()">
             <ion-segment-button value="a">A</ion-segment-button>
@@ -25,13 +30,20 @@
             <ion-segment-button value="c">C</ion-segment-button>
         </ion-segment>
     </ion-toolbar>
+
 </ion-header>
+
+<!-- Main Content -->
 <ion-content (swipe)="swipeTab($event)">
+
+    <!-- FAB Button -->
     <ion-fab top right edge>
         <button ion-fab mini color="mustangblue" (click)="toggleNotifications()">
             <ion-icon name="{{ notifications ? 'notifications' : 'notifications-off' }}"></ion-icon>
         </button>
     </ion-fab>
+
+    <!-- Schedule Viewer -->
     <ion-list *ngIf="schedules[dayType]">
         <div *ngFor="let period of schedules[dayType].periods">
             <ion-item *ngIf="period.name != 'LUNCH_BLOCK'">
@@ -52,4 +64,5 @@
             </div>
         </div>
     </ion-list>
+
 </ion-content>

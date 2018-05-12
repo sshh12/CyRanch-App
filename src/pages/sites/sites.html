@@ -6,58 +6,50 @@
 
 <ion-content>
 
+    <!-- Tiplined Button -->
     <ion-fab top right edge>
         <button ion-fab mini color="danger" (click)="openWebsite('https://www.p3tips.com/tipform.aspx?ID=242')"><ion-icon name="warning"></ion-icon></button>
     </ion-fab>
 
+    <!-- Search -->
     <ion-searchbar (ionInput)="onSearch($event)" (ionCancel)="onCancel($event)">
     </ion-searchbar>
 
+    <!-- General Info/Websites -->
     <ion-item-group *ngIf="showGeneral">
-
         <ion-item-divider color="light">General</ion-item-divider>
-
         <ion-list>
-
             <ion-item>
                 Cy-Ranch
                 <p (click)="openWebsite('https://cyranch.cfisd.net/en/')">cyranch.cfisd.net</p>
             </ion-item>
-
             <ion-item>
                 Google Classroom
                 <p (click)="openWebsite('https://classroom.google.com/')">classroom.google.com</p>
             </ion-item>
-
             <ion-item>
                 Library Resources
                 <p (click)="openWebsite('https://destinyweb.cfisd.net/common/welcome.jsp?site=909')">destinyweb.cfisd.net</p>
             </ion-item>
-
         </ion-list>
-
     </ion-item-group>
 
+    <!-- Teachers -->
     <div *ngFor="let letter of letters">
 
         <ion-item-group *ngIf="curTeachers[letter] && curTeachers[letter].length > 0">
 
             <ion-item-divider color="light">{{ letter }}</ion-item-divider>
-
             <ion-list>
-
                 <ion-item-sliding *ngFor="let teacher of curTeachers[letter]">
                     <ion-item>
                         {{ teacher.name }}
                         <p (click)="openWebsite(teacher.website)">{{ cleanWebsite(teacher) }}</p>
                     </ion-item>
                     <ion-item-options side="right">
-                        <button ion-button color="primary" (click)="emailTeacher(teacher)">
-              <ion-icon name="mail"></ion-icon>
-            </button>
+                        <button ion-button color="primary" (click)="emailTeacher(teacher)"><ion-icon name="mail"></ion-icon></button>
                     </ion-item-options>
                 </ion-item-sliding>
-
             </ion-list>
 
         </ion-item-group>

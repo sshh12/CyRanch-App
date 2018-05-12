@@ -10,6 +10,7 @@ import { SitesPage } from '../sites/sites';
 })
 export class TabsPage {
 
+  // Just 4 tabs.
   tab1Root = NewsPage;
   tab2Root = GradesPage;
   tab3Root = BellsPage;
@@ -18,4 +19,5 @@ export class TabsPage {
   constructor() {
 
   }
+
 }

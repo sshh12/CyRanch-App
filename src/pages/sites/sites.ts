@@ -20,15 +20,16 @@ export class SitesPage {
   showGeneral: boolean = true;
 
   constructor(public navCtrl: NavController,
-    public events: Events,
-    private http: Http,
-    private storage: Storage,
-    public toastCtrl: ToastController) {
+              public events: Events,
+              private http: Http,
+              private storage: Storage,
+              public toastCtrl: ToastController) {
 
     this.allTeachers = {};
     this.curTeachers = {};
     this.letters = [];
 
+    // Handle download of faculty info
     this.events.subscribe('faculty:downloaded', teachers => {
 
       this.storage.set('faculty:list', teachers);
@@ -38,10 +39,12 @@ export class SitesPage {
 
     });
 
+    // [A, B, C, ..., Z]
     for (let i = 65; i <= 90; i++) {
       this.letters.push(String.fromCharCode(i));
     }
 
+    // Try for cached teachers - if not found, download them
     this.storage.get('faculty:list').then((teachers) => {
       if (teachers) {
         console.log("Using cached teachers...");
@@ -53,6 +56,9 @@ export class SitesPage {
 
   }
 
+  /**
+   * Downloads teacher info from server
+   */
   loadTeachers() {
 
     this.http.get(Globals.SERVER + '/api/faculty/list').subscribe(
@@ -70,36 +76,56 @@ export class SitesPage {
 
   }
 
+  /**
+   * Opens url in new window
+   * @param {String} url - target url
+   */
   openWebsite(url) {
     window.open(url, '_system');
   }
 
+  /**
+   * Prompts users email app w/teachers email
+   * @param {Teacher} teacher - teacher to email
+   */
   emailTeacher(teacher) {
     window.open("mailto://" + teacher.email);
   }
 
+  /**
+   * Removes non-critical chars from teachers website url
+   * @param {Teacher} teacher - teacher
+   * @returns {String} cleaned website url
+   */
   cleanWebsite(teacher) {
     return teacher.website.replace("https://", "")
       .replace("http://www.", "")
       .replace("/a/cfisd.net/", "/../");
   }
 
+  /**
+   * Handles user's search query
+   * @param {String} input - search query
+   */
   onSearch(input) {
 
-    this.curTeachers = JSON.parse(JSON.stringify(this.allTeachers)); // Ez Object Copy
+    // Ez Object Copy (current teachers is simply a filtered version of all teachers)
+    this.curTeachers = JSON.parse(JSON.stringify(this.allTeachers));
 
     let term = input.target.value;
 
+    // No query
     if(!term || term.length == 0) {
       this.showGeneral = true;
       return;
     }
 
+    // Hide non-teacher stuff if the user is trying to find teachers
     this.showGeneral = false;
 
     for (let letter of this.letters) {
       if (this.curTeachers[letter] && term && term.trim() !== '') {
-        this.curTeachers[letter] = this.curTeachers[letter].filter((teacher) => {
+        this.curTeachers[letter] = this.curTeachers[letter].filter((teacher) => { // Filter only relevent teachers
           return teacher.name.toLowerCase().replace(' ', '').replace(',', '').includes(term.toLowerCase());
         });
       }
@@ -107,6 +133,9 @@ export class SitesPage {
 
   }
 
+  /**
+   * Handles user clearing search
+   */
   onCancel() {
     this.curTeachers = this.allTeachers;
     this.showGeneral = true;

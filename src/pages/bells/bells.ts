@@ -21,6 +21,7 @@ export class BellsPage {
     private storage: Storage,
     private notif: LocalNotifications) {
 
+    // All schedules hardcoded
     this.schedules = {
 
       normal: {
@@ -113,6 +114,7 @@ export class BellsPage {
 
     }
 
+    // Defaults
     this.dayType = 'normal';
     this.lunchType = 'a';
     this.notifications = false;
@@ -141,6 +143,7 @@ export class BellsPage {
 
     this.now = new Date();
 
+    // Timer to continously update time left
     this.interval = setInterval(() => {
 
       this.now = new Date();
@@ -164,6 +167,10 @@ export class BellsPage {
 
   }
 
+  /**
+   * Formats date
+   * @param {Date} time - input date
+   */
   formatTime(time: Date): string {
     let suffix = 'am';
     let mins = '' + time.getMinutes();
@@ -180,6 +187,10 @@ export class BellsPage {
     return `${time.getHours()}:${mins} ${suffix}`;
   }
 
+  /**
+   * Formats time period
+   * @param {Period} period - input period
+   */
   formatSubText(period): string {
 
     let start: Date = new Date(2000, 0, 0, ...period.start.split(':'));
@@ -191,6 +202,11 @@ export class BellsPage {
 
   }
 
+  /**
+   * Checks if currently in period
+   * @param {Period} period - input period
+   * @returns {boolean} If is current period
+   */
   isCurrentPeriod(period): boolean {
 
     let start: Date = new Date(2000, 0, 0, ...period.start.split(':'));
@@ -205,6 +221,11 @@ export class BellsPage {
 
   }
 
+  /**
+   * Time remaining in period
+   * @param {Period} period - current period
+   * @returns {Number} time left
+   */
   getTimeRemaining(period): number {
 
     let end: Date = new Date(2000, 0, 0, ...period.end.split(':'));
@@ -214,6 +235,11 @@ export class BellsPage {
 
   }
 
+  /**
+   * Get matching color for time remaining
+   * @param {Period} period - current period
+   * @returns {String} color/style
+   */
   getRemainingColor(period): string {
 
     let timeLeft = this.getTimeRemaining(period);
@@ -228,16 +254,26 @@ export class BellsPage {
 
   }
 
+  /**
+   * Saves day/lunch settings
+   */
   updateDefaults() {
     this.storage.set('bells:day', this.dayType);
     this.storage.set('bells:lunch', this.lunchType);
   }
 
+  /**
+   * Toggles notifications
+   */
   toggleNotifications() {
     this.notifications = !this.notifications;
     this.storage.set('bells:notifications', this.notifications);
   }
 
+  /**
+   * Retrieves info about the current time and period
+   * @returns {Object} current time info
+   */
   getCurrentClassInfo() {
 
     let currentPeriod = null;
@@ -266,6 +302,9 @@ export class BellsPage {
 
   }
 
+  /**
+   * Handles swipe
+   */
   swipeTab(swipe) {
     if (swipe.direction == 2) {
       this.navCtrl.parent.select(3);
@@ -274,6 +313,10 @@ export class BellsPage {
     }
   }
 
+  /**
+   * Opens url in new window
+   * @param {String} url - target url
+   */
   openWebsite(url) {
     window.open(url, '_system');
   }
