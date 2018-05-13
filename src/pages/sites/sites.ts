@@ -78,7 +78,7 @@ export class SitesPage {
 
   /**
    * Opens url in new window
-   * @param {String} url - target url
+   * @param {string} url - target url
    */
   openWebsite(url) {
     window.open(url, '_system');
@@ -95,7 +95,7 @@ export class SitesPage {
   /**
    * Removes non-critical chars from teachers website url
    * @param {Teacher} teacher - teacher
-   * @returns {String} cleaned website url
+   * @returns {string} cleaned website url
    */
   cleanWebsite(teacher) {
     return teacher.website.replace("https://", "")
@@ -105,7 +105,7 @@ export class SitesPage {
 
   /**
    * Handles user's search query
-   * @param {String} input - search query
+   * @param {string} input - search query
    */
   onSearch(input) {
 

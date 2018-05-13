@@ -31,7 +31,7 @@ export class CalculatorPage {
 
   /**
    * Cleans/Parses value
-   * @param {String} num - number to clean
+   * @param {string} num - number to clean
    * @returns {Number} value
    */
   clean(num) {
@@ -43,7 +43,7 @@ export class CalculatorPage {
    * Updates Input boxes. Uses queue of operations/updates to calculate
    * the rest of the other values (sem/exam/1st/2nd) based on the most
    * recent input.
-   * @param {String} section - box most recently updated
+   * @param {string} section - box most recently updated
    */
   update(section: string) {
 

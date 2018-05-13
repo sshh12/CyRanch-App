@@ -18,8 +18,8 @@ export class BellsPage {
   notifications: boolean;
 
   constructor(public navCtrl: NavController,
-    private storage: Storage,
-    private notif: LocalNotifications) {
+              private storage: Storage,
+              private notif: LocalNotifications) {
 
     // All schedules hardcoded
     this.schedules = {
@@ -238,7 +238,7 @@ export class BellsPage {
   /**
    * Get matching color for time remaining
    * @param {Period} period - current period
-   * @returns {String} color/style
+   * @returns {string} color/style
    */
   getRemainingColor(period): string {
 
@@ -315,7 +315,7 @@ export class BellsPage {
 
   /**
    * Opens url in new window
-   * @param {String} url - target url
+   * @param {string} url - target url
    */
   openWebsite(url) {
     window.open(url, '_system');

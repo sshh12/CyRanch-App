@@ -11,6 +11,7 @@ import { Globals } from '../../app/globals';
 
 import { CalculatorPage } from '../grades/calculator';
 
+// -Grade Objects-
 class AssignmentGrade {
   date: string;
   datedue: string;
@@ -35,6 +36,7 @@ export class SubjectReportCard {
   teacher: string;
   room: string;
 }
+// ---------------
 
 @Component({
   selector: 'page-grades',
@@ -61,10 +63,12 @@ export class GradesPage {
               public alertCtrl: AlertController,
               public toastCtrl: ToastController) {
 
+    // Defaults
     this.gradeType = "current";
     this.loading = false;
     this.currentGrades = [];
 
+    // Handle current grade data
     this.events.subscribe('grades:current', grades => {
 
       console.log(grades);
@@ -81,6 +85,7 @@ export class GradesPage {
 
         for (let subject of current) {
 
+          // Sort by date and assign
           let grades: AssignmentGrade[] = subject.assignments;
           grades.sort((a: AssignmentGrade, b: AssignmentGrade) => {
             return (new Date(b.datedue)).getTime() - (new Date(a.datedue)).getTime();
@@ -93,6 +98,7 @@ export class GradesPage {
 
       } else {
 
+        // Error dialog
         this.showServerDialog(grades.status);
 
       }
@@ -101,6 +107,7 @@ export class GradesPage {
 
     });
 
+    // Handle reportcard grade data
     this.events.subscribe('grades:reportcard', reportcard => {
 
       console.log(reportcard);
@@ -121,6 +128,8 @@ export class GradesPage {
 
     });
 
+
+    // Handle transcript data
     this.events.subscribe('grades:transcript', transcript => {
 
       console.log(transcript);
@@ -136,6 +145,7 @@ export class GradesPage {
 
       } else {
 
+        // Error dialog
         this.showServerDialog(transcript.status);
 
       }
@@ -144,6 +154,7 @@ export class GradesPage {
 
     });
 
+    // -Fetch grades (if exist) from memory-
     this.storage.get('grades:current').then((grades) => {
       if (grades) {
         this.events.publish('grades:current', grades);
@@ -161,7 +172,9 @@ export class GradesPage {
         this.events.publish('grades:transcript', transcript);
       }
     });
+    // -------------------------------------
 
+    // Hardcoded class -> subject classifier
     this.classList = {
       "socialstudies": ["hist", "gov", "macro eco", "street law", "human geog", "geog", "wd area", "economics"],
       "art": ["treble", "clarinet", " orch", "art", "band", "animation", "theater", "bnd ", "orchest", "aud vid", "chrl ", "music", "choir", "a/v", "av pro", "voc ens", "symph", "th. pro", " strings"],
@@ -174,6 +187,10 @@ export class GradesPage {
 
   }
 
+  /**
+   * Displays dialog
+   * @param {string} status - status to display
+   */
   showServerDialog(status: string) {
 
     if (status == 'login_failed') {
@@ -212,6 +229,11 @@ export class GradesPage {
 
   }
 
+  /**
+   * Loads Grades
+   * @param {string} gradeType - type of grade to download
+   * @param {Function?} callback - to run after grades are downloaded
+   */
   loadGrades(gradeType: string, callback?) {
 
     this.storage.get('grades:username').then((username) => {
@@ -265,6 +287,10 @@ export class GradesPage {
 
   }
 
+  /**
+   * Refreshes grades
+   * @param {Refresher?} refresher - disable spinny thing when complete
+   */
   refreshCurrent(refresher?) {
     if (refresher) {
       this.loadGrades(this.gradeType, () => refresher.complete());
@@ -273,15 +299,28 @@ export class GradesPage {
     }
   }
 
+  /**
+   * Opens the assignments for a class
+   * @param {SubjectGrade} subject - the class to view
+   */
   openClassGrades(subject: SubjectGrade) {
     this.navCtrl.push(AssignmentsPage, { subject: subject });
   }
 
+  /**
+   * Opens legal page
+   * @param {Fab} fab - the fab button
+   */
   openLegal(fab) {
     fab.close();
     this.navCtrl.push(LegalPage);
   }
 
+  /**
+   * Finds matching color
+   * @param {string} letter - letter grade
+   * @returns {string} color/style
+   */
   getColor(letter: string): string {
     if (letter == 'A') {
       return 'great';
@@ -298,6 +337,11 @@ export class GradesPage {
     }
   }
 
+  /**
+   * Finds matching color
+   * @param {Number} percentile - user's percentile
+   * @returns {string} color/style
+   */
   getColorRank(percentile: number): string {
     if (percentile <= 10) {
       return 'great';
@@ -310,6 +354,11 @@ export class GradesPage {
     }
   }
 
+  /**
+   * Gets class type
+   * @param {string} name - the class's name
+   * @returns {string} color/style
+   */
   getClassType(name: string): string {
     name = name.toLowerCase();
     for (let classType of Object.keys(this.classList)) {
@@ -323,6 +372,11 @@ export class GradesPage {
     return "other";
   }
 
+  /**
+   * Fixes percent string
+   * @param {string} percent - original string
+   * @returns {string} fixed string
+   */
   fixPercent(percent: string): string {
     if (!percent || percent == '' || percent == '0') {
       return '-';
@@ -330,6 +384,11 @@ export class GradesPage {
     return percent;
   }
 
+  /**
+   * Gets the icon for a class
+   * @param {SubjectGrade} subject - a class name
+   * @returns {string} icon name
+   */
   getIcon(subject: SubjectGrade) {
     let classType = this.getClassType(subject.name);
     if (classType == "socialstudies") {
@@ -351,6 +410,11 @@ export class GradesPage {
     }
   }
 
+  /**
+   * Displays opt-in dialog
+   * @param {string} username - HAC username
+   * @param {string} password - HAC password
+   */
   showConfirmLegal(username, password) {
 
     let confirm = this.alertCtrl.create({
@@ -374,6 +438,7 @@ export class GradesPage {
             this.storage.set('grades:legal', true).then(() => {
               this.storage.set('grades:username', username).then(() => {
                 this.storage.set('grades:password', password).then(() => {
+                  // Download everything initally
                   this.loadGrades('current');
                   this.loadGrades('reportcard');
                   this.loadGrades('transcript');
@@ -388,10 +453,20 @@ export class GradesPage {
 
   }
 
+  /**
+   * Validates user/pass
+   * @param {string} sid - HAC username
+   * @param {string} password - HAC password
+   * @returns {boolean} is valid
+   */
   validCreds(sid: string, password: string): boolean {
     return password.length > 4 && sid.length == 7;
   }
 
+  /**
+   * Login dialog
+   * @param {Fab} fab - the fab button
+   */
   showLogin(fab) {
 
     fab.close();
@@ -412,7 +487,7 @@ export class GradesPage {
         {
           text: 'Cancel',
           handler: data => {
-            //
+            // ):
           }
         },
         {
@@ -423,6 +498,7 @@ export class GradesPage {
               if (accepted) {
                 this.storage.set('grades:username', data.sid).then(() => {
                   this.storage.set('grades:password', data.password).then(() => {
+                    // Download everything initally
                     this.loadGrades('current');
                     this.loadGrades('reportcard');
                     this.loadGrades('transcript');
@@ -441,10 +517,15 @@ export class GradesPage {
 
   }
 
+  /**
+   * Logout and delete local data.
+   * @param {Fab} fab - the fab button
+   */
   logout(fab) {
 
     fab.close();
 
+    // Clearing all data by setting back to default
     this.storage.set('grades:username', '');
     this.storage.set('grades:password', '');
     this.storage.set('grades:legal', false);
@@ -461,6 +542,9 @@ export class GradesPage {
 
   }
 
+  /**
+   * Handles swipe
+   */
   swipeTab(swipe) {
     if (swipe.direction == 2) {
       if (this.gradeType == 'current') {
@@ -477,6 +561,10 @@ export class GradesPage {
     }
   }
 
+  /**
+   * Handles grade calculator button.
+   * Click Icon -> Choose Class -> CalculatorPage
+   */
   calculate() {
     let alert = this.alertCtrl.create();
     alert.setTitle('Choose a class');
@@ -508,7 +596,13 @@ export class GradesPage {
     alert.present();
   }
 
-  timeAgo(date: Date): string { // Thanks: https://stackoverflow.com/questions/3177836/how-to-format-time-since-xxx-e-g-4-minutes-ago-similar-to-stack-exchange-site
+  /**
+   * Formats time since X
+   * Thanks: https://stackoverflow.com/questions/3177836/how-to-format-time-since-xxx-e-g-4-minutes-ago-similar-to-stack-exchange-site
+   * @param {Date} date - original date
+   * @returns {string} the time till date formated
+   */
+  timeAgo(date: Date): string {
 
     let time = (Date.now() - date.getTime());
 
@@ -571,6 +665,11 @@ export class AssignmentsPage {
     this.subject = params.data.subject;
   }
 
+  /**
+   * Finds matching color
+   * @param {string} letter - letter grade
+   * @returns {string} color/style
+   */
   getColor(letter: string): string {
     if (letter == 'A') {
       return 'great';
