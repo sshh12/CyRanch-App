@@ -419,7 +419,7 @@ export class GradesPage {
 
     let confirm = this.alertCtrl.create({
       title: 'Legal',
-      message: 'To provide statistical features and contribute to personal data analysis, the app requires that you accept the policies outlined in the legal section of the app (black icon in the top right menu).',
+      message: 'To provide statistical features and contribute to personal data analysis, the app requires that you accept the policies outlined in the legal section of the app (black icon in the top right menu) and confirm that you are more than 13 years old.',
       buttons: [
         {
           text: 'No!',
