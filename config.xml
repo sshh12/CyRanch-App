@@ -1,5 +1,5 @@
 <?xml version='1.0' encoding='utf-8'?>
-<widget id="com.sshh12.cyranch" version="7.5.0" xmlns="http://www.w3.org/ns/widgets" xmlns:cdv="http://cordova.apache.org/ns/1.0">
+<widget id="com.sshh12.cyranch" version="7.5.1" xmlns="http://www.w3.org/ns/widgets" xmlns:cdv="http://cordova.apache.org/ns/1.0">
     <name>Cy-Ranch</name>
     <description>An app I created for Cy-Ranch High School.</description>
     <author email="shrivu1122@gmail.com" href="https://sshh.io">SSHH.IO</author>
@@ -13,13 +13,13 @@
     <allow-intent href="geo:*" />
     <allow-intent href="mailto:*" />
     <preference name="ScrollEnabled" value="false" />
-    <preference name="android-minSdkVersion" value="16" />
     <preference name="BackupWebStorage" value="none" />
     <preference name="SplashMaintainAspectRatio" value="true" />
     <preference name="FadeSplashScreenDuration" value="300" />
     <preference name="SplashShowOnlyFirstTime" value="false" />
     <preference name="SplashScreen" value="screen" />
     <preference name="SplashScreenDelay" value="3000" />
+    <preference name="android-targetSdkVersion" value="28" />
     <platform name="android">
         <allow-intent href="market:*" />
         <icon density="ldpi" src="resources/android/icon/drawable-ldpi-icon.png" />
@@ -86,6 +86,9 @@
     <plugin name="cordova-sqlite-storage" spec="^2.1.2" />
     <plugin name="de.appplant.cordova.plugin.local-notification" spec="^0.8.5" />
     <plugin name="cordova-plugin-admob-free" spec="~0.15.0" />
+    <plugin name="cordova-android-support-gradle-release" spec="^3.0.1">
+        <variable name="ANDROID_SUPPORT_VERSION" value="28.+" />
+    </plugin>
     <engine name="ios" spec="4.5.4" />
-    <engine name="android" spec="6.3.0" />
+    <engine name="android" spec="7.1.4" />
 </widget>
