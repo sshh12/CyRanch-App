@@ -43,7 +43,7 @@ export class MyApp {
 
     const bannerConfig: AdMobFreeBannerConfig = {
       id: bannerAdID,
-      isTesting: true, // RENOVE BEFORE FLIGHT
+      isTesting: true, // REMOVE BEFORE FLIGHT
       autoShow: false
     };
     this.admobFree.banner.config(bannerConfig);

@@ -1,15 +1,15 @@
 {
   "name": "CyRanchApp",
-  "version": "7.5.1",
+  "version": "7.5.2",
   "author": "Shrivu Shankar",
   "homepage": "https://github.com/sshh12/CyRanch-App",
   "private": true,
   "scripts": {
     "clean": "ionic-app-scripts clean",
-    "deploy:android:1": "ionic cordova build --release --rollup --prod android",
+    "deploy:android:1": "ionic cordova build --release --rollup --prod android && echo \"Ensure testing mode is disabled!\"",
     "deploy:android:2": "jarsigner -verbose -sigalg SHA1withRSA -digestalg SHA1 -keystore ./publish/CyRanchKey.keystore ./platforms/android/app/build/outputs/apk/release/app-release-unsigned.apk cyranchalias",
     "deploy:android:3": "zipalign -v 4 ./platforms/android/app/build/outputs/apk/release/app-release-unsigned.apk CyRanch.apk",
-    "deploy:ios": "ionic cordova build ios --rollup --prod",
+    "deploy:ios": "ionic cordova build ios --rollup --prod && echo \"Ensure testing mode is disabled!\"",
     "dev": "ionic serve --lab",
     "dev:android": "ionic cordova run android"
   },
